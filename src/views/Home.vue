@@ -12,7 +12,7 @@ import Viewer from '@/components/Viewer.vue'; // @ is an alias to /src
 @Component({
   components: {
     HelloWorld,
-    Viewer
+    Viewer,
   },
 })
 export default class Home extends Vue {}

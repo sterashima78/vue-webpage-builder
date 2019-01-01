@@ -36,7 +36,7 @@ interface VueNode {
   tag: string;
   attr: VNodeData;
   // children: Array<VueNode>;
-  childrenId: Array<string>;
+  childrenId: string[];
   parentId: string;
 }
 
@@ -56,7 +56,7 @@ export default class Viewer extends Vue {
     [`__VUE_WEB_BUILDER_1__`, {id: 1, tag: "div", attr: {class: ["layout"]}, childrenId: [], parentId: `__VUE_WEB_BUILDER_0__`}],
   ]);
 
-  newElement(tag: string, data: VNodeData, childrenId: Array<string> = [], parentId: string = "__VUE_WEB_BUILDER_1__"): Optional<VueNode>{
+  newElement(tag: string, data: VNodeData, childrenId: string[] = [], parentId: string = "__VUE_WEB_BUILDER_1__"): Optional<VueNode>{
     const ele: VueNode = {
       id: ++this.counter,
       tag: tag, 
@@ -97,7 +97,7 @@ export default class Viewer extends Vue {
       return ele
     })
   }
-  addElement(tag: string, data: VNodeData, children: Array<string> = []){
+  addElement(tag: string, data: VNodeData, children: string[] = []){
     
     this.newElement(tag, data, children, '__VUE_WEB_BUILDER_1__').ifPresent((ele: VueNode)=>{
       this.nodes.set(`__VUE_WEB_BUILDER_${ele.id}__`, ele)
@@ -125,7 +125,7 @@ export default class Viewer extends Vue {
   newBtn(event: DragEvent): void {
     this.newElement("v-btn", {}).ifPresent((node: VueNode)=>{
       const parentNode = this.nodes.get(node.parentId)
-      parentNode.childrenId = parentNode.childrenId.filter(i => i != `__VUE_WEB_BUILDER_${node.id}__`)
+      parentNode.childrenId = parentNode.childrenId.filter(()i => i != `__VUE_WEB_BUILDER_${node.id}__`)
       this.nodes.set(node.parentId, parentNode)
       node.parentId = ""
       event.dataTransfer.setData("text/plain", JSON.stringify(node))
@@ -191,7 +191,7 @@ export default class Viewer extends Vue {
       this.nodes.get(`__VUE_WEB_BUILDER_${item.id}__`).childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
     }else{
       if(this.isSort){
-        const parent = Optional.ofNullable(this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`)).map(e => e.parentId).orElse(`__VUE_WEB_BUILDER_-1__`)
+        const parent = Optional.ofNullable(this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`)).map(()e => e.parentId).orElse(`__VUE_WEB_BUILDER_-1__`)
         if(item.parentId != parent) return
         Optional.ofNullable(this.nodes.get(item.parentId)).ifPresent((node: VueNode)=>{
           const dragIndex = node.childrenId.indexOf(`__VUE_WEB_BUILDER_${ele.id}__`)
@@ -234,12 +234,12 @@ export default class Viewer extends Vue {
     return Optional.ofNullable(iframe)
   }
   get window(): Optional<Window> {
-    const w: Window|null = this.iframe.map(i => i.contentWindow).orElse(null)
+    const w: Window|null = this.iframe.map(()i => i.contentWindow).orElse(null)
     return Optional.ofNullable(w)
   }
 
   get document(): Document {
-    return this.window.map(w => w.document).get()
+    return this.window.map(()w => w.document).get()
   }
 
   createScript(src: string): HTMLScriptElement {
@@ -255,9 +255,9 @@ export default class Viewer extends Vue {
     return ele
   }
 
-  createStyle(rules: Array<styleRule>): HTMLStyleElement {
+  createStyle(rules: styleRule[]): HTMLStyleElement {
     const ele = document.createElement("style")
-    ele.innerHTML = rules.map(rule => {
+    ele.innerHTML = rules.map((rul)e => {
       const style: string = Array.from(rule.styles.keys()).map( (k: string) => `${k}: ${rule.styles.get(k)};`).join("\n")
       return `${rule.selector} {\n ${style}\n}`
     }).join("\n")
