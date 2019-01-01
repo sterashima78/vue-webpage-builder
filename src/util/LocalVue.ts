@@ -3,7 +3,7 @@ import Vuetify from 'vuetify';
 Vue.use(Vuetify);
 import Optional from 'typescript-optional';
 
-interface VueNode {
+export interface VueNode {
   id: number;
   tag: string;
   attr: VNodeData;
