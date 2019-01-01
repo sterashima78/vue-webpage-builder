@@ -64,10 +64,14 @@ export default class Viewer extends Vue {
       childrenId,
       parentId
     }
-    return Optional.ofNullable(this.nodes.get(parentId)).map((node)=>{
-      node.childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
+    return Optional.ofNullable(this.nodes.get(parentId)).map((parentNode)=>{
+      parentNode.childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
       const attr = merge({
-        domProps: {}, 
+        domProps: {
+          __VUE_WEB_BUILDER__: {
+            id: ele.id
+          }
+        }, 
         attrs: {
           draggable: true
         },
@@ -97,7 +101,6 @@ export default class Viewer extends Vue {
     
     this.newElement(tag, data, children, '__VUE_WEB_BUILDER_1__').ifPresent((ele: VueNode)=>{
       this.nodes.set(`__VUE_WEB_BUILDER_${ele.id}__`, ele)
-      console.log(ele)
       this.vm.setNodes(this.nodes)
     })
     
@@ -120,8 +123,11 @@ export default class Viewer extends Vue {
   }
 
   newBtn(event: DragEvent): void {
-    this.newElement("v-btn", {domProps: {innerText: `new btn 1`}}).ifPresent((node: VueNode)=>{
-      node.id = -1
+    this.newElement("v-btn", {}).ifPresent((node: VueNode)=>{
+      const parentNode = this.nodes.get(node.parentId)
+      parentNode.childrenId = parentNode.childrenId.filter(i => i != `__VUE_WEB_BUILDER_${node.id}__`)
+      this.nodes.set(node.parentId, parentNode)
+      node.parentId = ""
       event.dataTransfer.setData("text/plain", JSON.stringify(node))
     })
   }
@@ -178,30 +184,32 @@ export default class Viewer extends Vue {
       drop: ($event: DragEvent)=> this.drop(ele, $event),
       dragover: ($event: DragEvent)=> $event.preventDefault(),
     }
-    if(this.isSort){
-      const parent = Optional.ofNullable(this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`)).map(e => e.parentId).orElse(`__VUE_WEB_BUILDER_-1__`)
-      if(item.parentId != parent) return
-      Optional.ofNullable(this.nodes.get(item.parentId)).ifPresent((node: VueNode)=>{
-        const dragIndex = node.childrenId.indexOf(`__VUE_WEB_BUILDER_${ele.id}__`)
-        const dropIndex = node.childrenId.indexOf(`__VUE_WEB_BUILDER_${item.id}__`)
+    if(ele.parentId == ""){
+      console.log("new", ele)
+      ele.parentId = `__VUE_WEB_BUILDER_${item.id}__`
+      this.nodes.set(`__VUE_WEB_BUILDER_${ele.id}__`, ele)
+      this.nodes.get(`__VUE_WEB_BUILDER_${item.id}__`).childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
+    }else{
+      if(this.isSort){
+        const parent = Optional.ofNullable(this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`)).map(e => e.parentId).orElse(`__VUE_WEB_BUILDER_-1__`)
+        if(item.parentId != parent) return
+        Optional.ofNullable(this.nodes.get(item.parentId)).ifPresent((node: VueNode)=>{
+          const dragIndex = node.childrenId.indexOf(`__VUE_WEB_BUILDER_${ele.id}__`)
+          const dropIndex = node.childrenId.indexOf(`__VUE_WEB_BUILDER_${item.id}__`)
 
-        node.childrenId.splice(dragIndex, 1)
-        node.childrenId.splice(dropIndex, 0, `__VUE_WEB_BUILDER_${ele.id}__`)
-      })
-    }
-    else {
-      if(ele.id > 0){
+          node.childrenId.splice(dragIndex, 1)
+          node.childrenId.splice(dropIndex, 0, `__VUE_WEB_BUILDER_${ele.id}__`)
+        })
+      }
+      else {
         const beforeParent = this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`).parentId
         const cIds = this.nodes.get(beforeParent).childrenId
         this.nodes.get(beforeParent).childrenId.splice(cIds.indexOf(`__VUE_WEB_BUILDER_${ele.id}__`), 1)
-        this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`).parentId = item.id
-        this.nodes.get(`__VUE_WEB_BUILDER_${item.id}__`).childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
-      } else {
-        ele.id = ++this.counter
-        this.nodes.set(`__VUE_WEB_BUILDER_${ele.id}__`, ele)
+        this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`).parentId = `__VUE_WEB_BUILDER_${item.id}__`
         this.nodes.get(`__VUE_WEB_BUILDER_${item.id}__`).childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
       }
     }
+    
     event.target.classList.remove("drag-enter")
     this.vm.setNodes(this.nodes)
     console.log("drop", item, event)
