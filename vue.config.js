@@ -1,3 +1,6 @@
 module.exports = {
-  runtimeCompiler: true
+  runtimeCompiler: true,
+  transpileDependencies: [
+    'vuex-module-decorators'
+  ]
 }

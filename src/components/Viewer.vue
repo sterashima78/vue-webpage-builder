@@ -4,216 +4,183 @@
   <div style="width: 300px">
     <v-switch
       :label="isSort ? 'ソートモード' : 'Addモード'"
-      v-model="isSort"
+      :value="isSort"
+      @change="setIsSort(!!$event)"
     ></v-switch>
-    <v-btn @click="addToolbar">Add toolbar</v-btn>
-    <v-btn @click="addBtn">Add btn</v-btn>
-    <v-btn @click="addIcon">Add Icon</v-btn>
+    <v-tabs v-model="active">
+      <v-tab ripple><v-icon>layers</v-icon></v-tab>
+      <v-tab ripple><v-icon>dashboard</v-icon></v-tab>
+      <v-tab ripple><v-icon>tune</v-icon></v-tab>
+      <v-tab-item>
+        <v-card flat>
+          <v-card-text>
+            <v-treeview :items="tree" :hoverable="true">
+              <template slot="label" slot-scope="{ item, open, leaf }">
+                <div 
+                  draggable="true" 
+                  style="cursor: move" 
+                  @dragstart="treeDragStart(item.id)" 
+                  @drop="treeDrop(item.id)" 
+                  @dragover="$event.preventDefault()"
+                  @mouseenter="treeMouseEnter(item.id)"
+                  @mouseleave="treeMouseLeave(item.id)"
+                >{{item.name}}</div>
+              </template>
+              <template slot="append" slot-scope="{ item, open, leaf }">
+                <v-icon @click="deleteNode(item.id)">delete</v-icon>
+              </template>
+            </v-treeview>
+          </v-card-text>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item>
+        <v-card flat>
+          <v-card-text>
+            
+            <v-btn @click="addToolbar">Add toolbar</v-btn>
+            <v-btn @click="addBtn">Add btn</v-btn>
+            <v-btn @click="addIcon">Add Icon</v-btn>
+            <v-btn @click="addLayout">Add Layout</v-btn>
+
+            <!-- <div @dragstart="newBtn" draggable="true">new btn</div> -->
+            <!-- <div @dragstart="newToolbar" draggable="true">new toolbar</div> -->
+          </v-card-text>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item>
+        <v-card flat>
+          <v-card-text>
+          </v-card-text>
+        </v-card>
+      </v-tab-item>
+    </v-tabs>
     
-    <v-btn @click="addElement('div', {class: ['layout']})">Add Layout</v-btn>
-    <div @dragstart="newBtn" draggable="true">new btn</div>
-    <div @dragstart="newToolbar" draggable="true">new toolbar</div>
   </div>
 </v-layout>
 </template>
 
 <script lang="ts">
-import VueJS from "vue";
-import {CreateElement, VNode, VNodeData } from "vue";
+import VueJS from 'vue';
+import {CreateElement, VNode, VNodeData } from 'vue';
 import Vuetify from 'vuetify';
 VueJS.use(Vuetify);
 
 import { Component, Vue, Watch } from 'vue-property-decorator';
-import Optional from "typescript-optional";
+import Optional from 'typescript-optional';
 
-import cloneDeep from "lodash.clonedeep"
-import merge from "lodash.merge"
-import Iframe, {styleRule} from "../util/Iframe"
-import LocalVue, {VueNode} from "../util/LocalVue"
+import cloneDeep from 'lodash.clonedeep';
+import merge from 'lodash.merge';
+
+import Iframe, {StyleRule} from '../util/Iframe';
+import LocalVue from '../util/LocalVue';
+
+import Nodes from '../store/modules/nodes';
 
 @Component
 export default class Viewer extends Vue {
-  iframe: Iframe = new Iframe(document.createElement("iframe"));
-  isSort: boolean = true
-  counter: number = 100;
-  rootElement: HTMLElement = document.createElement("div");
-  vm: any = {};
-  nodes: Map<string, VueNode> = new Map<string, VueNode>([
-    [`__VUE_WEB_BUILDER_0__`, {id: 0, tag: "v-app", attr: {}, childrenId: [`__VUE_WEB_BUILDER_1__`], parentId: `__VUE_WEB_BUILDER_-1__`}],
-    [`__VUE_WEB_BUILDER_1__`, {id: 1, tag: "div", attr: {class: ["layout"]}, childrenId: [], parentId: `__VUE_WEB_BUILDER_0__`}],
-  ]);
+  public iframe: Iframe = new Iframe(document.createElement('iframe'));
+  public rootElement: HTMLElement = document.createElement('div');
+  public vm: any = {};
+  public active: string = '';
+  public treeDragItem: string = '';
 
-  newElement(tag: string, data: VNodeData, childrenId: Array<string> = [], parentId: string = "__VUE_WEB_BUILDER_1__"): Optional<VueNode>{
-    const ele: VueNode = {
-      id: ++this.counter,
-      tag: tag, 
-      attr: {}, 
-      childrenId,
-      parentId
+  get isSort() {
+    return Nodes.isSort;
+  }
+
+  get tree() {
+    return Nodes.tree;
+  }
+
+  public treeDragStart(id: string) {
+    this.treeDragItem = id;
+  }
+
+  public treeDrop(id: string) {
+    if (id === this.treeDragItem) { return ; }
+    if (Nodes.isSort) {
+      Nodes.MOVE_ELEMENT_TO({eleId: this.treeDragItem, targetId: id});
+    } else {
+      Nodes.MOVE_ELEMENT_IN({eleId: this.treeDragItem, targetId: id});
     }
-    return Optional.ofNullable(this.nodes.get(parentId)).map((parentNode)=>{
-      parentNode.childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
-      const attr = merge({
-        domProps: {
-          __VUE_WEB_BUILDER__: {
-            id: ele.id
-          }
-        }, 
-        attrs: {
-          draggable: true
-        },
-        on: {
-          dragstart: ($event: DragEvent)=> this.dragStart(ele, $event),
-          dragend: ($event: DragEvent)=> this.dragEnd(ele, $event),
-          dragenter: ($event: DragEvent)=> this.dragEnter(ele, $event),
-          dragleave: ($event: DragEvent)=> this.dragLeave(ele, $event),
-          drop: ($event: DragEvent)=> this.drop(ele, $event),
-          dragover: ($event: DragEvent)=> $event.preventDefault(),
-        },
-        nativeOn: {
-          dragstart: ($event: DragEvent)=> this.dragStart(ele, $event),
-          dragend: ($event: DragEvent)=> this.dragEnd(ele, $event),
-          dragenter: ($event: DragEvent)=> this.dragEnter(ele, $event),
-          dragleave: ($event: DragEvent)=> this.dragLeave(ele, $event),
-          drop: ($event: DragEvent)=> this.drop(ele, $event),
-          dragover: ($event: DragEvent)=> $event.preventDefault(),
-        },
-        class: []
-      },data)
-      ele.attr = attr
-      return ele
-    })
-  }
-  addElement(tag: string, data: VNodeData, children: Array<string> = []){
-    
-    this.newElement(tag, data, children, '__VUE_WEB_BUILDER_1__').ifPresent((ele: VueNode)=>{
-      this.nodes.set(`__VUE_WEB_BUILDER_${ele.id}__`, ele)
-      this.vm.setNodes(this.nodes)
-    })
-    
-  }
-  addIcon(){
-    this.addElement("v-icon", {}, ["home"])
-  }
-  addBtn(){
-    this.addElement("v-btn", {}, ["btn"])
-  }
-  addToolbar(){
-    this.addElement("v-toolbar", {}, ["ToolBar"])
+    this.vm.update();
+    this.treeDragItem = '';
   }
 
-  newToolbar(event: DragEvent): void {
-    this.newElement("v-toolbar", {}).ifPresent((node: VueNode)=>{
-      node.id = -1
-      event.dataTransfer.setData("text/plain", JSON.stringify(node))
-    })
+  public treeMouseEnter(id: string) {
+    Nodes.SET_HOVER_ELEMENT(id);
   }
 
-  newBtn(event: DragEvent): void {
-    this.newElement("v-btn", {}).ifPresent((node: VueNode)=>{
-      const parentNode = this.nodes.get(node.parentId)
-      parentNode.childrenId = parentNode.childrenId.filter(i => i != `__VUE_WEB_BUILDER_${node.id}__`)
-      this.nodes.set(node.parentId, parentNode)
-      node.parentId = ""
-      event.dataTransfer.setData("text/plain", JSON.stringify(node))
-    })
+  public treeMouseLeave(id: string) {
+    Nodes.REMOVE_HOVER_ELEMENT(id);
   }
 
-  dragStart(item: VueNode, event: DragEvent){
-    event.stopPropagation();
-    const data = event.dataTransfer.getData("text/plain");
-    if(data != ""){
-      try {
-        const d = JSON.parse(data)
-        if(d.id == item.id){
-          return 
-        }
-      } catch (error) {
-        return 
-      }
-    }
-    
-    event.dataTransfer.setData("text/plain", JSON.stringify(item))
-    console.log("start", item, event)
+  public deleteNode(id: string) {
+    Nodes.REMOVE_NODE(id);
   }
 
-  dragEnd(item: VueNode, event: DragEvent){
-    event.stopPropagation();
-    event.dataTransfer.setData("text/plain", "")
-    // this.vm.setNodes(this.nodes)
-    console.log("end",item, event)
+  public setIsSort(v: boolean) {
+    Nodes.SET_IS_SORT(v);
   }
 
-  dragEnter(item: VueNode, event: DragEvent){
-    event.stopPropagation();
-    if(!event.target.classList.contains("drag-enter")){
-      event.target.classList.add("drag-enter")
-    }
-    console.log("enter", item, event)
+  public addIcon() {
+    Nodes.ADD_NODE({
+      id: '',
+      parentId: Nodes.topNodes[0].childrenId[0],
+      childrenId: ['home'],
+      attr: {},
+      tag: 'v-icon',
+    });
   }
-
-  dragLeave(item: VueNode, event: DragEvent){
-    event.stopPropagation();
-    if(event.target.classList.contains("drag-enter")){
-      event.target.classList.remove("drag-enter")
-    }
-    console.log("leave", item, event)
+  public addBtn() {
+    Nodes.ADD_NODE({
+      id: '',
+      parentId: Nodes.topNodes[0].childrenId[0],
+      childrenId: ['added btn'],
+      attr: {},
+      tag: 'v-btn',
+    });
   }
-
-  drop(item: VueNode, event: DragEvent): void{
-    event.stopPropagation();
-    const ele: VueNode = JSON.parse(event.dataTransfer.getData("text/plain"))
-    ele.attr.nativeOn = {
-      dragstart: ($event: DragEvent)=> this.dragStart(ele, $event),
-      dragend: ($event: DragEvent)=> this.dragEnd(ele, $event),
-      dragenter: ($event: DragEvent)=> this.dragEnter(ele, $event),
-      dragleave: ($event: DragEvent)=> this.dragLeave(ele, $event),
-      drop: ($event: DragEvent)=> this.drop(ele, $event),
-      dragover: ($event: DragEvent)=> $event.preventDefault(),
-    }
-    if(ele.parentId == ""){
-      console.log("new", ele)
-      ele.parentId = `__VUE_WEB_BUILDER_${item.id}__`
-      this.nodes.set(`__VUE_WEB_BUILDER_${ele.id}__`, ele)
-      this.nodes.get(`__VUE_WEB_BUILDER_${item.id}__`).childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
-    }else{
-      if(this.isSort){
-        const parent = Optional.ofNullable(this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`)).map(e => e.parentId).orElse(`__VUE_WEB_BUILDER_-1__`)
-        if(item.parentId != parent) return
-        Optional.ofNullable(this.nodes.get(item.parentId)).ifPresent((node: VueNode)=>{
-          const dragIndex = node.childrenId.indexOf(`__VUE_WEB_BUILDER_${ele.id}__`)
-          const dropIndex = node.childrenId.indexOf(`__VUE_WEB_BUILDER_${item.id}__`)
-
-          node.childrenId.splice(dragIndex, 1)
-          node.childrenId.splice(dropIndex, 0, `__VUE_WEB_BUILDER_${ele.id}__`)
-        })
-      }
-      else {
-        const beforeParent = this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`).parentId
-        const cIds = this.nodes.get(beforeParent).childrenId
-        this.nodes.get(beforeParent).childrenId.splice(cIds.indexOf(`__VUE_WEB_BUILDER_${ele.id}__`), 1)
-        this.nodes.get(`__VUE_WEB_BUILDER_${ele.id}__`).parentId = `__VUE_WEB_BUILDER_${item.id}__`
-        this.nodes.get(`__VUE_WEB_BUILDER_${item.id}__`).childrenId.push(`__VUE_WEB_BUILDER_${ele.id}__`)
-      }
-    }
-    
-    event.target.classList.remove("drag-enter")
-    this.vm.setNodes(this.nodes)
-    console.log("drop", item, event)
+  public addToolbar() {
+    Nodes.ADD_NODE({
+      id: '',
+      parentId: Nodes.topNodes[0].childrenId[0],
+      childrenId: ['ToolBar'],
+      attr: {},
+      tag: 'v-toolbar',
+    });
   }
-  mounted(){
-    Optional.ofNullable(this.$el.querySelector("iframe")).ifPresent((ele: HTMLIFrameElement)=>{
-      this.iframe = new Iframe(ele)
-      this.iframe.addLink('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons')
-      this.iframe.addLink('https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css')
+  public addLayout() {
+    Nodes.ADD_NODE({
+      id: '',
+      parentId: Nodes.topNodes[0].childrenId[0],
+      childrenId: [],
+      attr: {class: ['layout']},
+      tag: 'div',
+    });
+  }
+  public mounted() {
+    Optional.ofNullable(this.$el.querySelector('iframe')).ifPresent((ele: HTMLIFrameElement) => {
+      this.iframe = new Iframe(ele);
+      this.iframe.addLink('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons');
+      this.iframe.addLink('https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css');
 
-      const styles = new Map<string, string>()
-      styles.set("border", "5px solid red")
-      this.iframe.addStyle([{ selector: '.drag-enter', styles }])
+      const styles = new Map<string, string>();
+      styles.set('border', '5px solid red');
+      styles.set('box-sizing', 'border-box');
+
+      const styles2 = new Map<string, string>();
+      styles2.set('border', '5px solid blue');
+      styles2.set('box-sizing', 'border-box');
+
+      this.iframe.addStyle([
+        { selector: '.drag-enter', styles },
+        { selector: '.vue-web-builder-hover', styles: styles2 },
+      ]);
+
       this.iframe.document.body.appendChild(this.rootElement);
-      this.vm = new LocalVue(this.rootElement)
-      this.vm.setNodes(this.nodes)
-    })
+      this.vm = new LocalVue(this.rootElement);
+    });
   }
 
 }

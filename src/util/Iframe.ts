@@ -1,7 +1,7 @@
 import Optional from 'typescript-optional';
 
 
-export interface styleRule {
+export interface StyleRule {
   selector: string;
   styles: Map<string, string>;
 }
@@ -30,7 +30,7 @@ export default class Iframe {
     this.head.appendChild(this.createScript(src));
   }
 
-  public addStyle(rules: styleRule[]): void {
+  public addStyle(rules: StyleRule[]): void {
     this.head.appendChild(this.createStyle(rules));
   }
 
@@ -51,10 +51,11 @@ export default class Iframe {
     return ele;
   }
 
-  public createStyle(rules: styleRule[]): HTMLStyleElement {
+  public createStyle(rules: StyleRule[]): HTMLStyleElement {
     const ele = document.createElement('style');
     ele.innerHTML = rules.map((rule) => {
-      const style: string = Array.from(rule.styles.keys()).map( (k: string) => `${k}: ${rule.styles.get(k)};`).join('\n');
+      const style: string = Array.from(rule.styles.keys())
+          .map( (k: string) => `${k}: ${rule.styles.get(k)};`).join('\n');
       return `${rule.selector} {\n ${style}\n}`;
     }).join('\n');
     return ele;
