@@ -1,6 +1,6 @@
 <template>
 <v-layout>
-  <iframe style="width:100%;height:500px" />
+  <iframe style="width:100%;height:100%" />
   <div style="width: 300px">
     <v-switch
       :label="isSort ? 'ソートモード' : 'Addモード'"

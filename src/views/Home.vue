@@ -1,5 +1,5 @@
 <template>
-  <v-layout>
+  <v-layout style="height:100%">
     <Viewer />
   </v-layout>
 </template>
