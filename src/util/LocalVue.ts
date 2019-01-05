@@ -5,14 +5,14 @@ Vue.use(Vuetify);
 Vue.use(Vuex);
 import Optional from 'typescript-optional';
 import clone from 'lodash.clonedeep';
-import Nodes, {IVueNode} from '@/store/modules/nodes';
+import Nodes from '@/store/modules/nodes';
 import uuid from 'uuid';
-
 interface VueWebBuilderElement extends HTMLElement {
   __VUE_WEB_BUILDER_ID__: string;
   parentElement: VueWebBuilderElement;
 }
 
+Nodes.SET_COMPONENTS(Object.keys(Vue.options.components));
 export default class LocalVue {
 
   public static targetNodeIdEqualsTo(target: VueWebBuilderElement, id: string): boolean {
@@ -82,7 +82,25 @@ export default class LocalVue {
 
   public static drop(event: DragEvent) {
     event.stopPropagation();
-    if (Nodes.draggingId === '' ) { return; }
+    if (Nodes.draggingId !== '' ) {
+      this.dropFromCanvas(event);
+      return;
+    }
+
+    if (Nodes.newCmpName !== '' ) {
+      this.dropFromTab(event);
+      return;
+    }
+  }
+
+  private static dropFromTab(event: DragEvent) {
+    Optional.ofNullable(this.getNodeId(event.target as VueWebBuilderElement)).ifPresent( (id: string) => {
+      Nodes.CREATE_ELEMENT_IN(id);
+      Nodes.REMOVE_DROP_TARGET(id);
+    });
+  }
+
+  private static dropFromCanvas(event: DragEvent) {
     Optional.ofNullable(this.getNodeId(event.target as VueWebBuilderElement)).ifPresent( (id: string) => {
       Nodes.REMOVE_DROP_TARGET(id);
     });

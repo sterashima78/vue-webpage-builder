@@ -32,8 +32,60 @@ class Nodes extends VuexModule implements INodesState {
    public dropTargetId: string = '';
    public isSort: boolean = true;
    public hoverId: string = '';
+   public editTargetId: string = '';
+   public components: string[] = [];
+   public newCmpName: string = '';
 
    // mutation
+   @Mutation
+  public UPDATE_TEXT(text: string) {
+    const targetNode = this.nodes[this.editTargetId];
+    const index: number = targetNode.childrenId.findIndex((i) => this.nodes[i] === undefined);
+    if (index < 0) {
+      this.nodes[this.editTargetId].childrenId.push(text);
+    } else {
+      this.nodes[this.editTargetId].childrenId[index] = text;
+    }
+
+   }
+
+   @Mutation
+   public CREATE_ELEMENT_IN(parentId: string) {
+    if (this.nodes[parentId] === undefined) { return; }
+    const node: IVueNode = {
+      id: '',
+      attr: {},
+      parentId,
+      childrenId: [],
+      tag: this.newCmpName,
+    };
+    node.id = uuid.v4();
+    this.nodes[node.parentId].childrenId.push(node.id);
+    this.nodes[node.id] = node;
+   }
+
+   @Mutation
+   public SET_NEW_COMPONENT_NAME(name: string) {
+    this.newCmpName = name;
+   }
+
+   @Mutation
+   public REMOVE_NEW_COMPONENT_NAME(name: string) {
+    if (this.newCmpName === name) {
+      this.newCmpName = '';
+    }
+   }
+
+   @Mutation
+   public SET_COMPONENTS(components: string[]) {
+     this.components = components;
+   }
+
+   @Mutation
+   public SET_EDIT_TARGET(id: string) {
+     this.editTargetId = id;
+   }
+
    @Mutation
    public REMOVE_NODE(id: string) {
      if (!this.nodes[id]) { return; }
@@ -156,6 +208,11 @@ class Nodes extends VuexModule implements INodesState {
     return this.topNodes
             .map((node) => buildTree(node))
             .filter((n) => n.id !== '');
+  }
+
+  get editTarget(): IVueNode {
+    return Optional.ofNullable(this.nodes[this.editTargetId])
+                  .orElse({id: '', attr: {}, childrenId: [], parentId: '', tag: ''});
   }
 }
 
