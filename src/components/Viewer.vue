@@ -105,6 +105,12 @@ import LocalVue from '../util/LocalVue';
 
 import Nodes, { IVueNode } from '../store/modules/nodes';
 
+export interface IVueNodeTree {
+  id: string;
+  name: string;
+  children: IVueNodeTree[];
+}
+
 @Component
 export default class Viewer extends Vue {
   public iframe: Iframe = new Iframe(document.createElement('iframe'));
@@ -120,8 +126,26 @@ export default class Viewer extends Vue {
   }
 
   get tree() {
-    return Nodes.tree;
+    this.allNodes
+    console.log(this.allNodes)
+    return Object.keys(this.allNodes).filter( (id: string) => this.allNodes[id].parentId === '')
+            .map( (id: string) => this.allNodes[id])
+            .map((node) => this.buildTree(node))
+            .filter((n) => n.id !== '');;
   }
+  public buildTree(node: IVueNode): IVueNodeTree{
+    console.log("build", node)
+    return {
+      id: node.id,
+      name: node.tag,
+      children: node.childrenId.reduce( (arr: IVueNodeTree[] , id: string): IVueNodeTree[] => {
+        console.log(id, this.allNodes[id])
+        if (!this.allNodes[id]) { return arr; }
+        arr.push(this.buildTree(this.allNodes[id]));
+        return arr;
+      }, []),
+    };
+  };
 
   get allNodes() {
     return Nodes.allNodes;
@@ -242,7 +266,6 @@ export default class Viewer extends Vue {
       this.iframe = new Iframe(ele);
       this.iframe.addLink('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons');
       this.iframe.addLink('https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css');
-
       const styles = new Map<string, string>();
       styles.set('border', '5px solid red');
       styles.set('box-sizing', 'border-box');
@@ -255,9 +278,16 @@ export default class Viewer extends Vue {
         { selector: '.drag-enter', styles },
         { selector: '.vue-web-builder-hover', styles: styles2 },
       ]);
-
-      this.iframe.document.body.appendChild(this.rootElement);
-      this.vm = new LocalVue(this.rootElement);
+      this.iframe.addScript('https://cdn.jsdelivr.net/npm/vue/dist/vue.js')
+          .then(()=>{
+            return this.iframe.addScript('https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js');
+          })
+          .then(()=>{
+            this.iframe.document.body.appendChild(this.rootElement);
+            console.log(this.iframe.window.get())
+            this.vm = new LocalVue(this.rootElement, this.iframe.window.get().Vue);
+            
+          })
     });
   }
 

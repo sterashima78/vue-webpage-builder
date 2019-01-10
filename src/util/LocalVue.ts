@@ -1,8 +1,6 @@
-import Vue, {CreateElement, VNode, VNodeData } from 'vue';
-import Vuex from 'vuex';
-import Vuetify from 'vuetify';
-Vue.use(Vuetify);
-Vue.use(Vuex);
+import Vue, {CreateElement, VNode, VNodeData, VueConstructor } from 'vue';
+import Emitter from "../util/Emitter"
+
 import Optional from 'typescript-optional';
 import clone from 'lodash.clonedeep';
 import Nodes from '@/store/modules/nodes';
@@ -12,7 +10,7 @@ interface VueWebBuilderElement extends HTMLElement {
   parentElement: VueWebBuilderElement;
 }
 
-Nodes.SET_COMPONENTS(Object.keys(Vue.options.components));
+
 export default class LocalVue {
 
   public static targetNodeIdEqualsTo(target: VueWebBuilderElement, id: string): boolean {
@@ -122,52 +120,74 @@ export default class LocalVue {
   }
 
   public vm: Vue;
-  constructor(ele: Element) {
-    this.vm = new Vue({
+  constructor(ele: Element, VueJs: VueConstructor<Vue>) {
+    // VueJs.use(Vuex);
+    this.vm = new VueJs({
       el: ele,
-      computed: {
-        topNodes() {
-          return Nodes.topNodes;
-        },
-        allNodes() {
-          return Nodes.nodes;
-        },
+      data(){
+        return {
+          topNodes: Nodes.topNodes,
+          allNodes: Nodes.nodes,
+          dropTargetId: Nodes.dropTargetId,
+          hoverId: Nodes.hoverId
+        }
       },
       mounted() {
         const Id0 = uuid.v4();
-        const Id1 = uuid.v4();
-        const Id2 = uuid.v4();
         Nodes.SET_NODES({
           [Id0]: {
             id: Id0,
             parentId: '',
-            childrenId: [Id1],
-            attr: {},
-            tag: 'v-app',
-          },
-          [Id1]: {
-            id: Id1,
-            parentId: Id0,
-            childrenId: [Id2],
-            attr: {class: ['layout']},
+            childrenId: [],
+            attr: {
+              style: {
+                height: '100%',
+                width: '100%'
+              }
+            },
             tag: 'div',
-          },
-          [Id2]: {
-            id: Id2,
-            parentId: Id1,
-            childrenId: ['init btn'],
-            attr: {},
-            tag: 'v-btn',
-          },
-        });
+          }
+        })
+        // const Id0 = uuid.v4();
+        // const Id1 = uuid.v4();
+        // const Id2 = uuid.v4();
+        // Nodes.SET_NODES({
+        //   [Id0]: {
+        //     id: Id0,
+        //     parentId: '',
+        //     childrenId: [Id1],
+        //     attr: {},
+        //     tag: 'div',
+        //   },
+        //   [Id1]: {
+        //     id: Id1,
+        //     parentId: Id0,
+        //     childrenId: [Id2],
+        //     attr: {class: ['layout']},
+        //     tag: 'div',
+        //   },
+        //   [Id2]: {
+        //     id: Id2,
+        //     parentId: Id1,
+        //     childrenId: ['init btn'],
+        //     attr: {},
+        //     tag: 'v-btn',
+        //   },
+        // });
+        Emitter.$on('update:vuex', ({mutation, state})=>{
+          this.topNodes = Nodes.topNodes,
+          this.allNodes = Nodes.nodes
+          this.dropTargetId = Nodes.dropTargetId
+          this.hoverId = Nodes.hoverId
+        })
       },
       render(h: CreateElement): VNode {
-        return h('div', Nodes.topNodes.map((n) => this.rRender(n.id)));
+        return h('div', this.topNodes.map((n) => this.rRender(n.id)));
       },
       methods: {
         rRender(id: string): VNode {
           // tslint:disable
-          console.log('render', id);
+          // console.log('render', id);
           return Optional.ofNullable(clone(this.allNodes[id]))
                     .map((n) => {
                       // if( n.id === Nodes.hoverId) {
@@ -180,12 +200,12 @@ export default class LocalVue {
                       if(!attr.domProps) attr.domProps = {}
                       attr.domProps.__VUE_WEB_BUILDER_ID__ = id
                       attr.domProps.draggable = true
-                      if( n.id === Nodes.dropTargetId) {
+                      if( n.id === this.dropTargetId) {
                         if(!attr.class) attr.class = []
                         attr.class.push("drag-enter")
                       }
 
-                      if( n.id === Nodes.hoverId) {
+                      if( n.id === this.hoverId) {
                         if(!attr.class) attr.class = []
                         attr.class.push("vue-web-builder-hover")
                       }
@@ -199,6 +219,14 @@ export default class LocalVue {
         },
       },
     });
+    // console.log(this.vm, VueJs)
+    Nodes.SET_COMPONENTS(Object.keys(VueJs.options.components));
+    // console.log(this.vm)
+    // setInterval(()=>{
+    //   console.log(this.vm.topNodes, Nodes.topNodes, this.vm.allNodes)
+    //   this.vm.$forceUpdate()
+    // },100)
+    
   }
   public update(): void {
     this.vm.$forceUpdate();

@@ -26,8 +26,15 @@ export default class Iframe {
     return this.document.head;
   }
 
-  public addScript(src: string) {
-    this.head.appendChild(this.createScript(src));
+  public addScript(src: string): Promise<void> {
+    return new Promise((resolve)=>{
+      const script = this.createScript(src)
+      this.head.appendChild(script);
+      script.onload = ()=> {
+        resolve()
+      }
+    })
+    
   }
 
   public addStyle(rules: StyleRule[]): void {

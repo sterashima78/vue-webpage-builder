@@ -46,7 +46,6 @@ class Nodes extends VuexModule implements INodesState {
     } else {
       this.nodes[this.editTargetId].childrenId[index] = text;
     }
-
    }
 
    @Mutation
@@ -205,7 +204,9 @@ class Nodes extends VuexModule implements INodesState {
   }
 
   get tree(): IVueNodeTree[] {
-    return this.topNodes
+    return Object.keys(this.allNodes)
+            .filter( (id: string) => this.nodes[id].parentId === '')
+            .map( (id: string) => this.nodes[id])
             .map((node) => buildTree(node))
             .filter((n) => n.id !== '');
   }
@@ -217,6 +218,7 @@ class Nodes extends VuexModule implements INodesState {
 }
 
 const buildTree = (node: IVueNode): IVueNodeTree => {
+  console.log("build", node)
   return {
     id: node.id,
     name: node.tag,
