@@ -1,6 +1,4 @@
 module.exports = {
   runtimeCompiler: true,
-  transpileDependencies: [
-    'vuex-module-decorators'
-  ]
-}
+  transpileDependencies: ["vuex-module-decorators"]
+};

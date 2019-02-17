@@ -1,6 +1,5 @@
-import Optional from 'typescript-optional';
-
-
+import Optional from "typescript-optional";
+import uuid from "uuid";
 export interface StyleRule {
   selector: string;
   styles: Map<string, string>;
@@ -14,57 +13,65 @@ export default class Iframe {
   }
 
   get window(): Optional<Window> {
-    const w: Window|null = this.iframe.contentWindow;
+    const w: Window | null = this.iframe.contentWindow;
     return Optional.ofNullable(w);
   }
 
   get document(): Document {
-    return this.window.map((w) => w.document).get();
+    return this.window.map(w => w.document).get();
   }
 
   get head(): HTMLHeadElement {
     return this.document.head;
   }
 
-  public addScript(src: string): Promise<void> {
-    return new Promise((resolve)=>{
-      const script = this.createScript(src)
+  public addScript(src: string): Promise<string> {
+    const id = uuid.v4();
+    return new Promise(resolve => {
+      const script = this.createScript(src);
+      script.setAttribute("id", id);
       this.head.appendChild(script);
-      script.onload = ()=> {
-        resolve()
-      }
-    })
-    
+      script.onload = () => {
+        resolve(id);
+      };
+    });
   }
 
   public addStyle(rules: StyleRule[]): void {
     this.head.appendChild(this.createStyle(rules));
   }
 
-  public addLink(href: string) {
-    this.head.appendChild(this.createLink(href));
-  }
-
-  public createScript(src: string): HTMLScriptElement {
-    const script = document.createElement('script');
-    script.setAttribute('src', src);
-    return script;
+  public addLink(href: string): string {
+    const ele = this.createLink(href);
+    const id = uuid.v4();
+    ele.setAttribute("id", id);
+    this.head.appendChild(ele);
+    return id;
   }
 
   public createLink(link: string): HTMLLinkElement {
-    const ele = document.createElement('link');
-    ele.setAttribute('href', link);
-    ele.setAttribute('rel', 'stylesheet');
+    const ele = document.createElement("link");
+    ele.setAttribute("href", link);
+    ele.setAttribute("rel", "stylesheet");
     return ele;
   }
 
-  public createStyle(rules: StyleRule[]): HTMLStyleElement {
-    const ele = document.createElement('style');
-    ele.innerHTML = rules.map((rule) => {
-      const style: string = Array.from(rule.styles.keys())
-          .map( (k: string) => `${k}: ${rule.styles.get(k)};`).join('\n');
-      return `${rule.selector} {\n ${style}\n}`;
-    }).join('\n');
+  private createScript(src: string): HTMLScriptElement {
+    const script = document.createElement("script");
+    script.setAttribute("src", src);
+    return script;
+  }
+
+  private createStyle(rules: StyleRule[]): HTMLStyleElement {
+    const ele = document.createElement("style");
+    ele.innerHTML = rules
+      .map(rule => {
+        const style: string = Array.from(rule.styles.keys())
+          .map((k: string) => `${k}: ${rule.styles.get(k)};`)
+          .join("\n");
+        return `${rule.selector} {\n ${style}\n}`;
+      })
+      .join("\n");
     return ele;
   }
 }

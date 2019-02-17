@@ -1,11 +1,12 @@
-declare module '*.vue' {
-  import Vue from 'vue';
+declare module "*.vue" {
+  import Vue from "vue";
   export default Vue;
 }
 
-declare module 'vuetify/lib';
+declare module "vue-multipane";
 
-declare module 'lodash.clonedeep';
+declare module "vuetify/lib";
 
-declare module 'lodash.merge';
+declare module "lodash.clonedeep";
 
+declare module "lodash.merge";
