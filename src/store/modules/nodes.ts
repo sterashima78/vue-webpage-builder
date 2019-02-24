@@ -5,30 +5,11 @@ import {
   getModule,
   Module
 } from "vuex-module-decorators";
-import { VNodeData } from "vue";
 import store from "@/store/";
 import Optional from "typescript-optional";
 import uuid from "uuid";
 import Vue from "vue";
-export interface IVueNode {
-  id: string;
-  tag: string;
-  attr: VNodeData;
-  childrenId: string[];
-  parentId: string;
-}
-
-export interface IVueNodeTree {
-  id: string;
-  name: string;
-  children: IVueNodeTree[];
-}
-
-export interface INodesState {
-  nodes: {
-    [id: string]: IVueNode;
-  };
-}
+import { IVueNode, INodesState } from "@/types";
 
 @Module({ dynamic: true, store, name: "nodes", namespaced: true })
 class Nodes extends VuexModule implements INodesState {

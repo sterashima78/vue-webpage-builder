@@ -1,11 +1,5 @@
 import { Subject } from "rxjs";
-import { IVueNode } from "@/store/modules/nodes";
-
-interface IVueNodeTree {
-  id: string;
-  name: string;
-  children: IVueNodeTree[];
-}
+import { IVueNode, IVueNodeTree } from "@/types";
 
 export const nodeSubject: Subject<{ [id: string]: IVueNode }> = new Subject();
 export const mouseSubject: Subject<{
