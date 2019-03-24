@@ -71,9 +71,10 @@
 
 <script lang="ts">
 import { Component, Vue, Emit } from "vue-property-decorator";
-import Nodes, { IVueNode } from "../store/modules/nodes";
+import Nodes from "../store/modules/nodes";
 import clone from "lodash.clonedeep";
 import { editTargetSubject } from "@/observer/";
+import { IVueNode } from "@/types"
 @Component
 export default class ComponentEditor extends Vue {
   private search = null;

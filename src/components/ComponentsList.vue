@@ -24,7 +24,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch, Prop } from "vue-property-decorator";
-import Nodes, { IVueNode } from "../store/modules/nodes";
+import Nodes from "../store/modules/nodes";
 import HTMLTags from "./tags";
 @Component
 export default class ComponentsList extends Vue {

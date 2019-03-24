@@ -15,6 +15,9 @@
         <v-tab ripple>
           <v-icon>code</v-icon>
         </v-tab>
+        <v-tab ripple>
+          <v-icon>get_app</v-icon>
+        </v-tab>
         <v-tab-item>
           <ComponentTree @switch-tab="active = $event"/>
         </v-tab-item>
@@ -26,6 +29,9 @@
         </v-tab-item>
         <v-tab-item>
           <ExternalResource :scripts="scripts" :styles="styles"/>
+        </v-tab-item>
+        <v-tab-item>
+          <v-btn @click="download">Download</v-btn>
         </v-tab-item>
       </v-tabs>
     </div>
@@ -48,14 +54,20 @@ import ExternalResource from "@/components/ExternalResource.vue";
 
 import Iframe, { StyleRule } from "../util/Iframe";
 import LocalVue from "../util/LocalVue";
+import toString from "../util/toString";
 
 import Nodes from "../store/modules/nodes";
+import { treeSubject } from "../observer/"
 import { Multipane, MultipaneResizer } from "vue-multipane";
 export interface IVueNodeTree {
   id: string;
   name: string;
   children: IVueNodeTree[];
 }
+
+
+let tree:IVueNodeTree[]  = []
+treeSubject.subscribe(t => (tree = t));
 
 @Component({
   components: {
@@ -133,6 +145,11 @@ export default class Viewer extends Vue {
       "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css"
     );
     this.styles[id] = "vuetify";
+  }
+
+  private download(){
+    const id = Nodes.topNodes.filter(i => i.parentId == '').map(i => i.id)[0]
+    console.log(toString(id, Nodes.allNodes, true))
   }
 }
 </script>

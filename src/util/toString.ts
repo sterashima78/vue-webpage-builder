@@ -1,10 +1,16 @@
 import { IVueNodeTree, IVueNode } from "@/types";
 import Optional from "typescript-optional";
+import pretty from "pretty";
 const toString = (
-  nodeTree: IVueNodeTree[],
-  nodes: { [id: string]: IVueNode }
+  rootId: string,
+  nodes: { [id: string]: IVueNode },
+  isFormat = false
 ) => {
-  const node = nodes.node1;
+  const node = nodes[rootId];
+  return isFormat ? pretty(genNode(node, nodes)) : genNode(node, nodes);
+};
+
+const genNode = (node: IVueNode, nodes: { [id: string]: IVueNode }): string => {
   const tag = node.tag;
   const a = genAttrs(node.attr.attrs as { [prop: string]: string });
   const c = genClasses(node.attr.class);
@@ -15,9 +21,12 @@ const toString = (
   const content = genChildren(node.childrenId, nodes);
   return `${tagOpen}${content}${tagClose}`;
 };
-
 const genChildren = (children: string[], nodes: { [id: string]: IVueNode }) => {
-  const contents = children.join(" ");
+  const contents = children
+    .map(key => {
+      return nodes[key] ? genNode(nodes[key], nodes) : key;
+    })
+    .join(" ");
   return contents;
 };
 

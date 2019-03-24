@@ -27,7 +27,7 @@
 import { treeSubject } from "@/observer/";
 import { Component, Vue, Watch, Emit } from "vue-property-decorator";
 
-import Nodes, { IVueNode } from "../store/modules/nodes";
+import Nodes from "../store/modules/nodes";
 export interface IVueNodeTree {
   id: string;
   name: string;
