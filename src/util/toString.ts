@@ -1,6 +1,7 @@
 import { IVueNodeTree, IVueNode } from "@/types";
 import Optional from "typescript-optional";
 import pretty from "pretty";
+import Case from "to-case";
 const toString = (
   rootId: string,
   nodes: { [id: string]: IVueNode },
@@ -15,9 +16,9 @@ const genNode = (node: IVueNode, nodes: { [id: string]: IVueNode }): string => {
   const a = genAttrs(node.attr.attrs as { [prop: string]: string });
   const c = genClasses(node.attr.class);
   const s = genStyles(node.attr.style as { [prop: string]: string });
-  const attrs = [tag, a, c, s].filter(i => i.length !== 0).join(" ");
+  const attrs = [Case.slug(tag), a, c, s].filter(i => i.length !== 0).join(" ");
   const tagOpen = `<${attrs}>`;
-  const tagClose = `</${tag}>`;
+  const tagClose = `</${Case.slug(tag)}>`;
   const content = genChildren(node.childrenId, nodes);
   return `${tagOpen}${content}${tagClose}`;
 };

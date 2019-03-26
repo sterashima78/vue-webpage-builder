@@ -59,6 +59,7 @@ import toString from "../util/toString";
 import Nodes from "../store/modules/nodes";
 import { treeSubject } from "../observer/"
 import { Multipane, MultipaneResizer } from "vue-multipane";
+import download from "downloadjs"
 export interface IVueNodeTree {
   id: string;
   name: string;
@@ -149,7 +150,32 @@ export default class Viewer extends Vue {
 
   private download(){
     const id = Nodes.topNodes.filter(i => i.parentId == '').map(i => i.id)[0]
-    console.log(toString(id, Nodes.allNodes, true))
+    const template = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Vue Web desginer</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css">
+</head>
+<body>
+  <div id="app-main" style="height:100%;width:100%">
+  ${toString(id, Nodes.allNodes, true)}
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"><\/script>
+  <script>
+  new Vue({
+    el: "#app-main"
+  })
+  <\/script>
+</body>
+</html>
+`;
+    download(template, "index.html", "text/html")
   }
 }
 </script>
