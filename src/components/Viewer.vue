@@ -12,9 +12,9 @@
         <v-tab ripple>
           <v-icon>tune</v-icon>
         </v-tab>
-        <v-tab ripple>
+        <!-- <v-tab ripple>
           <v-icon>code</v-icon>
-        </v-tab>
+        </v-tab> -->
         <v-tab ripple>
           <v-icon>get_app</v-icon>
         </v-tab>
@@ -27,9 +27,9 @@
         <v-tab-item>
           <ComponentEditor @switch-tab="active = $event"/>
         </v-tab-item>
-        <v-tab-item>
+        <!-- <v-tab-item>
           <ExternalResource :scripts="scripts" :styles="styles"/>
-        </v-tab-item>
+        </v-tab-item> -->
         <v-tab-item>
           <v-btn @click="download">Download</v-btn>
         </v-tab-item>
