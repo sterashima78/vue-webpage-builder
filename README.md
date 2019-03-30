@@ -1,34 +1,51 @@
-# vue-web-designer
+# vue-webpage-builder
 
-## Project setup
-```
-npm install
-```
+VuejsベースのWebページビルダー
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+現時点ではVuetifyのコンポーネントのみが利用可能
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## Motivation
 
-### Run your tests
-```
-npm run test
-```
+コンポーネントベースのWeb作成が主流になってきたことに加えて、
+StoryBookなどのコンポーネントを整備・再利用するための基盤技術が整ってきた。
 
-### Lints and fixes files
-```
-npm run lint
-```
+すると、既存のコンポーネント群を組み合わせて早いプロトタイピングがしたくなってくる。
+（レゴブロックのようにコンポーネントを組み合わせるだけでアプリケーションが完了すると助かるがそれはまだ難しいとおもっている。）
 
-### Run your unit tests
-```
-npm run test:unit
-```
+現状それに値する（私の気に入った）ツールがなかったので作ってみようと思った。
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### 最低限必要なこと
+
+- 実用的なソースを生成すること
+  - プロトタイピングをするためのツールとして考えているが、出力されたコードに対して適切な振る舞いを追記するだけでアプリケーションが完了することが望ましい。
+- 任意のコンポーネントを利用できること
+  - 特定のコンポーネントフレームワークが利用できるだけではなく、適切に作成されたVueコンポーネントであれば任意のものを複数利用できるようにする
+  - これは初めに書いた『実用的』という点に大きく関係する
+- Webで完結すること
+  - 使うのが簡単
+  - 必要ならElectron等でネイティブアプリにもできる
+
+### 既存の類似ツール
+
+- [Vuegg](https://github.com/vuegg/vuegg)
+  - 初めにこれを見たときにとても感動した
+  - 最近開発が落ち着いてきてしまっている
+  - コンポーネントの配置がアブソリュートであり、ブラウザによる自然な配置がされない
+    - これは絵を作るうえでは便利だが、現実的なWebページを作るうえでは少し使いにくいと感じた
+- [Grapes](https://github.com/artf/grapesjs)
+  - すごい
+  - 初めはこれをベースにプラグインを作ろうとしたけど、すこし遠回りな感じがしてしまったので断念した
+  - 基本的にはこれがモダンなコンポーネントベースのフレームワークに対応できていれば作ろうとは思わなかった
+
+## Demo
+
+https://sterashima78.github.io/vue-webpage-builder
+
+![](readme/img.gif)
+
+## TODO
+
+- [ ] 任意のコンポーネントフレームワークを選択可能にする
+- [ ] 複数ページの作成可能にする (vue-router)
+- [ ] プロジェクトデータの出力・入力可能にする
+- [ ] ややダイナミックなリファクタリング
