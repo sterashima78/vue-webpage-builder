@@ -9,7 +9,7 @@
     "styleguide": "vue-cli-service styleguidist",
     "styleguide:build": "vue-cli-service styleguidist:build",
     "test:unit": "vue-cli-service test:unit",
-    "deploy:github": "cross-env NODE_ENV='production:github' run-s build send:github",
+    "deploy:github": "cross-env DEPLOY='github' run-s build send:github",
     "send:github": "push-dir --dir=dist --branch=gh-pages"
   },
   "dependencies": {
