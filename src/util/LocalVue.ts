@@ -2,8 +2,9 @@ import Vue, { CreateElement, VNode, VNodeData, VueConstructor } from "vue";
 import { nodeSubject, mouseSubject } from "@/observer/";
 import Optional from "typescript-optional";
 import clone from "lodash.clonedeep";
-import Nodes, { IVueNode } from "@/store/modules/nodes";
+import Nodes from "@/store/modules/nodes";
 import uuid from "uuid";
+import { IVueNode } from "@/types";
 import {
   dragStart,
   dragEnd,

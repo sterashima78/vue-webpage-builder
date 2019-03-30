@@ -1,7 +1,8 @@
 import { IVueNodeTree, IVueNode } from "@/types";
 import Optional from "typescript-optional";
 import pretty from "pretty";
-import Case from "to-case";
+// tslint:disable-next-line:no-var-requires
+const Case = require("to-case");
 const toString = (
   rootId: string,
   nodes: { [id: string]: IVueNode },
