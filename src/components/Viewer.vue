@@ -93,22 +93,35 @@ export default class Viewer extends Vue {
   }
 
   public async mounted() {
-    const ele = this.$el.querySelector("iframe");
+    this.initialize()
+  }
+
+  private async initialize() {
+    const ele: HTMLIFrameElement|null = this.$el.querySelector("iframe");
     if (ele == null) {
       return;
     }
-    this.iframe = new Iframe(ele);
-    this.initVuetifyCss();
-    this.initGrobalStyle();
-    await this.initJs();
-    await this.initVuetifyJs();
-    this.iframe.document.body.appendChild(this.rootElement);
-    this.vm = new LocalVue(
-      this.rootElement,
-      // @ts-ignore
-      this.iframe.window.get().Vue
-    );
-  }
+    if (ele.contentWindow == null) {
+      return;
+    }
+    ele.onload = async ()=>{
+      this.iframe = new Iframe(ele);
+      this.initVuetifyCss();
+      this.initGrobalStyle();
+      await this.initJs();
+      await this.initVuetifyJs();
+      this.iframe.document.body.appendChild(this.rootElement);
+      this.vm = new LocalVue(
+        this.rootElement,
+        // @ts-ignore
+        this.iframe.window.get().Vue
+      );
+      console.log("a")
+    }
+    console.log("y")
+    ele.contentWindow.location.reload();
+    
+  } 
 
   private async initJs() {
     await this.iframe.addScript("https://cdn.jsdelivr.net/npm/vue/dist/vue.js");
