@@ -33,7 +33,9 @@ export default class ComponentsList extends Vue {
   public get filteredComponents(): string[] {
     switch (this.type) {
       case "html":
-        return HTMLTags.filter(c => new RegExp(this.filter, "i").test(c)).sort();
+        return HTMLTags.filter(c =>
+          new RegExp(this.filter, "i").test(c)
+        ).sort();
       case "component":
         return Nodes.components.filter(c =>
           new RegExp(this.filter, "i").test(c)
