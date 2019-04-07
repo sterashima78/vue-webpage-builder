@@ -57,14 +57,14 @@ export default class ExternamResource extends Vue {
     this.$emit("removeStript", id);
   }
   private addScript() {
-    this.$emit("addScript", {url: this.scriptUrl, name: this.scriptName});
+    this.$emit("addScript", { url: this.scriptUrl, name: this.scriptName });
   }
 
   private removeStyle(id: string) {
     this.$emit("removeStyle", id);
   }
   private addStyle() {
-    this.$emit("addStyle", {url: this.styleUrl, name: this.styleName});
+    this.$emit("addStyle", { url: this.styleUrl, name: this.styleName });
   }
 }
 </script>

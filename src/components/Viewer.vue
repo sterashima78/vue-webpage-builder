@@ -52,29 +52,26 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import Optional from "typescript-optional";
 import cloneDeep from "lodash.clonedeep";
 
-
 import ComponentsList from "@/components/ComponentsList.vue";
 import ComponentEditor from "@/components/ComponentEditor.vue";
 import ComponentTree from "@/components/ComponentTree.vue";
 import ExternalResource from "@/components/ExternalResource.vue";
-
 
 import Iframe, { StyleRule } from "../util/Iframe";
 import LocalVue from "../util/LocalVue";
 import toString from "../util/toString";
 import uuid from "uuid";
 import Nodes from "../store/modules/nodes";
-import { treeSubject } from "../observer/"
+import { treeSubject } from "../observer/";
 import { Multipane, MultipaneResizer } from "vue-multipane";
-import download from "downloadjs"
+import download from "downloadjs";
 export interface IVueNodeTree {
   id: string;
   name: string;
   children: IVueNodeTree[];
 }
 
-
-let tree:IVueNodeTree[]  = []
+let tree: IVueNodeTree[] = [];
 treeSubject.subscribe(t => (tree = t));
 
 @Component({
@@ -92,8 +89,8 @@ export default class Viewer extends Vue {
   public rootElement: HTMLElement = document.createElement("div");
   public vm: any = {};
   public active: number = 0;
-  private scripts: { [id: string]: {name: string, url: string }} = {};
-  private styles: { [id: string]: {name: string, url: string }} = {};
+  private scripts: { [id: string]: { name: string; url: string } } = {};
+  private styles: { [id: string]: { name: string; url: string } } = {};
 
   public get allComponents(): string[] {
     return Nodes.components;
@@ -103,7 +100,6 @@ export default class Viewer extends Vue {
     this.initializeNodes();
     this.initVuetifyCss();
     this.initVuetifyJs();
-    
   }
 
   @Watch("scripts")
@@ -115,7 +111,7 @@ export default class Viewer extends Vue {
   private updateStyles() {
     this.reload();
   }
-  private initializeNodes(){
+  private initializeNodes() {
     const Id0 = uuid.v4();
     Nodes.SET_NODES({
       [Id0]: {
@@ -133,21 +129,20 @@ export default class Viewer extends Vue {
         tag: "div"
       }
     });
-  };
+  }
   private async reload() {
-    console.log("reload")
-    const ele: HTMLIFrameElement|null = this.$el.querySelector("iframe");
+    const ele: HTMLIFrameElement | null = this.$el.querySelector("iframe");
     if (ele == null) {
       return;
     }
     if (ele.contentWindow == null) {
       return;
     }
-    ele.onload = async ()=>{
+    ele.onload = async () => {
       this.iframe = new Iframe(ele);
       this.initGrobalStyle();
       await this.initJs();
-      await this.loadScripts()
+      await this.loadScripts();
       this.iframe.document.body.appendChild(this.rootElement);
       this.vm = new LocalVue(
         this.rootElement,
@@ -155,7 +150,7 @@ export default class Viewer extends Vue {
         this.iframe.window.get().Vue
       );
       Nodes.SEND_NDOES();
-    }
+    };
     ele.contentWindow.location.reload();
   }
 
@@ -164,13 +159,12 @@ export default class Viewer extends Vue {
   }
 
   private async loadScripts() {
-    Object.keys(this.styles).forEach((id)=>{
-      this.iframe.addLink(this.styles[id].url, id)
-    })
+    Object.keys(this.styles).forEach(id => {
+      this.iframe.addLink(this.styles[id].url, id);
+    });
 
-    const ids = Object.keys(this.scripts)
-    for (let _i = 0; _i < ids.length; _i++) {
-      const id = ids[_i];
+    const ids = Object.keys(this.scripts);
+    for (const id of ids) {
       await this.iframe.addScript(this.scripts[id].url, id);
     }
   }
@@ -191,16 +185,26 @@ export default class Viewer extends Vue {
   }
 
   private initVuetifyJs() {
-    this.$set(this.scripts, 'vuetify-js', {name: "vuetify", url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"});
+    this.$set(this.scripts, "vuetify-js", {
+      name: "vuetify",
+      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"
+    });
   }
 
   private initVuetifyCss() {
-    this.$set(this.styles, 'material-icon-css', {name: "material-icon", url: "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"});
-    this.$set(this.styles, "vuetify-css", {name: "vuetify", url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css"});
+    this.$set(this.styles, "material-icon-css", {
+      name: "material-icon",
+      url:
+        "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"
+    });
+    this.$set(this.styles, "vuetify-css", {
+      name: "vuetify",
+      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css"
+    });
   }
 
-  private download(){
-    const id = Nodes.topNodes.filter(i => i.parentId == '').map(i => i.id)[0]
+  private download() {
+    const id = Nodes.topNodes.filter(i => i.parentId === "").map(i => i.id)[0];
     const template = `
 <!DOCTYPE html>
 <html lang="en">
@@ -226,7 +230,7 @@ export default class Viewer extends Vue {
 </body>
 </html>
 `;
-    download(template, "index.html", "text/html")
+    download(template, "index.html", "text/html");
   }
 }
 </script>

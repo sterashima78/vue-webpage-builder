@@ -74,7 +74,7 @@ import { Component, Vue, Emit } from "vue-property-decorator";
 import Nodes from "../store/modules/nodes";
 import clone from "lodash.clonedeep";
 import { editTargetSubject } from "@/observer/";
-import { IVueNode } from "@/types"
+import { IVueNode } from "@/types";
 @Component
 export default class ComponentEditor extends Vue {
   private search = null;
@@ -93,10 +93,6 @@ export default class ComponentEditor extends Vue {
     childrenId: [],
     tag: ""
   };
-
-  private created() {
-    editTargetSubject.subscribe(target => (this.editTarget = target));
-  }
 
   get editTargetText() {
     const c = this.editTarget.childrenId.filter(
@@ -141,6 +137,10 @@ export default class ComponentEditor extends Vue {
   @Emit("switch-tab")
   private switchTab(val: number): void {
     // empty
+  }
+
+  private created() {
+    editTargetSubject.subscribe(target => (this.editTarget = target));
   }
 }
 </script>
