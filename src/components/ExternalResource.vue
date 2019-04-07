@@ -5,12 +5,12 @@
       <v-layout>
         <v-text-field v-model="scriptName" label="name"/>
         <v-text-field v-model="scriptUrl" label="url"/>
-        <v-btn @click="addStyle" :disabled="scriptName=='' || scriptUrl == ''">add</v-btn>
+        <v-btn @click="addScript" :disabled="scriptName=='' || scriptUrl == ''">add</v-btn>
       </v-layout>
       <v-list>
-        <v-list-tile v-for="(name, id) in scripts" :key="id">
+        <v-list-tile v-for="(obj, id) in scripts" :key="id">
           <v-list-tile-content>
-            <v-list-tile-title v-text="name"/>
+            <v-list-tile-title v-text="obj.name"/>
           </v-list-tile-content>
           <v-list-tile-action>
             <v-icon @click="removeScript(id)" v-text="'delete'"/>
@@ -24,9 +24,9 @@
         <v-btn @click="addStyle" :disabled="styleName=='' || styleUrl == ''">add</v-btn>
       </v-layout>
       <v-list>
-        <v-list-tile v-for="(name, id) in styles" :key="id">
+        <v-list-tile v-for="(obj, id) in styles" :key="id">
           <v-list-tile-content>
-            <v-list-tile-title v-text="name"/>
+            <v-list-tile-title v-text="obj.name"/>
           </v-list-tile-content>
           <v-list-tile-action>
             <v-icon @click="removeStyle(id)" v-text="'delete'"/>
@@ -53,11 +53,19 @@ export default class ExternamResource extends Vue {
   private scriptUrl: string = "";
   private scriptName: string = "";
 
-  private removeScript(id: string) {}
-  private addScript(id: string) {}
+  private removeScript(id: string) {
+    this.$emit("removeStript", id);
+  }
+  private addScript() {
+    this.$emit("addScript", {url: this.scriptUrl, name: this.scriptName});
+  }
 
-  private removeStyle(id: string) {}
-  private addStyle(id: string) {}
+  private removeStyle(id: string) {
+    this.$emit("removeStyle", id);
+  }
+  private addStyle() {
+    this.$emit("addStyle", {url: this.styleUrl, name: this.styleName});
+  }
 }
 </script>
 

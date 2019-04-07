@@ -25,8 +25,8 @@ export default class Iframe {
     return this.document.head;
   }
 
-  public addScript(src: string): Promise<string> {
-    const id = uuid.v4();
+  public addScript(src: string, qid = ""): Promise<string> {
+    const id = qid === "" ? uuid.v4() : qid;
     return new Promise(resolve => {
       const script = this.createScript(src);
       script.setAttribute("id", id);
@@ -41,15 +41,15 @@ export default class Iframe {
     this.head.appendChild(this.createStyle(rules));
   }
 
-  public addLink(href: string): string {
+  public addLink(href: string, qid = ""): string {
     const ele = this.createLink(href);
-    const id = uuid.v4();
+    const id = qid === "" ? uuid.v4() : qid;
     ele.setAttribute("id", id);
     this.head.appendChild(ele);
     return id;
   }
 
-  public createLink(link: string): HTMLLinkElement {
+  private createLink(link: string): HTMLLinkElement {
     const ele = document.createElement("link");
     ele.setAttribute("href", link);
     ele.setAttribute("rel", "stylesheet");

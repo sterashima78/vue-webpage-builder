@@ -116,6 +116,12 @@ class Nodes extends VuexModule implements INodesState {
     this.nodes = nodes;
     nodeSubject.next(this.nodes);
   }
+
+  @Mutation
+  public SEND_NDOES() {
+    nodeSubject.next(this.nodes);
+  }
+
   @Mutation
   public ADD_NODE(node: IVueNode) {
     node.id = uuid.v4();

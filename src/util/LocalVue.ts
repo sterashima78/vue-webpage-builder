@@ -39,9 +39,6 @@ export default class LocalVue {
           this.hoverId = hoverId;
         });
       },
-      mounted() {
-        initialize();
-      },
       render(h: CreateElement): VNode {
         return h("div", this.topNodes.map(n => this.rRender(n.id)));
       },
@@ -71,25 +68,6 @@ export default class LocalVue {
   }
 }
 
-const initialize = () => {
-  const Id0 = uuid.v4();
-  Nodes.SET_NODES({
-    [Id0]: {
-      id: Id0,
-      parentId: "",
-      childrenId: [],
-      attr: {
-        style: {
-          height: "100%",
-          width: "100%"
-        },
-        class: [],
-        attrs: {}
-      },
-      tag: "div"
-    }
-  });
-};
 const genAttr = (
   node: IVueNode,
   isDropTarget: boolean,
