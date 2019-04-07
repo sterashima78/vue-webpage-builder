@@ -114,11 +114,15 @@ export default class Viewer extends Vue {
   }
 
   private exportJson() {
-    download(JSON.stringify({
-      nodes: Nodes.allNodes,
-      styles: this.styles,
-      scripts: this.scripts
-    }), "project.json", "application/json");
+    download(
+      JSON.stringify({
+        nodes: Nodes.allNodes,
+        styles: this.styles,
+        scripts: this.scripts
+      }),
+      "project.json",
+      "application/json"
+    );
   }
 
   private importJsonFile(file: FileList) {
