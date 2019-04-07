@@ -38,7 +38,18 @@
           />
         </v-tab-item>
         <v-tab-item>
-          <v-btn @click="download">Download</v-btn>
+          <p>
+            <v-btn @click="download">Download</v-btn>
+          </p>
+          <p>
+            <v-btn @click="exportJson">Export</v-btn>
+          </p>
+          <p>
+            <label>
+              <span>Import: </span>
+              <input type="file" @change="importJsonFile($event.target.files)" accept='application/json'>
+            </label>
+          </p>
         </v-tab-item>
       </v-tabs>
     </div>
@@ -92,14 +103,44 @@ export default class Viewer extends Vue {
   private scripts: { [id: string]: { name: string; url: string } } = {};
   private styles: { [id: string]: { name: string; url: string } } = {};
 
-  public get allComponents(): string[] {
+  private get allComponents(): string[] {
     return Nodes.components;
   }
 
-  public mounted() {
+  private mounted() {
     this.initializeNodes();
     this.initVuetifyCss();
     this.initVuetifyJs();
+  }
+
+  private exportJson() {
+    download(JSON.stringify({
+      nodes: Nodes.allNodes,
+      styles: this.styles,
+      scripts: this.scripts
+    }), "project.json", "application/json");
+  }
+
+  private importJsonFile(file: FileList) {
+    const reader = new FileReader();
+    reader.onload = event => {
+      // @ts-ignore
+      const text = event.target.result;
+      try {
+        this.importJson(text);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    reader.readAsText(file[0]);
+  }
+
+  private importJson(json: string) {
+    const { nodes, scripts, styles } = JSON.parse(json);
+    Nodes.SET_NODES(nodes);
+    this.styles = styles;
+    this.scripts = scripts;
+    this.reload();
   }
 
   @Watch("scripts")
