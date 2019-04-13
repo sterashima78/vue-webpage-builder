@@ -1,4 +1,5 @@
 <template>
+<div>
   <v-card flat>
     <v-card-text>
       <h3>Script</h3>
@@ -6,6 +7,9 @@
         <v-text-field v-model="scriptName" label="name"/>
         <v-text-field v-model="scriptUrl" label="url"/>
         <v-btn @click="addScript" :disabled="scriptName=='' || scriptUrl == ''">add</v-btn>
+      </v-layout>
+      <v-layout>
+        <v-btn @click="inlineScriptDialog = true">inline script</v-btn>
       </v-layout>
       <v-list>
         <v-list-tile v-for="(obj, id) in scripts" :key="id">
@@ -35,12 +39,27 @@
       </v-list>
     </v-card-text>
   </v-card>
+  <v-dialog v-model="inlineScriptDialog" scrollable>
+    <v-card>
+      <v-card-title>Inline JavaScript</v-card-title>
+      <v-divider></v-divider>
+      <v-card-text style="height: 500px;">
+        <Editor :code="code" @change="scriptUpdate"/>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+</div>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
+import Editor from "./Ace.vue";
 
-@Component
+@Component({
+  components: {
+    Editor
+  }
+})
 export default class ExternamResource extends Vue {
   @Prop({ type: Object, default: () => ({}) })
   private styles!: { [id: string]: string };
@@ -52,6 +71,8 @@ export default class ExternamResource extends Vue {
   private styleName: string = "";
   private scriptUrl: string = "";
   private scriptName: string = "";
+  private code: string = "";
+  private inlineScriptDialog = false;
 
   private removeScript(id: string) {
     this.$emit("removeStript", id);
@@ -65,6 +86,9 @@ export default class ExternamResource extends Vue {
   }
   private addStyle() {
     this.$emit("addStyle", { url: this.styleUrl, name: this.styleName });
+  }
+  private scriptUpdate(code: string) {
+    this.$emit("updateInlineScript", code);
   }
 }
 </script>

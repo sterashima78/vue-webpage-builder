@@ -35,6 +35,7 @@
             @removeStript="$delete(scripts, $event)"
             @addStyle="$set(styles, `${$event.name}-css`, $event)" 
             @addScript="$set(scripts, `${$event.name}-js`, $event)"
+            @updateInlineScript="inlineScript = $event"
           />
         </v-tab-item>
         <v-tab-item>
@@ -76,6 +77,7 @@ import Nodes from "../store/modules/nodes";
 import { treeSubject } from "../observer/";
 import { Multipane, MultipaneResizer } from "vue-multipane";
 import download from "downloadjs";
+import { debounce } from "typescript-debounce-decorator";
 export interface IVueNodeTree {
   id: string;
   name: string;
@@ -102,6 +104,7 @@ export default class Viewer extends Vue {
   public active: number = 0;
   private scripts: { [id: string]: { name: string; url: string } } = {};
   private styles: { [id: string]: { name: string; url: string } } = {};
+  private inlineScript: string = "";
 
   private get allComponents(): string[] {
     return Nodes.components;
@@ -156,6 +159,12 @@ export default class Viewer extends Vue {
   private updateStyles() {
     this.reload();
   }
+
+  @Watch("inlineScript")
+  private updateInlineScript() {
+    this.reload();
+  }
+
   private initializeNodes() {
     const Id0 = uuid.v4();
     Nodes.SET_NODES({
@@ -175,7 +184,9 @@ export default class Viewer extends Vue {
       }
     });
   }
-  private async reload() {
+
+  @debounce(500, { leading: false })
+  private reload() {
     const ele: HTMLIFrameElement | null = this.$el.querySelector("iframe");
     if (ele == null) {
       return;
@@ -188,6 +199,9 @@ export default class Viewer extends Vue {
       this.initGrobalStyle();
       await this.initJs();
       await this.loadScripts();
+      if (this.inlineScript !== "") {
+        await this.iframe.addInlineScript(this.inlineScript);
+      }
       this.iframe.document.body.appendChild(this.rootElement);
       this.vm = new LocalVue(
         this.rootElement,
@@ -273,6 +287,7 @@ export default class Viewer extends Vue {
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"><\/script>
   ${script}
   <script>
+  ${this.inlineScript}
   new Vue({
     el: "#app-main"
   })
