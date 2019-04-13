@@ -1,8 +1,6 @@
 # vue-webpage-builder
 
-VuejsベースのWebページビルダー
-
-現時点ではVuetifyのコンポーネントのみが利用可能
+VuejsのWebページビルダー
 
 ## Motivation
 
@@ -28,14 +26,8 @@ StoryBookなどのコンポーネントを整備・再利用するための基�
 ### 既存の類似ツール
 
 - [Vuegg](https://github.com/vuegg/vuegg)
-  - 初めにこれを見たときにとても感動した
-  - 最近開発が落ち着いてきてしまっている
-  - コンポーネントの配置がアブソリュートであり、ブラウザによる自然な配置がされない
-    - これは絵を作るうえでは便利だが、現実的なWebページを作るうえでは少し使いにくいと感じた
 - [Grapes](https://github.com/artf/grapesjs)
-  - すごい
-  - 初めはこれをベースにプラグインを作ろうとしたけど、すこし遠回りな感じがしてしまったので断念した
-  - 基本的にはこれがモダンなコンポーネントベースのフレームワークに対応できていれば作ろうとは思わなかった
+- [PreVue](https://github.com/teamprevue/PreVue)
 
 ## Demo
 
