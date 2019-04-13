@@ -14,13 +14,11 @@
   },
   "dependencies": {
     "@types/downloadjs": "^1.4.1",
-    "@types/lodash.debounce": "^4.0.6",
     "@types/pretty": "^2.0.0",
     "@types/uuid": "^3.4.4",
     "brace": "^0.11.1",
     "downloadjs": "^1.4.7",
     "lodash.clonedeep": "^4.5.0",
-    "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.1",
     "pretty": "^2.0.0",
     "push-dir": "^0.4.1",
