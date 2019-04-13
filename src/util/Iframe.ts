@@ -25,6 +25,17 @@ export default class Iframe {
     return this.document.head;
   }
 
+  public addInlineScript(src: string): Promise<void> {
+    return new Promise(resolve => {
+      const script = this.createScript("");
+      script.innerText = src;
+      this.head.appendChild(script);
+      script.onload = () => {
+        resolve();
+      };
+    });
+  }
+
   public addScript(src: string, qid = ""): Promise<string> {
     const id = qid === "" ? uuid.v4() : qid;
     return new Promise(resolve => {
@@ -58,7 +69,9 @@ export default class Iframe {
 
   private createScript(src: string): HTMLScriptElement {
     const script = document.createElement("script");
-    script.setAttribute("src", src);
+    if (src !== "") {
+      script.setAttribute("src", src);
+    }
     return script;
   }
 
