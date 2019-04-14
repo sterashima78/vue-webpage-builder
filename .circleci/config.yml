@@ -4,12 +4,9 @@
  
 version: 2
 jobs:
-  build:
+  build_deploy:
     docker:
       - image: node:10
-    branches:
-        only:
-          - master
     steps:
       - checkout
       - add_ssh_keys:
@@ -38,7 +35,8 @@ workflows:
   version: 2
   deploy:
     jobs:
-      - build:
+      - build_deploy:
           filters:
             branches:
-              only: master
+              only: 
+                - master
