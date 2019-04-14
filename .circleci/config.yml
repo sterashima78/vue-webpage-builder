@@ -7,6 +7,9 @@ jobs:
   build:
     docker:
       - image: node:10
+    branches:
+        only:
+          - master
  
     steps:
       - checkout
@@ -26,10 +29,8 @@ jobs:
       - run:
           name: Deploy
           command: |
-            if [ "${CIRCLE_BRANCH}" = "${DEPLOY_BRANCH}" ]; then
-              git config --global user.name "Circle CI"
-              git config --global user.email "<>"
-              git add -A
-              git commit -m "[ci skip] Deploy by CI"
-              npm run deploy:github
-            fi
+            git config --global user.name "Circle CI"
+            git config --global user.email "<>"
+            git add -A
+            git commit -m "[ci skip] Deploy by CI"
+            npm run deploy:github
