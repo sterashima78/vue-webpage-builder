@@ -10,9 +10,11 @@ jobs:
     branches:
         only:
           - master
- 
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "22:26:f8:10:8d:af:e5:4e:af:4c:8b:a9:e0:d6:76:8b"
       - restore_cache:
           keys:
             - npm-packages-{{ .Branch }}-{{ checksum "package-lock.json" }}
