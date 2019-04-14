@@ -10,7 +10,7 @@
     "styleguide:build": "vue-cli-service styleguidist:build",
     "test:unit": "vue-cli-service test:unit",
     "deploy:github": "cross-env DEPLOY='github' run-s build send:github",
-    "send:github": "push-dir --dir=dist --branch=gh-pages"
+    "send:github": "push-dir --dir=dist --branch=gh-pages --message='[ci skip] Deploy'"
   },
   "dependencies": {
     "@types/downloadjs": "^1.4.1",
