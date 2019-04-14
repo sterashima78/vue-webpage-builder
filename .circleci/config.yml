@@ -1,0 +1,35 @@
+# https://kenchan0130.github.io/post/2018-06-18-1?referrer=https%3A%2F%2Fwww.google.com%2F
+# https://esnetk6.com/2018/04/circle-ci-deployment/
+
+ 
+version: 2
+jobs:
+  build:
+    docker:
+      - image: node:10
+ 
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - npm-packages-{{ .Branch }}-{{ checksum "package-lock.json" }}
+            - npm-packages-{{ .Branch }}
+            - npm-packages-master
+            - npm-packages-
+      - run:
+          name: Install Node dependencies
+          command: npm install
+      - save_cache:
+          paths:
+            - node_moduels
+          key: npm-packages-{{ .Branch }}-{{ checksum "package-lock.json" }}
+      - run:
+          name: Deploy development branch to master
+          command: |
+            if [ "${CIRCLE_BRANCH}" = "${DEPLOY_BRANCH}" ]; then
+              git config --global user.name "Circle CI"
+              git config --global user.email "<>"
+              git add -A
+              git commit -m "[ci skip] Deploy by CI"
+              npm run deploy:github
+            fi
