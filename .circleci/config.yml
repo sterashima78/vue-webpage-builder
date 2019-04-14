@@ -30,8 +30,7 @@ jobs:
           command: |
             git config --global user.name "Circle CI"
             git config --global user.email "<>"
-            git add -A
-            git commit -m "[ci skip] Deploy by CI"
+            git commit --allow-empty -m "[ci skip] Deploy by CI"
             npm run deploy:github
 workflows:
   version: 2
