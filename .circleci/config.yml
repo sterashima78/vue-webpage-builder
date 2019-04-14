@@ -24,7 +24,7 @@ jobs:
             - node_moduels
           key: npm-packages-{{ .Branch }}-{{ checksum "package-lock.json" }}
       - run:
-          name: Deploy development branch to master
+          name: Deploy
           command: |
             if [ "${CIRCLE_BRANCH}" = "${DEPLOY_BRANCH}" ]; then
               git config --global user.name "Circle CI"
