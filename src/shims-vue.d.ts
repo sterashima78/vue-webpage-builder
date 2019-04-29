@@ -3,6 +3,8 @@ declare module "*.vue" {
   export default Vue;
 }
 
+declare module "vue-iframe-sandbox";
+
 declare module "vue-multipane";
 
 declare module "vuetify/lib";

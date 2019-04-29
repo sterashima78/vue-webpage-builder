@@ -1,6 +1,14 @@
 <template>
   <v-layout>
-    <iframe style="width:100%;height:100%"/>
+    <VIframeSandbox 
+      body="<div id='main-wrapper'></div>" 
+      style="width:100%;height:100%" 
+      :script="inlineScript"
+      :scriptsSrc="scriptsSrc"
+      :styles="stylesStr"
+      :cssLinks="cssLinks"
+      @loaded="reload"
+    />
     <div style="width: 500px;height:100%">
       <v-tabs v-model="active">
         <v-tab ripple>
@@ -64,12 +72,12 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import Optional from "typescript-optional";
 import cloneDeep from "lodash.clonedeep";
 
+import { VIframeSandbox } from "vue-iframe-sandbox";
 import ComponentsList from "@/components/ComponentsList.vue";
 import ComponentEditor from "@/components/ComponentEditor.vue";
 import ComponentTree from "@/components/ComponentTree.vue";
 import ExternalResource from "@/components/ExternalResource.vue";
 
-import Iframe, { StyleRule } from "../util/Iframe";
 import LocalVue from "../util/LocalVue";
 import toString from "../util/toString";
 import uuid from "uuid";
@@ -94,12 +102,11 @@ treeSubject.subscribe(t => (tree = t));
     ComponentsList,
     ComponentEditor,
     ComponentTree,
-    ExternalResource
+    ExternalResource,
+    VIframeSandbox
   }
 })
 export default class Viewer extends Vue {
-  public iframe: Iframe = new Iframe(document.createElement("iframe"));
-  public rootElement: HTMLElement = document.createElement("div");
   public vm: any = {};
   public active: number = 0;
   private scripts: { [id: string]: { name: string; url: string } } = {};
@@ -108,6 +115,23 @@ export default class Viewer extends Vue {
 
   private get allComponents(): string[] {
     return Nodes.components;
+  }
+
+  private get scriptsSrc() {
+    return [
+      "https://cdn.jsdelivr.net/npm/vue/dist/vue.js",
+      ...Object.keys(this.scripts).map(id => this.scripts[id].url)
+    ];
+  }
+  private get cssLinks() {
+    return Object.keys(this.styles).map(id => this.styles[id].url);
+  }
+
+  private get stylesStr() {
+    return [
+      ".drag-enter {border: 5px solid red !important; box-sizing: border-box !important}",
+      ".vue-web-builder-hover {border: 5px solid blue !important; box-sizing: border-box !important}"
+    ].join("\n");
   }
 
   private mounted() {
@@ -147,22 +171,6 @@ export default class Viewer extends Vue {
     Nodes.SET_NODES(nodes);
     this.styles = styles;
     this.scripts = scripts;
-    this.reload();
-  }
-
-  @Watch("scripts")
-  private updateScripts() {
-    this.reload();
-  }
-
-  @Watch("styles")
-  private updateStyles() {
-    this.reload();
-  }
-
-  @Watch("inlineScript")
-  private updateInlineScript() {
-    this.reload();
   }
 
   private initializeNodes() {
@@ -186,61 +194,13 @@ export default class Viewer extends Vue {
   }
 
   @debounce(500, { leading: false })
-  private reload() {
-    const ele: HTMLIFrameElement | null = this.$el.querySelector("iframe");
-    if (ele == null) {
-      return;
-    }
-    if (ele.contentWindow == null) {
-      return;
-    }
-    ele.onload = async () => {
-      this.iframe = new Iframe(ele);
-      this.initGrobalStyle();
-      await this.initJs();
-      await this.loadScripts();
-      if (this.inlineScript !== "") {
-        await this.iframe.addInlineScript(this.inlineScript);
-      }
-      this.iframe.document.body.appendChild(this.rootElement);
-      this.vm = new LocalVue(
-        this.rootElement,
-        // @ts-ignore
-        this.iframe.window.get().Vue
-      );
-      Nodes.SEND_NDOES();
-    };
-    ele.contentWindow.location.reload();
-  }
-
-  private async initJs() {
-    await this.iframe.addScript("https://cdn.jsdelivr.net/npm/vue/dist/vue.js");
-  }
-
-  private async loadScripts() {
-    Object.keys(this.styles).forEach(id => {
-      this.iframe.addLink(this.styles[id].url, id);
-    });
-
-    const ids = Object.keys(this.scripts);
-    for (const id of ids) {
-      await this.iframe.addScript(this.scripts[id].url, id);
-    }
-  }
-
-  private initGrobalStyle() {
-    const styles = new Map<string, string>();
-    styles.set("border", "5px solid red !important");
-    styles.set("box-sizing", "border-box !important");
-
-    const styles2 = new Map<string, string>();
-    styles2.set("border", "5px solid blue !important");
-    styles2.set("box-sizing", "border-box !important");
-
-    this.iframe.addStyle([
-      { selector: ".drag-enter", styles },
-      { selector: ".vue-web-builder-hover", styles: styles2 }
-    ]);
+  private reload(window: Window) {
+    this.vm = new LocalVue(
+      window.document.getElementById("main-wrapper") as HTMLElement,
+      // @ts-ignore
+      window.Vue
+    );
+    Nodes.SEND_NDOES();
   }
 
   private initVuetifyJs() {
