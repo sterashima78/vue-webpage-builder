@@ -71,7 +71,7 @@
 
 <script lang="ts">
 import { Component, Vue, Emit, Prop } from "vue-property-decorator";
-import Nodes from "../store/modules/nodes";
+import Nodes from "@/store/modules/nodes";
 import clone from "lodash.clonedeep";
 import { IVueNode } from "@/types";
 @Component
@@ -82,7 +82,7 @@ export default class ComponentEditor extends Vue {
   private attrName = "";
   private attrValue = "";
 
-  @Prop({default: ()=> {}})
+  @Prop({default: ()=> ({})})
   private editTarget!: IVueNode;
 
   get editTargetText() {

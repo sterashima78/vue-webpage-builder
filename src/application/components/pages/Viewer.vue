@@ -73,20 +73,20 @@ import Optional from "typescript-optional";
 import cloneDeep from "lodash.clonedeep";
 
 import { VIframeSandbox } from "vue-iframe-sandbox";
-import ComponentsList from "@/components/ComponentsList.vue";
-import ComponentEditor from "@/components/ComponentEditor.vue";
-import ComponentTree from "@/components/ComponentTree.vue";
-import ExternalResource from "@/components/ExternalResource.vue";
+import ComponentsList from "@/application/components/templates/ComponentsList.vue";
+import ComponentEditor from "@/application/components/templates/ComponentEditor.vue";
+import ComponentTree from "@/application/components/templates/ComponentTree.vue";
+import ExternalResource from "@/application/components/templates/ExternalResource.vue";
 import { IVueNode, INodesState, IVueNodeTree } from "@/types";
 
-import LocalVue from "../util/LocalVue";
-import toString from "../util/toString";
+import LocalVue from "@/util/LocalVue";
+import toString from "@/util/toString";
 import uuid from "uuid";
-import Nodes from "../store/modules/nodes";
+import Nodes from "@/store/modules/nodes";
 import { Multipane, MultipaneResizer } from "vue-multipane";
 import download from "downloadjs";
 import { debounce } from "typescript-debounce-decorator";
-import { DragItem } from "../domain/model/DragItem";
+import { DragItem } from "@/domain/model/DragItem";
 
 @Component({
   components: {

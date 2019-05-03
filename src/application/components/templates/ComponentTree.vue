@@ -26,7 +26,7 @@
 <script lang="ts">
 import { Component, Vue, Watch, Emit, Prop } from "vue-property-decorator";
 import { IVueNodeTree } from "@/types";
-import Nodes from "../store/modules/nodes";
+import Nodes from "@/store/modules/nodes";
 
 @Component
 export default class ComponentTree extends Vue {
