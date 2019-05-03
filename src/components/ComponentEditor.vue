@@ -70,10 +70,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Emit } from "vue-property-decorator";
+import { Component, Vue, Emit, Prop } from "vue-property-decorator";
 import Nodes from "../store/modules/nodes";
 import clone from "lodash.clonedeep";
-import { editTargetSubject } from "@/observer/";
 import { IVueNode } from "@/types";
 @Component
 export default class ComponentEditor extends Vue {
@@ -82,17 +81,9 @@ export default class ComponentEditor extends Vue {
   private styleValue = "";
   private attrName = "";
   private attrValue = "";
-  private editTarget: IVueNode = {
-    id: "",
-    attr: {
-      class: [],
-      style: {},
-      attrs: {}
-    },
-    parentId: "",
-    childrenId: [],
-    tag: ""
-  };
+
+  @Prop({default: ()=> {}})
+  private editTarget!: IVueNode;
 
   get editTargetText() {
     const c = this.editTarget.childrenId.filter(
@@ -137,10 +128,6 @@ export default class ComponentEditor extends Vue {
   @Emit("switch-tab")
   private switchTab(val: number): void {
     // empty
-  }
-
-  private created() {
-    editTargetSubject.subscribe(target => (this.editTarget = target));
   }
 }
 </script>

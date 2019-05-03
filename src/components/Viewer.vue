@@ -33,7 +33,7 @@
           <ComponentsList/>
         </v-tab-item>
         <v-tab-item>
-          <ComponentEditor @switch-tab="active = $event"/>
+          <ComponentEditor @switch-tab="active = $event" :editTarget="editTarget"/>
         </v-tab-item>
         <v-tab-item>
           <ExternalResource 
@@ -117,6 +117,10 @@ export default class Viewer extends Vue {
 
   private get dragItem(): DragItem {
     return Nodes.dragItem;
+  }
+
+  private get editTarget(): IVueNode {
+    return Nodes.editTarget;
   }
 
   @Watch("nodes", { deep: true })

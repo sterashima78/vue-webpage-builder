@@ -22,7 +22,6 @@
     "lodash.merge": "^4.6.1",
     "pretty": "^2.0.0",
     "push-dir": "^0.4.1",
-    "rxjs": "^6.4.0",
     "to-case": "^2.0.0",
     "typescript-debounce-decorator": "0.0.17",
     "typescript-optional": "^1.8.0",

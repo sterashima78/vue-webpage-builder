@@ -1,4 +1,3 @@
-import { editTargetSubject } from "@/observer/";
 import {
   Mutation,
   VuexModule,
@@ -45,7 +44,6 @@ class Nodes extends VuexModule implements INodesState {
     const newNodes = clone(this.nodes);
     newNodes[this.editTargetId].attr.style = styles;
     this.nodes = newNodes;
-    editTargetSubject.next(NodesModule.editTarget);
   }
 
   @Mutation
@@ -53,7 +51,6 @@ class Nodes extends VuexModule implements INodesState {
     const newNodes = clone(this.nodes);
     newNodes[this.editTargetId].attr.attrs = attrs;
     this.nodes = newNodes;
-    editTargetSubject.next(NodesModule.editTarget);
   }
 
   @Mutation
@@ -98,7 +95,6 @@ class Nodes extends VuexModule implements INodesState {
   @Mutation
   public SET_EDIT_TARGET(id: string) {
     this.editTargetId = id;
-    editTargetSubject.next(NodesModule.editTarget);
   }
 
   @Mutation
