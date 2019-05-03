@@ -136,7 +136,6 @@ export default class Viewer extends Vue {
       return 
     }
     this.vm.updateNodes(nodes)
-    console.log(`nodes: ${nodes}`)
   }
 
   @Watch("dragItem")
@@ -148,7 +147,6 @@ export default class Viewer extends Vue {
       return 
     }
     this.vm.updateDragItem(item)
-    console.log(`drag: ${item}`)
   }
 
   private get scriptsSrc() {
