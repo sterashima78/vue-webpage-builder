@@ -10,6 +10,7 @@ import Optional from "typescript-optional";
 import uuid from "uuid";
 import Vue from "vue";
 import { IVueNode, INodesState } from "@/types";
+import { DragItem } from "@/domain/model/DragItem";
 
 @Module({ dynamic: true, store, name: "nodes", namespaced: true })
 class Nodes extends VuexModule implements INodesState {
@@ -22,6 +23,7 @@ class Nodes extends VuexModule implements INodesState {
   public editTargetId: string = "";
   public components: string[] = [];
   public newCmpName: string = "";
+  public dragItem: DragItem = new DragItem({});
 
   // mutation
   @Mutation
@@ -169,6 +171,14 @@ class Nodes extends VuexModule implements INodesState {
   }
 
   @Mutation
+  public UPDATE_DRAGITEM() {
+    this.dragItem = new DragItem({
+      hoverId: this.hoverId,
+      draggingId: this.draggingId,
+      dropTargetId: this.dropTargetId
+    });
+  }
+  @Mutation
   public SET_DROP_TARGET(id: string) {
     this.dropTargetId = id;
     broadcastMouse();
@@ -281,6 +291,7 @@ const broadcastMouse = (): void => {
     draggingId: NodesModule.draggingId,
     dropTargetId: NodesModule.dropTargetId
   });
+  NodesModule.UPDATE_DRAGITEM();
 };
 
 const NodesModule = getModule(Nodes);

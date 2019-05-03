@@ -77,6 +77,7 @@ import ComponentsList from "@/components/ComponentsList.vue";
 import ComponentEditor from "@/components/ComponentEditor.vue";
 import ComponentTree from "@/components/ComponentTree.vue";
 import ExternalResource from "@/components/ExternalResource.vue";
+import { IVueNode, INodesState } from "@/types";
 
 import LocalVue from "../util/LocalVue";
 import toString from "../util/toString";
@@ -86,6 +87,7 @@ import { treeSubject } from "../observer/";
 import { Multipane, MultipaneResizer } from "vue-multipane";
 import download from "downloadjs";
 import { debounce } from "typescript-debounce-decorator";
+import { DragItem } from '../domain/model/DragItem';
 export interface IVueNodeTree {
   id: string;
   name: string;
@@ -107,7 +109,7 @@ treeSubject.subscribe(t => (tree = t));
   }
 })
 export default class Viewer extends Vue {
-  public vm: any = {};
+  private vm!: LocalVue;
   public active: number = 0;
   private scripts: { [id: string]: { name: string; url: string } } = {};
   private styles: { [id: string]: { name: string; url: string } } = {};
@@ -115,6 +117,38 @@ export default class Viewer extends Vue {
 
   private get allComponents(): string[] {
     return Nodes.components;
+  }
+
+  private get nodes():{ [id: string]: IVueNode } {
+    return Nodes.nodes;
+  }
+
+  private get dragItem(): DragItem {
+    return Nodes.dragItem;
+  }
+
+  @Watch("nodes")
+  private nodesWatcher(nodes: { [id: string]: IVueNode }): void {
+    if(!this.vm) {
+      setTimeout(()=> {
+        this.nodesWatcher(nodes)
+      }, 200)
+      return 
+    }
+    this.vm.updateNodes(nodes)
+    console.log(`nodes: ${nodes}`)
+  }
+
+  @Watch("dragItem")
+  private dragItemWatcher(item: DragItem): void {
+    if(!this.vm) {
+      setTimeout(()=> {
+        this.dragItemWatcher(item)
+      }, 200)
+      return 
+    }
+    this.vm.updateDragItem(item)
+    console.log(`drag: ${item}`)
   }
 
   private get scriptsSrc() {
