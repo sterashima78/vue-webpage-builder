@@ -130,9 +130,7 @@ export default class Viewer extends Vue {
   @Watch("nodes")
   private nodesWatcher(nodes: { [id: string]: IVueNode }): void {
     if(!this.vm) {
-      setTimeout(()=> {
-        this.nodesWatcher(nodes)
-      }, 200)
+      setTimeout(()=> this.nodesWatcher(nodes), 200)
       return 
     }
     this.vm.updateNodes(nodes)
@@ -141,9 +139,7 @@ export default class Viewer extends Vue {
   @Watch("dragItem")
   private dragItemWatcher(item: DragItem): void {
     if(!this.vm) {
-      setTimeout(()=> {
-        this.dragItemWatcher(item)
-      }, 200)
+      setTimeout(()=> this.dragItemWatcher(item), 200)
       return 
     }
     this.vm.updateDragItem(item)
