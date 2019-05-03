@@ -231,6 +231,7 @@ export default class Viewer extends Vue {
       window.Vue
     );
     Nodes.SET_COMPONENTS(this.vm.components);
+    this.vm.updateNodes(Nodes.nodes);
   }
 
   private initVuetifyJs() {

@@ -82,7 +82,7 @@ export default class ComponentEditor extends Vue {
   private attrName = "";
   private attrValue = "";
 
-  @Prop({default: ()=> ({})})
+  @Prop({ default: () => ({}) })
   private editTarget!: IVueNode;
 
   get editTargetText() {
