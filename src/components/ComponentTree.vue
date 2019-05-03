@@ -24,23 +24,18 @@
 </template>
 
 <script lang="ts">
-import { treeSubject } from "@/observer/";
-import { Component, Vue, Watch, Emit } from "vue-property-decorator";
-
+import { Component, Vue, Watch, Emit, Prop } from "vue-property-decorator";
+import { IVueNodeTree } from "@/types";
 import Nodes from "../store/modules/nodes";
-export interface IVueNodeTree {
-  id: string;
-  name: string;
-  children: IVueNodeTree[];
-}
 
 @Component
 export default class ComponentTree extends Vue {
   private treeDragItem: string = "";
-  private tree: IVueNodeTree[] = [];
+
+  @Prop({ default: () => [] })
+  private tree!: IVueNodeTree[];
 
   private created() {
-    treeSubject.subscribe(tree => (this.tree = tree));
     this.setIsSort(!!Nodes.isSort);
   }
 

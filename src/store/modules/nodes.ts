@@ -1,4 +1,4 @@
-import { nodeSubject, mouseSubject, editTargetSubject } from "@/observer/";
+import { editTargetSubject } from "@/observer/";
 import {
   Mutation,
   VuexModule,
@@ -11,7 +11,7 @@ import uuid from "uuid";
 import Vue from "vue";
 import { IVueNode, INodesState } from "@/types";
 import { DragItem } from "@/domain/model/DragItem";
-
+import clone from "lodash.clonedeep";
 @Module({ dynamic: true, store, name: "nodes", namespaced: true })
 class Nodes extends VuexModule implements INodesState {
   // state
@@ -32,33 +32,37 @@ class Nodes extends VuexModule implements INodesState {
     const index: number = targetNode.childrenId.findIndex(
       i => this.nodes[i] === undefined
     );
-    if (index < 0) {
-      this.nodes[this.editTargetId].childrenId.push(text);
-    } else {
-      this.nodes[this.editTargetId].childrenId[index] = text;
-    }
-    nodeSubject.next(this.nodes);
-    editTargetSubject.next(NodesModule.editTarget);
+
+    const newNodes = clone(this.nodes);
+    const numOfItem = newNodes[this.editTargetId].childrenId.length;
+    const targetIndex = index < 0 ? numOfItem : index;
+    newNodes[this.editTargetId].childrenId[targetIndex] = text;
+    this.nodes = newNodes;
   }
+
   @Mutation
   public UPDATE_STYLE(styles: { [props: string]: string }) {
-    this.nodes[this.editTargetId].attr.style = styles;
-    nodeSubject.next(this.nodes);
+    const newNodes = clone(this.nodes);
+    newNodes[this.editTargetId].attr.style = styles;
+    this.nodes = newNodes;
     editTargetSubject.next(NodesModule.editTarget);
   }
+
   @Mutation
   public UPDATE_ATTRIBUTE(attrs: { [props: string]: string }) {
-    this.nodes[this.editTargetId].attr.attrs = attrs;
-    nodeSubject.next(this.nodes);
+    const newNodes = clone(this.nodes);
+    newNodes[this.editTargetId].attr.attrs = attrs;
+    this.nodes = newNodes;
     editTargetSubject.next(NodesModule.editTarget);
   }
+
   @Mutation
   public CREATE_ELEMENT_IN(parentId: string) {
     if (this.nodes[parentId] === undefined) {
       return;
     }
     const node: IVueNode = {
-      id: "",
+      id: uuid.v4(),
       attr: {
         class: [],
         style: {},
@@ -68,10 +72,10 @@ class Nodes extends VuexModule implements INodesState {
       childrenId: [],
       tag: this.newCmpName
     };
-    node.id = uuid.v4();
-    this.nodes[node.parentId].childrenId.push(node.id);
-    this.nodes[node.id] = node;
-    nodeSubject.next(this.nodes);
+    const newNodes: { [id: string]: IVueNode } = clone(this.nodes);
+    newNodes[node.parentId].childrenId.push(node.id);
+    newNodes[node.id] = node;
+    this.nodes = newNodes;
   }
 
   @Mutation
@@ -110,68 +114,87 @@ class Nodes extends VuexModule implements INodesState {
       );
     }
     Vue.delete(this.nodes, id);
-    nodeSubject.next(this.nodes);
   }
 
   @Mutation
   public SET_NODES(nodes: { [id: string]: IVueNode }) {
     this.nodes = nodes;
-    nodeSubject.next(this.nodes);
-  }
-
-  @Mutation
-  public SEND_NDOES() {
-    nodeSubject.next(this.nodes);
   }
 
   @Mutation
   public ADD_NODE(node: IVueNode) {
     node.id = uuid.v4();
-    this.nodes[node.parentId].childrenId.push(node.id);
-    this.nodes[node.id] = node;
-    nodeSubject.next(this.nodes);
+    const newNodes = clone(this.nodes);
+    newNodes[node.parentId].childrenId.push(node.id);
+    newNodes[node.id] = node;
+    this.nodes = newNodes;
   }
 
   @Mutation
   public SET_HOVER_ELEMENT(id: string) {
     this.hoverId = id;
-    broadcastMouse();
+    this.dragItem = new DragItem({
+      hoverId: this.hoverId,
+      draggingId: this.draggingId,
+      dropTargetId: this.dropTargetId
+    });
   }
 
   @Mutation
   public REMOVE_HOVER_ELEMENT(id: string) {
     if (id === this.hoverId) {
       this.hoverId = "";
-      broadcastMouse();
+      this.dragItem = new DragItem({
+        hoverId: this.hoverId,
+        draggingId: this.draggingId,
+        dropTargetId: this.dropTargetId
+      });
     }
   }
 
   @Mutation
   public DRAG_START(id: string) {
     this.draggingId = id;
-    broadcastMouse();
+    this.dragItem = new DragItem({
+      hoverId: this.hoverId,
+      draggingId: this.draggingId,
+      dropTargetId: this.dropTargetId
+    });
   }
 
   @Mutation
   public DRAG_END() {
     this.draggingId = "";
-    broadcastMouse();
+    this.dragItem = new DragItem({
+      hoverId: this.hoverId,
+      draggingId: this.draggingId,
+      dropTargetId: this.dropTargetId
+    });
   }
 
   @Mutation
   public DRAG_ENTER(id: string) {
     this.draggingId = "";
-    broadcastMouse();
+    this.dragItem = new DragItem({
+      hoverId: this.hoverId,
+      draggingId: this.draggingId,
+      dropTargetId: this.dropTargetId
+    });
   }
 
   @Mutation
   public DRAG_LEAVE() {
     this.draggingId = "";
-    broadcastMouse();
+    this.dragItem = new DragItem({
+      hoverId: this.hoverId,
+      draggingId: this.draggingId,
+      dropTargetId: this.dropTargetId
+    });
   }
 
   @Mutation
-  public UPDATE_DRAGITEM() {
+  public SET_DROP_TARGET(id: string) {
+    this.dropTargetId = id;
     this.dragItem = new DragItem({
       hoverId: this.hoverId,
       draggingId: this.draggingId,
@@ -179,14 +202,13 @@ class Nodes extends VuexModule implements INodesState {
     });
   }
   @Mutation
-  public SET_DROP_TARGET(id: string) {
-    this.dropTargetId = id;
-    broadcastMouse();
-  }
-  @Mutation
   public REMOVE_DROP_TARGET(id: string) {
     this.dropTargetId = this.dropTargetId === id ? "" : this.dropTargetId;
-    broadcastMouse();
+    this.dragItem = new DragItem({
+      hoverId: this.hoverId,
+      draggingId: this.draggingId,
+      dropTargetId: this.dropTargetId
+    });
   }
 
   @Mutation
@@ -215,9 +237,10 @@ class Nodes extends VuexModule implements INodesState {
     // add to taget element
     n.parentId = t.id;
     t.childrenId.push(n.id);
-    this.nodes[n.id] = n;
-    this.nodes[t.id] = t;
-    nodeSubject.next(this.nodes);
+    const newNodes = clone(this.nodes);
+    newNodes[n.id] = n;
+    newNodes[t.id] = t;
+    this.nodes = newNodes;
   }
 
   @Mutation
@@ -250,8 +273,9 @@ class Nodes extends VuexModule implements INodesState {
     p.childrenId.splice(nIndex, 1); // remove fromlist
     p.childrenId.splice(tIndex, 0, n.id);
 
-    this.nodes[p.id] = p;
-    nodeSubject.next(this.nodes);
+    const newNodes = clone(this.nodes);
+    newNodes[p.id] = p;
+    this.nodes = newNodes;
   }
 
   @Mutation
@@ -284,15 +308,6 @@ class Nodes extends VuexModule implements INodesState {
     });
   }
 }
-
-const broadcastMouse = (): void => {
-  mouseSubject.next({
-    hoverId: NodesModule.hoverId,
-    draggingId: NodesModule.draggingId,
-    dropTargetId: NodesModule.dropTargetId
-  });
-  NodesModule.UPDATE_DRAGITEM();
-};
 
 const NodesModule = getModule(Nodes);
 export default NodesModule;

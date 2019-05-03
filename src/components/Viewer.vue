@@ -27,7 +27,7 @@
           <v-icon>get_app</v-icon>
         </v-tab>
         <v-tab-item>
-          <ComponentTree @switch-tab="active = $event"/>
+          <ComponentTree @switch-tab="active = $event" :tree="tree"/>
         </v-tab-item>
         <v-tab-item>
           <ComponentsList/>
@@ -77,25 +77,16 @@ import ComponentsList from "@/components/ComponentsList.vue";
 import ComponentEditor from "@/components/ComponentEditor.vue";
 import ComponentTree from "@/components/ComponentTree.vue";
 import ExternalResource from "@/components/ExternalResource.vue";
-import { IVueNode, INodesState } from "@/types";
+import { IVueNode, INodesState, IVueNodeTree } from "@/types";
 
 import LocalVue from "../util/LocalVue";
 import toString from "../util/toString";
 import uuid from "uuid";
 import Nodes from "../store/modules/nodes";
-import { treeSubject } from "../observer/";
 import { Multipane, MultipaneResizer } from "vue-multipane";
 import download from "downloadjs";
 import { debounce } from "typescript-debounce-decorator";
-import { DragItem } from '../domain/model/DragItem';
-export interface IVueNodeTree {
-  id: string;
-  name: string;
-  children: IVueNodeTree[];
-}
-
-let tree: IVueNodeTree[] = [];
-treeSubject.subscribe(t => (tree = t));
+import { DragItem } from "../domain/model/DragItem";
 
 @Component({
   components: {
@@ -114,12 +105,13 @@ export default class Viewer extends Vue {
   private scripts: { [id: string]: { name: string; url: string } } = {};
   private styles: { [id: string]: { name: string; url: string } } = {};
   private inlineScript: string = "";
+  private tree: IVueNodeTree[] = [];
 
   private get allComponents(): string[] {
     return Nodes.components;
   }
 
-  private get nodes():{ [id: string]: IVueNode } {
+  private get nodes(): { [id: string]: IVueNode } {
     return Nodes.nodes;
   }
 
@@ -127,22 +119,28 @@ export default class Viewer extends Vue {
     return Nodes.dragItem;
   }
 
-  @Watch("nodes")
+  @Watch("nodes", { deep: true })
   private nodesWatcher(nodes: { [id: string]: IVueNode }): void {
-    if(!this.vm) {
-      setTimeout(()=> this.nodesWatcher(nodes), 200)
-      return 
+    if (!this.vm) {
+      setTimeout(() => this.nodesWatcher(nodes), 200);
+      return;
     }
-    this.vm.updateNodes(nodes)
+    this.vm.updateNodes(nodes);
+    const tree = Object.keys(nodes)
+      .filter((id: string) => nodes[id].parentId === "")
+      .map((id: string) => nodes[id])
+      .map(node => buildTree(node, nodes))
+      .filter(n => n.id !== "");
+    this.tree = tree;
   }
 
   @Watch("dragItem")
   private dragItemWatcher(item: DragItem): void {
-    if(!this.vm) {
-      setTimeout(()=> this.dragItemWatcher(item), 200)
-      return 
+    if (!this.vm) {
+      setTimeout(() => this.dragItemWatcher(item), 200);
+      return;
     }
-    this.vm.updateDragItem(item)
+    this.vm.updateDragItem(item);
   }
 
   private get scriptsSrc() {
@@ -228,8 +226,7 @@ export default class Viewer extends Vue {
       // @ts-ignore
       window.Vue
     );
-    Nodes.SET_COMPONENTS(this.vm.components)
-    Nodes.SEND_NDOES();
+    Nodes.SET_COMPONENTS(this.vm.components);
   }
 
   private initVuetifyJs() {
@@ -287,6 +284,26 @@ export default class Viewer extends Vue {
     download(template, "index.html", "text/html");
   }
 }
+
+const buildTree = (
+  node: IVueNode,
+  allNodes: { [id: string]: IVueNode }
+): IVueNodeTree => {
+  return {
+    id: node.id,
+    name: node.tag,
+    children: node.childrenId.reduce(
+      (arr: IVueNodeTree[], id: string): IVueNodeTree[] => {
+        if (!allNodes[id]) {
+          return arr;
+        }
+        arr.push(buildTree(allNodes[id], allNodes));
+        return arr;
+      },
+      []
+    )
+  };
+};
 </script>
 
 <style>

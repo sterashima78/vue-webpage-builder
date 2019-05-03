@@ -19,3 +19,9 @@ export interface INodesState {
     [id: string]: IVueNode;
   };
 }
+
+export interface IVueNodeTree {
+  id: string;
+  name: string;
+  children: IVueNodeTree[];
+}
