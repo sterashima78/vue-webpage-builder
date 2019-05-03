@@ -2,8 +2,6 @@ import Vue, { CreateElement, VNode, VNodeData, VueConstructor } from "vue";
 import { nodeSubject, mouseSubject } from "@/observer/";
 import Optional from "typescript-optional";
 import clone from "lodash.clonedeep";
-import Nodes from "@/store/modules/nodes";
-import uuid from "uuid";
 import { IVueNode } from "@/types";
 import {
   dragStart,
@@ -16,6 +14,7 @@ import {
 
 export default class LocalVue {
   public vm: Vue;
+  private VueJs!: VueConstructor<Vue>;
   constructor(ele: Element, VueJs: VueConstructor<Vue>) {
     this.vm = new VueJs({
       el: ele,
@@ -43,7 +42,7 @@ export default class LocalVue {
         return h("div", this.topNodes.map(n => this.rRender(n.id)));
       },
       methods: {
-        rRender(id: string): VNode {
+        rRender(id: string): VNode | string {
           return Optional.ofNullable(clone(this.allNodes[id]))
             .map((n: IVueNode) => {
               const isDropTarget = n.id === this.dropTargetId;
@@ -60,11 +59,17 @@ export default class LocalVue {
         }
       }
     });
-    // @ts-ignore
-    Nodes.SET_COMPONENTS(Object.keys(VueJs.options.components));
+    this.VueJs = VueJs;
   }
   public update(): void {
     this.vm.$forceUpdate();
+  }
+  public get components(): string[] {
+    if (!this.VueJs) {
+      return [];
+    }
+    // @ts-ignore
+    return Object.keys(this.VueJs.options.components);
   }
 }
 

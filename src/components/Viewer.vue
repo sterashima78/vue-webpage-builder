@@ -200,6 +200,7 @@ export default class Viewer extends Vue {
       // @ts-ignore
       window.Vue
     );
+    Nodes.SET_COMPONENTS(this.vm.components)
     Nodes.SEND_NDOES();
   }
 
