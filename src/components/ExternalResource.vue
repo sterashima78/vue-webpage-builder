@@ -53,7 +53,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import Editor from "./Ace.vue";
+import Editor from "@/application/components/atoms/Ace.vue";
 
 @Component({
   components: {
