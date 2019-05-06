@@ -30,7 +30,7 @@
           <ComponentTree @switch-tab="active = $event" :tree="tree"/>
         </v-tab-item>
         <v-tab-item>
-          <ComponentsList/>
+          <ComponentsList :components="allComponents"/>
         </v-tab-item>
         <v-tab-item>
           <ComponentEditor @switch-tab="active = $event" :editTarget="editTarget"/>
@@ -100,8 +100,8 @@ import { DragItem } from "@/domain/model/DragItem";
   }
 })
 export default class Viewer extends Vue {
-  private vm!: LocalVue;
   public active: number = 0;
+  private vm!: LocalVue;
   private scripts: { [id: string]: { name: string; url: string } } = {};
   private styles: { [id: string]: { name: string; url: string } } = {};
   private inlineScript: string = "";

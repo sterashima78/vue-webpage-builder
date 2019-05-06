@@ -1,34 +1,37 @@
 <template>
-  <v-card flat>
-    <v-card-text>
-      <v-switch :label="isSort ? 'sort' : 'add'" :input-value="isSort" @change="setIsSort(!!$event)"></v-switch>
-      <v-treeview :items="tree" :hoverable="true">
-        <template slot="label" slot-scope="{ item }">
-          <div
-            draggable="true"
-            style="cursor: move"
-            @dragstart="treeDragStart(item.id)"
-            @drop="treeDrop(item.id)"
-            @dragover="$event.preventDefault()"
-            @mouseenter="treeMouseEnter(item.id)"
-            @mouseleave="treeMouseLeave(item.id)"
-          >{{item.name}}</div>
-        </template>
-        <template slot="append" slot-scope="{ item }">
-          <v-icon @click="openAttrEditor(item.id)">tune</v-icon>
-          <v-icon @click="deleteNode(item.id)">delete</v-icon>
-        </template>
-      </v-treeview>
-    </v-card-text>
-  </v-card>
+<MenuTabItem>
+  <v-switch :label="isSort ? 'sort' : 'add'" :input-value="isSort" @change="setIsSort(!!$event)"></v-switch>
+  <v-treeview :items="tree" :hoverable="true">
+    <template slot="label" slot-scope="{ item }">
+      <div
+        draggable="true"
+        style="cursor: move"
+        @dragstart="treeDragStart(item.id)"
+        @drop="treeDrop(item.id)"
+        @dragover="$event.preventDefault()"
+        @mouseenter="treeMouseEnter(item.id)"
+        @mouseleave="treeMouseLeave(item.id)"
+      >{{item.name}}</div>
+    </template>
+    <template slot="append" slot-scope="{ item }">
+      <v-icon @click="openAttrEditor(item.id)">tune</v-icon>
+      <v-icon @click="deleteNode(item.id)">delete</v-icon>
+    </template>
+  </v-treeview>
+</MenuTabItem>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Watch, Emit, Prop } from "vue-property-decorator";
 import { IVueNodeTree } from "@/types";
 import Nodes from "@/store/modules/nodes";
+import MenuTabItem from "@/application/components/atoms/MenuTabItem.vue";
 
-@Component
+@Component({
+  components: {
+    MenuTabItem
+  }
+})
 export default class ComponentTree extends Vue {
   private treeDragItem: string = "";
 

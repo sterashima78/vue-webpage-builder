@@ -1,35 +1,33 @@
 <template>
-<v-card flat style="overflow-y: scroll; height: calc(100vh - 50px);">
-  <v-card-text>
-    <InlineScript 
-      @update="scriptUpdate"
-    />
+<MenuTabItem>
+  <InlineScript @update="scriptUpdate"/>
 
-    <Resource 
-      title="JavaScript"
-      :resources="scripts"
-      @add="addScript"
-      @remove="removeScript"
-    />
-    
-    <Resource 
-      title="Style"
-      :resources="styles"
-      @add="addStyle"
-      @remove="removeStyle"
-    />
-  </v-card-text>
-</v-card>
+  <Resource 
+    title="JavaScript"
+    :resources="scripts"
+    @add="addScript"
+    @remove="removeScript"
+  />
+  
+  <Resource 
+    title="Style"
+    :resources="styles"
+    @add="addStyle"
+    @remove="removeStyle"
+  />
+</MenuTabItem>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 import Resource from "@/application/components/molecules/Resource.vue";
 import InlineScript from "@/application/components/molecules/InlineJsResource.vue";
+import MenuTabItem from "@/application/components/atoms/MenuTabItem.vue";
 @Component({
   components: {
     Resource,
-    InlineScript
+    InlineScript,
+    MenuTabItem
   }
 })
 export default class ExternamResource extends Vue {
