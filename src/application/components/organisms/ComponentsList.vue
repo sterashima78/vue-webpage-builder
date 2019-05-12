@@ -21,7 +21,7 @@ import MenuTabItem from "@/application/components/atoms/MenuTabItem.vue";
 export default class ComponentsList extends Vue {
   @Prop({ default: () => [] })
   private components!: string[];
-  
+
   private dragStart(name: string) {
     this.$emit("dragStart", name);
   }

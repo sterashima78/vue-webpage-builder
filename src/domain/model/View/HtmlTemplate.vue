@@ -26,5 +26,5 @@
 <script>
 export default {
   props: ["style", "id", "nodes", "script", "inlineScript"]
-}
+};
 </script>

@@ -160,7 +160,7 @@ export default class Viewer extends Vue {
   private dragEnd(name: string) {
     Nodes.REMOVE_NEW_COMPONENT_NAME(name);
   }
-  
+
   @debounce(500, { leading: false })
   private reload(window: Window) {
     this.vm = new LocalVue(

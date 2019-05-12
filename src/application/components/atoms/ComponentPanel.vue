@@ -29,7 +29,5 @@ export default class ComponentPanel extends Vue {
   private dragEnd(name: string) {
     this.$emit("dragEnd", name);
   }
-
-
 }
 </script>
