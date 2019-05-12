@@ -1,68 +1,23 @@
 <template>
-  <v-layout>
-    <VIframeSandbox 
-      body="<div id='main-wrapper'></div>" 
-      style="width:100%;height:100%" 
-      :script="inlineScript"
-      :scriptsSrc="scriptsSrc"
-      :styles="stylesStr"
-      :cssLinks="cssLinks"
-      @loaded="reload"
-    />
-    <div style="width: 500px;height:100%">
-      <v-tabs v-model="active">
-        <v-tab ripple>
-          <v-icon>layers</v-icon>
-        </v-tab>
-        <v-tab ripple>
-          <v-icon>dashboard</v-icon>
-        </v-tab>
-        <v-tab ripple>
-          <v-icon>tune</v-icon>
-        </v-tab>
-        <v-tab ripple>
-          <v-icon>code</v-icon>
-        </v-tab>
-        <v-tab ripple>
-          <v-icon>get_app</v-icon>
-        </v-tab>
-        <v-tab-item>
-          <ComponentTree @switch-tab="active = $event" :tree="tree"/>
-        </v-tab-item>
-        <v-tab-item>
-          <ComponentsList :components="allComponents"/>
-        </v-tab-item>
-        <v-tab-item>
-          <ComponentEditor @switch-tab="active = $event" :editTarget="editTarget"/>
-        </v-tab-item>
-        <v-tab-item>
-          <ExternalResource 
-            :scripts="scripts" 
-            :styles="styles" 
-            @removeStyle="$delete(styles, $event)" 
-            @removeStript="$delete(scripts, $event)"
-            @addStyle="$set(styles, `${$event.name}-css`, $event)" 
-            @addScript="$set(scripts, `${$event.name}-js`, $event)"
-            @updateInlineScript="inlineScript = $event"
-          />
-        </v-tab-item>
-        <v-tab-item>
-          <p>
-            <v-btn @click="download">Download</v-btn>
-          </p>
-          <p>
-            <v-btn @click="exportJson">Export</v-btn>
-          </p>
-          <p>
-            <label>
-              <span>Import: </span>
-              <input type="file" @change="importJsonFile($event.target.files)" accept='application/json'>
-            </label>
-          </p>
-        </v-tab-item>
-      </v-tabs>
-    </div>
-  </v-layout>
+  <ViewerTemplate 
+    :scripts="scripts"
+    :styles="styles"
+    :inlineScript="inlineScript"
+    :tree="tree"
+    :allComponents="allComponents"
+    :nodes="nodes"
+    :editTarget="editTarget"
+    @loaded="loaded"
+    @updateInlineScript="updateInlineScript"
+    @removeStript="removeStript"
+    @addScript="addScript"
+    @removeStyle="removeStyle"
+    @addStyle="addStyle"
+    @import="importJsonFile"
+    @download="download"
+    @dragStart="dragStart"
+    @dragEnd="dragEnd"
+  />
 </template>
 
 <script lang="ts">
@@ -72,11 +27,7 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import Optional from "typescript-optional";
 import cloneDeep from "lodash.clonedeep";
 
-import { VIframeSandbox } from "vue-iframe-sandbox";
-import ComponentsList from "@/application/components/templates/ComponentsList.vue";
-import ComponentEditor from "@/application/components/templates/ComponentEditor.vue";
-import ComponentTree from "@/application/components/templates/ComponentTree.vue";
-import ExternalResource from "@/application/components/templates/ExternalResource.vue";
+import ViewerTemplate from "@/application/components/templates/ViewerTemplate.vue";
 import { IVueNode, INodesState, IVueNodeTree } from "@/types";
 
 import LocalVue from "@/util/LocalVue";
@@ -92,11 +43,7 @@ import { DragItem } from "@/domain/model/DragItem";
   components: {
     Multipane,
     MultipaneResizer,
-    ComponentsList,
-    ComponentEditor,
-    ComponentTree,
-    ExternalResource,
-    VIframeSandbox
+    ViewerTemplate
   }
 })
 export default class Viewer extends Vue {
@@ -145,23 +92,6 @@ export default class Viewer extends Vue {
       return;
     }
     this.vm.updateDragItem(item);
-  }
-
-  private get scriptsSrc() {
-    return [
-      "https://cdn.jsdelivr.net/npm/vue/dist/vue.js",
-      ...Object.keys(this.scripts).map(id => this.scripts[id].url)
-    ];
-  }
-  private get cssLinks() {
-    return Object.keys(this.styles).map(id => this.styles[id].url);
-  }
-
-  private get stylesStr() {
-    return [
-      ".drag-enter {border: 5px solid red !important; box-sizing: border-box !important}",
-      ".vue-web-builder-hover {border: 5px solid blue !important; box-sizing: border-box !important}"
-    ].join("\n");
   }
 
   private mounted() {
@@ -223,6 +153,14 @@ export default class Viewer extends Vue {
     });
   }
 
+  private dragStart(name: string) {
+    Nodes.SET_NEW_COMPONENT_NAME(name);
+  }
+
+  private dragEnd(name: string) {
+    Nodes.REMOVE_NEW_COMPONENT_NAME(name);
+  }
+  
   @debounce(500, { leading: false })
   private reload(window: Window) {
     this.vm = new LocalVue(

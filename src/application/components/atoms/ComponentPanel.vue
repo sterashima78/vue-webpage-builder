@@ -5,8 +5,8 @@
     height="75"
     :elevation="20"
     style="word-break: break-all;cursor: move;"
-    @dragstart.native.stop="cmpDragStart(componentName)"
-    @dragend.native.stop="cmpDragEnd(componentName)"
+    @dragstart.native.stop="dragStart(componentName)"
+    @dragend.native.stop="dragEnd(componentName)"
     @dragover="$event.preventDefault()"
   >{{componentName}}</v-sheet>
 </v-flex>
@@ -14,7 +14,6 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import Nodes from "@/store/modules/nodes";
 
 @Component({
   name: "ComponentPanel"
@@ -23,12 +22,14 @@ export default class ComponentPanel extends Vue {
   @Prop({ type: String, default: "" })
   private componentName!: string;
 
-  public cmpDragStart(name: string) {
-    Nodes.SET_NEW_COMPONENT_NAME(name);
+  private dragStart(name: string) {
+    this.$emit("dragStart", name);
   }
 
-  public cmpDragEnd(name: string) {
-    Nodes.REMOVE_NEW_COMPONENT_NAME(name);
+  private dragEnd(name: string) {
+    this.$emit("dragEnd", name);
   }
+
+
 }
 </script>

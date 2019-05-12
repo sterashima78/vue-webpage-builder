@@ -20,6 +20,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
+import clone from "lodash.clonedeep";
 import Resource from "@/application/components/molecules/Resource.vue";
 import InlineScript from "@/application/components/molecules/InlineJsResource.vue";
 import MenuTabItem from "@/application/components/atoms/MenuTabItem.vue";

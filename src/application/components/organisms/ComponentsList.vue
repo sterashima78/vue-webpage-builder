@@ -1,6 +1,10 @@
 <template>
 <MenuTabItem>
-  <ComponentSelector :components="components" />
+  <ComponentSelector 
+    :components="components" 
+    @dragStart="dragStart"
+    @dragEnd="dragEnd"
+  />
 </MenuTabItem>
 </template>
 
@@ -17,5 +21,13 @@ import MenuTabItem from "@/application/components/atoms/MenuTabItem.vue";
 export default class ComponentsList extends Vue {
   @Prop({ default: () => [] })
   private components!: string[];
+  
+  private dragStart(name: string) {
+    this.$emit("dragStart", name);
+  }
+
+  private dragEnd(name: string) {
+    this.$emit("dragEnd", name);
+  }
 }
 </script>

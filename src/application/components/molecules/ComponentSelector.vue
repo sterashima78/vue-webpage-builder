@@ -8,6 +8,8 @@
         v-for="componentName in filteredComponents" 
         :key="componentName"
         :componentName="componentName"
+        @dragStart="dragStart"
+        @dragEnd="dragEnd"
       />
     </v-layout>
   </v-container>
@@ -29,7 +31,7 @@ export default class ComponentSelector extends Vue {
   private components!: string[];
   private filter = "";
   private type = "html";
-  public get filteredComponents(): string[] {
+  private get filteredComponents(): string[] {
     const re = new RegExp(this.filter, "i");
     switch (this.type) {
       case "html":
@@ -39,6 +41,14 @@ export default class ComponentSelector extends Vue {
       default:
         return [];
     }
+  }
+
+  private dragStart(name: string) {
+    this.$emit("dragStart", name);
+  }
+
+  private dragEnd(name: string) {
+    this.$emit("dragEnd", name);
   }
 }
 </script>
