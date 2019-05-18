@@ -8,13 +8,29 @@ import store from "@/store/";
 import Optional from "typescript-optional";
 import uuid from "uuid";
 import Vue from "vue";
-import { IVueNode, INodesState } from "@/types";
+import { IVueNode, INodesState, IVueNodeTree } from "@/types";
 import { DragItem } from "@/domain/model/DragItem";
 import clone from "lodash.clonedeep";
+const Id0 = uuid.v4();
 @Module({ dynamic: true, store, name: "nodes", namespaced: true })
 class Nodes extends VuexModule implements INodesState {
   // state
-  public nodes: { [id: string]: IVueNode } = {};
+  public nodes: { [id: string]: IVueNode } = {
+    [Id0]: {
+      id: Id0,
+      parentId: "",
+      childrenId: [],
+      attr: {
+        style: {
+          height: "100%",
+          width: "100%"
+        },
+        class: [],
+        attrs: {}
+      },
+      tag: "div"
+    }
+  };
   public draggingId: string = "";
   public dropTargetId: string = "";
   public isSort: boolean = true;
@@ -303,7 +319,35 @@ class Nodes extends VuexModule implements INodesState {
       tag: ""
     });
   }
+
+  get tree(): IVueNodeTree[] {
+    return Object.keys(this.nodes)
+      .filter((id: string) => this.nodes[id].parentId === "")
+      .map((id: string) => this.nodes[id])
+      .map(node => buildTree(node, this.nodes))
+      .filter(n => n.id !== "");
+  }
 }
+
+const buildTree = (
+  node: IVueNode,
+  allNodes: { [id: string]: IVueNode }
+): IVueNodeTree => {
+  return {
+    id: node.id,
+    name: node.tag,
+    children: node.childrenId.reduce(
+      (arr: IVueNodeTree[], id: string): IVueNodeTree[] => {
+        if (!allNodes[id]) {
+          return arr;
+        }
+        arr.push(buildTree(allNodes[id], allNodes));
+        return arr;
+      },
+      []
+    )
+  };
+};
 
 const NodesModule = getModule(Nodes);
 export default NodesModule;

@@ -51,10 +51,25 @@ const service = new ExporterService();
 export default class Viewer extends Vue {
   public active: number = 0;
   private vm!: LocalVue;
-  private scripts: { [id: string]: { name: string; url: string } } = {};
-  private styles: { [id: string]: { name: string; url: string } } = {};
+  private scripts: { [id: string]: { name: string; url: string } } = {
+    "vuetify-js": {
+      name: "vuetify",
+      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"
+    }
+  };
+  private styles: { [id: string]: { name: string; url: string } } = {
+    "material-icon-css": {
+      name: "material-icon",
+      url:
+        "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"
+    },
+    "vuetify-css": {
+      name: "vuetify",
+      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css"
+    }
+  };
   private inlineScript: string = "";
-  private tree: IVueNodeTree[] = [];
+  // private tree: IVueNodeTree[] = [];
 
   private get allComponents(): string[] {
     return Nodes.components;
@@ -72,6 +87,14 @@ export default class Viewer extends Vue {
     return Nodes.editTarget;
   }
 
+  private get tree(): IVueNodeTree[] {
+    return Nodes.tree;
+  }
+
+  private mounted() {
+    this.nodesWatcher(this.nodes);
+  }
+
   @Watch("nodes", { deep: true })
   private nodesWatcher(nodes: { [id: string]: IVueNode }): void {
     if (!this.vm) {
@@ -79,12 +102,6 @@ export default class Viewer extends Vue {
       return;
     }
     this.vm.updateNodes(nodes);
-    const tree = Object.keys(nodes)
-      .filter((id: string) => nodes[id].parentId === "")
-      .map((id: string) => nodes[id])
-      .map(node => buildTree(node, nodes))
-      .filter(n => n.id !== "");
-    this.tree = tree;
   }
 
   @Watch("dragItem")
@@ -94,12 +111,6 @@ export default class Viewer extends Vue {
       return;
     }
     this.vm.updateDragItem(item);
-  }
-
-  private mounted() {
-    this.initializeNodes();
-    this.initVuetifyCss();
-    this.initVuetifyJs();
   }
 
   private exportJson() {
@@ -118,26 +129,6 @@ export default class Viewer extends Vue {
     this.inlineScript = obj.inlineScript;
   }
 
-  private initializeNodes() {
-    const Id0 = uuid.v4();
-    Nodes.SET_NODES({
-      [Id0]: {
-        id: Id0,
-        parentId: "",
-        childrenId: [],
-        attr: {
-          style: {
-            height: "100%",
-            width: "100%"
-          },
-          class: [],
-          attrs: {}
-        },
-        tag: "div"
-      }
-    });
-  }
-
   private dragStart(name: string) {
     Nodes.SET_NEW_COMPONENT_NAME(name);
   }
@@ -148,32 +139,12 @@ export default class Viewer extends Vue {
 
   @debounce(500, { leading: false })
   private reload(window: Window) {
-    this.vm = new LocalVue(
-      window.document.getElementById("main-wrapper") as HTMLElement,
-      // @ts-ignore
-      window.Vue
-    );
+    // @ts-ignore
+    const vue: VueConstructor<Vue> = window.Vue;
+    const ele = window.document.getElementById("main-wrapper") as HTMLElement;
+    this.vm = new LocalVue(ele, vue);
     Nodes.SET_COMPONENTS(this.vm.components);
-    this.vm.updateNodes(Nodes.nodes);
-  }
-
-  private initVuetifyJs() {
-    this.$set(this.scripts, "vuetify-js", {
-      name: "vuetify",
-      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"
-    });
-  }
-
-  private initVuetifyCss() {
-    this.$set(this.styles, "material-icon-css", {
-      name: "material-icon",
-      url:
-        "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"
-    });
-    this.$set(this.styles, "vuetify-css", {
-      name: "vuetify",
-      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css"
-    });
+    this.vm.updateNodes(this.nodes);
   }
 
   private removeStyle(key: string) {
@@ -201,26 +172,6 @@ export default class Viewer extends Vue {
     );
   }
 }
-
-const buildTree = (
-  node: IVueNode,
-  allNodes: { [id: string]: IVueNode }
-): IVueNodeTree => {
-  return {
-    id: node.id,
-    name: node.tag,
-    children: node.childrenId.reduce(
-      (arr: IVueNodeTree[], id: string): IVueNodeTree[] => {
-        if (!allNodes[id]) {
-          return arr;
-        }
-        arr.push(buildTree(allNodes[id], allNodes));
-        return arr;
-      },
-      []
-    )
-  };
-};
 </script>
 
 <style>

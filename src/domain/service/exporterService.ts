@@ -1,4 +1,4 @@
-import ejs from "ejs";
+import ejs from "ejs/ejs.min.js";
 import download from "downloadjs";
 import HtmlTemplate from "./HtmlTemplate.ejs";
 import toString from "@/util/toString";

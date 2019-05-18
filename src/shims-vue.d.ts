@@ -7,6 +7,11 @@ declare module "*.ejs" {
   export default value;
 }
 
+declare module "ejs/ejs.min.js" {
+  import ejs from "ejs";
+  export default ejs;
+}
+
 declare module "vue-iframe-sandbox";
 
 declare module "vue-multipane";
