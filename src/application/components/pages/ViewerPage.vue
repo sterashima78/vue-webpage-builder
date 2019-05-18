@@ -69,7 +69,6 @@ export default class Viewer extends Vue {
     }
   };
   private inlineScript: string = "";
-  // private tree: IVueNodeTree[] = [];
 
   private get allComponents(): string[] {
     return Nodes.components;
