@@ -1,22 +1,12 @@
-import Vue from "vue";
-import Render from "vue-server-renderer";
-import HtmlTemplate from "./HtmlTemplate.vue";
+import ejs from "ejs";
+import HtmlTemplate from "./HtmlTemplate.ejs";
 
-const renderer = Render.createRenderer();
-
-export const toHtml = (style, id, nodes, script, inlineScript) => {
-  const app = new Vue({
-    template: "<HtmlTemplate style, id, nodes, script, inlineScript />",
-    components: {
-      HtmlTemplate
-    },
-    data: {
-      style,
-      id,
-      nodes,
-      script,
-      inlineScript
-    }
-  });
-  return renderer.renderToString(app);
+export const toHtml = (
+  style: any,
+  id: any,
+  nodes: any,
+  script: any,
+  inlineScript: string
+) => {
+  return ejs.render(HtmlTemplate, { style, id, nodes, script, inlineScript });
 };

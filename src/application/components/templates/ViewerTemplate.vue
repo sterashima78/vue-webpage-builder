@@ -7,7 +7,7 @@
       :scriptsSrc="scriptsSrc"
       :styles="stylesStr"
       :cssLinks="cssLinks"
-      @loaded="reload"
+      @loaded="loaded"
     />
     <div style="width: 500px;height:100%">
       <v-tabs v-model="active">
@@ -136,13 +136,17 @@ export default class Viewer extends Vue {
     ].join("\n");
   }
 
-  private emitLoaded() {
-    this.$emit("loaded");
+  private loaded(window: Window) {
+    this.$emit("loaded", window);
   }
 
   private emitStartImport(files: FileList) {
     if (files.length < 1) return;
     this.$emit("import", files[0]);
+  }
+
+  private exportJson() {
+    this.$emit("export");
   }
 
   private download() {

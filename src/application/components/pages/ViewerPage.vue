@@ -7,13 +7,14 @@
     :allComponents="allComponents"
     :nodes="nodes"
     :editTarget="editTarget"
-    @loaded="loaded"
+    @loaded="reload"
     @updateInlineScript="updateInlineScript"
-    @removeStript="removeStript"
+    @removeScript="removeScript"
     @addScript="addScript"
     @removeStyle="removeStyle"
     @addStyle="addStyle"
     @import="importJsonFile"
+    @export="exportJson"
     @download="download"
     @dragStart="dragStart"
     @dragEnd="dragEnd"
@@ -38,7 +39,9 @@ import { Multipane, MultipaneResizer } from "vue-multipane";
 import download from "downloadjs";
 import { debounce } from "typescript-debounce-decorator";
 import { DragItem } from "@/domain/model/DragItem";
-
+import { toHtml } from "@/domain/model/View/Html";
+import { ExporterService } from "@/domain/service/exporterService"
+const service = new ExporterService();
 @Component({
   components: {
     Multipane,
@@ -59,7 +62,7 @@ export default class Viewer extends Vue {
   }
 
   private get nodes(): { [id: string]: IVueNode } {
-    return Nodes.nodes;
+    return Nodes.allNodes;
   }
 
   private get dragItem(): DragItem {
@@ -101,14 +104,11 @@ export default class Viewer extends Vue {
   }
 
   private exportJson() {
-    download(
-      JSON.stringify({
-        nodes: Nodes.allNodes,
-        styles: this.styles,
-        scripts: this.scripts
-      }),
-      "project.json",
-      "application/json"
+    service.downloadJson(
+      this.nodes,
+      this.styles,
+      this.scripts,
+      this.inlineScript
     );
   }
 
@@ -127,10 +127,11 @@ export default class Viewer extends Vue {
   }
 
   private importJson(json: string) {
-    const { nodes, scripts, styles } = JSON.parse(json);
+    const { nodes, scripts, styles, inlineScript } = JSON.parse(json);
     Nodes.SET_NODES(nodes);
     this.styles = styles;
     this.scripts = scripts;
+    this.inlineScript = inlineScript;
   }
 
   private initializeNodes() {
@@ -191,40 +192,29 @@ export default class Viewer extends Vue {
     });
   }
 
+  private removeStyle(key: string) {
+    this.$delete(this.styles, key);
+  }
+  private removeScript(key: string) {
+    this.$delete(this.scripts, key);
+  }
+  private addScript(resorce: { url: string; name: string }) {
+    this.$set(this.scripts, `${resorce.name}-css`, resorce);
+  }
+  private addStyle(resorce: { url: string; name: string }) {
+    this.$set(this.styles, `${resorce.name}-css`, resorce);
+  }
+  private updateInlineScript(script: string) {
+    this.inlineScript = script;
+  }
+
   private download() {
-    const id = Nodes.topNodes.filter(i => i.parentId === "").map(i => i.id)[0];
-    const style = Object.keys(this.styles)
-      .map(i => `<link rel="stylesheet" href="${this.styles[i].url}">`)
-      .join("");
-    const script = Object.keys(this.scripts)
-      .map(i => `<script src="${this.scripts[i].url}"><\/script>`)
-      .join("");
-    const template = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Vue Web desginer</title>
-  ${style}
-</head>
-<body>
-  <div id="app-main" style="height:100%;width:100%">
-  ${toString(id, Nodes.allNodes, true)}
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"><\/script>
-  ${script}
-  <script>
-  ${this.inlineScript}
-  new Vue({
-    el: "#app-main"
-  })
-  <\/script>
-</body>
-</html>
-`;
-    download(template, "index.html", "text/html");
+    service.downloadHtml(
+      this.nodes,
+      this.styles,
+      this.scripts,
+      this.inlineScript
+    );
   }
 }
 
