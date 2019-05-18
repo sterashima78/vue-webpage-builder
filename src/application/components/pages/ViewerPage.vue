@@ -13,7 +13,7 @@
     @addScript="addScript"
     @removeStyle="removeStyle"
     @addStyle="addStyle"
-    @import="importJsonFile"
+    @import="importJson"
     @export="exportJson"
     @download="download"
     @dragStart="dragStart"
@@ -32,15 +32,13 @@ import ViewerTemplate from "@/application/components/templates/ViewerTemplate.vu
 import { IVueNode, INodesState, IVueNodeTree } from "@/types";
 
 import LocalVue from "@/util/LocalVue";
-import toString from "@/util/toString";
 import uuid from "uuid";
 import Nodes from "@/store/modules/nodes";
 import { Multipane, MultipaneResizer } from "vue-multipane";
 import download from "downloadjs";
 import { debounce } from "typescript-debounce-decorator";
 import { DragItem } from "@/domain/model/DragItem";
-import { toHtml } from "@/domain/model/View/Html";
-import { ExporterService } from "@/domain/service/exporterService"
+import { ExporterService } from "@/domain/service/exporterService";
 const service = new ExporterService();
 @Component({
   components: {
@@ -52,10 +50,24 @@ const service = new ExporterService();
 export default class Viewer extends Vue {
   public active: number = 0;
   private vm!: LocalVue;
-  private scripts: { [id: string]: { name: string; url: string } } = {};
-  private styles: { [id: string]: { name: string; url: string } } = {};
+  private scripts: { [id: string]: { name: string; url: string } } = {
+    "vuetify-js": {
+      name: "vuetify",
+      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"
+    }
+  };
+  private styles: { [id: string]: { name: string; url: string } } = {
+    "material-icon-css": {
+      name: "material-icon",
+      url:
+        "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"
+    },
+    "vuetify-css": {
+      name: "vuetify",
+      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css"
+    }
+  };
   private inlineScript: string = "";
-  private tree: IVueNodeTree[] = [];
 
   private get allComponents(): string[] {
     return Nodes.components;
@@ -73,6 +85,14 @@ export default class Viewer extends Vue {
     return Nodes.editTarget;
   }
 
+  private get tree(): IVueNodeTree[] {
+    return Nodes.tree;
+  }
+
+  private mounted() {
+    this.nodesWatcher(this.nodes);
+  }
+
   @Watch("nodes", { deep: true })
   private nodesWatcher(nodes: { [id: string]: IVueNode }): void {
     if (!this.vm) {
@@ -80,12 +100,6 @@ export default class Viewer extends Vue {
       return;
     }
     this.vm.updateNodes(nodes);
-    const tree = Object.keys(nodes)
-      .filter((id: string) => nodes[id].parentId === "")
-      .map((id: string) => nodes[id])
-      .map(node => buildTree(node, nodes))
-      .filter(n => n.id !== "");
-    this.tree = tree;
   }
 
   @Watch("dragItem")
@@ -97,12 +111,6 @@ export default class Viewer extends Vue {
     this.vm.updateDragItem(item);
   }
 
-  private mounted() {
-    this.initializeNodes();
-    this.initVuetifyCss();
-    this.initVuetifyJs();
-  }
-
   private exportJson() {
     service.downloadJson(
       this.nodes,
@@ -112,46 +120,11 @@ export default class Viewer extends Vue {
     );
   }
 
-  private importJsonFile(file: FileList) {
-    const reader = new FileReader();
-    reader.onload = event => {
-      // @ts-ignore
-      const text = event.target.result;
-      try {
-        this.importJson(text);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    reader.readAsText(file[0]);
-  }
-
-  private importJson(json: string) {
-    const { nodes, scripts, styles, inlineScript } = JSON.parse(json);
-    Nodes.SET_NODES(nodes);
-    this.styles = styles;
-    this.scripts = scripts;
-    this.inlineScript = inlineScript;
-  }
-
-  private initializeNodes() {
-    const Id0 = uuid.v4();
-    Nodes.SET_NODES({
-      [Id0]: {
-        id: Id0,
-        parentId: "",
-        childrenId: [],
-        attr: {
-          style: {
-            height: "100%",
-            width: "100%"
-          },
-          class: [],
-          attrs: {}
-        },
-        tag: "div"
-      }
-    });
+  private importJson(obj: any) {
+    Nodes.SET_NODES(obj.nodes);
+    this.styles = obj.styles;
+    this.scripts = obj.scripts;
+    this.inlineScript = obj.inlineScript;
   }
 
   private dragStart(name: string) {
@@ -164,32 +137,12 @@ export default class Viewer extends Vue {
 
   @debounce(500, { leading: false })
   private reload(window: Window) {
-    this.vm = new LocalVue(
-      window.document.getElementById("main-wrapper") as HTMLElement,
-      // @ts-ignore
-      window.Vue
-    );
+    // @ts-ignore
+    const vue: VueConstructor<Vue> = window.Vue;
+    const ele = window.document.getElementById("main-wrapper") as HTMLElement;
+    this.vm = new LocalVue(ele, vue);
     Nodes.SET_COMPONENTS(this.vm.components);
-    this.vm.updateNodes(Nodes.nodes);
-  }
-
-  private initVuetifyJs() {
-    this.$set(this.scripts, "vuetify-js", {
-      name: "vuetify",
-      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"
-    });
-  }
-
-  private initVuetifyCss() {
-    this.$set(this.styles, "material-icon-css", {
-      name: "material-icon",
-      url:
-        "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"
-    });
-    this.$set(this.styles, "vuetify-css", {
-      name: "vuetify",
-      url: "https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css"
-    });
+    this.vm.updateNodes(this.nodes);
   }
 
   private removeStyle(key: string) {
@@ -217,26 +170,6 @@ export default class Viewer extends Vue {
     );
   }
 }
-
-const buildTree = (
-  node: IVueNode,
-  allNodes: { [id: string]: IVueNode }
-): IVueNodeTree => {
-  return {
-    id: node.id,
-    name: node.tag,
-    children: node.childrenId.reduce(
-      (arr: IVueNodeTree[], id: string): IVueNodeTree[] => {
-        if (!allNodes[id]) {
-          return arr;
-        }
-        arr.push(buildTree(allNodes[id], allNodes));
-        return arr;
-      },
-      []
-    )
-  };
-};
 </script>
 
 <style>

@@ -1,6 +1,6 @@
 <template>
 <MenuTabItem>
-  <InlineScript @update="scriptUpdate"/>
+  <InlineScript @update="scriptUpdate" :code="inlineScript"/>
 
   <Resource 
     title="JavaScript"
@@ -38,6 +38,8 @@ export default class ExternamResource extends Vue {
   @Prop({ type: Object, default: () => ({}) })
   private scripts!: { [id: string]: string };
 
+  @Prop({ default: "" })
+  private inlineScript!: string;
   private scriptUpdate(code: string) {
     this.$emit("updateInlineScript", code);
   }

@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "vue-property-decorator";
+import { Component, Vue, Prop, Watch } from "vue-property-decorator";
 import * as ace from "brace";
 import "brace/mode/javascript";
 import "brace/theme/monokai";
@@ -28,6 +28,11 @@ export default class ExternamResource extends Vue {
     this.editor.on("change", () => {
       this.$emit("change", this.editor.getValue());
     });
+  }
+
+  @Watch("code")
+  private updateCode(code: string) {
+    this.editor.setValue(code, 1);
   }
 }
 </script>

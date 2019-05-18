@@ -38,7 +38,10 @@ export default class ImportExport extends Vue {
     this.$emit("export");
   }
 
-  private importJson(file: FileList) {
+  private importJson(files: FileList) {
+    if (files.length < 1) {
+      return;
+    }
     const reader = new FileReader();
     reader.onload = event => {
       // @ts-ignore
@@ -46,10 +49,10 @@ export default class ImportExport extends Vue {
       try {
         this.$emit("import", JSON.parse(json));
       } catch (e) {
-        console.error(e);
+        alert("import failed");
       }
     };
-    reader.readAsText(file[0]);
+    reader.readAsText(files[0]);
   }
 }
 </script>

@@ -43,6 +43,7 @@
           <ExternalResource 
             :scripts="scripts" 
             :styles="styles" 
+            :inlineScript="inlineScript"
             @removeStyle="removeStyle" 
             @removeStript="removeScript"
             @addStyle="addStyle" 
@@ -52,7 +53,7 @@
         </v-tab-item>
         <v-tab-item>
           <ImportExport 
-            @import="emitStartImport" 
+            @import="importJson" 
             @export="exportJson" 
             @download="download" 
           />
@@ -140,9 +141,8 @@ export default class Viewer extends Vue {
     this.$emit("loaded", window);
   }
 
-  private emitStartImport(files: FileList) {
-    if (files.length < 1) return;
-    this.$emit("import", files[0]);
+  private importJson(obj: any) {
+    this.$emit("import", obj);
   }
 
   private exportJson() {

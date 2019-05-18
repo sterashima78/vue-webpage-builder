@@ -1,5 +1,5 @@
-import toString from "@/util/toString";
-
+import { ExporterService } from "@/domain/service/exporterService";
+const service = new ExporterService();
 describe("toString", () => {
   describe("no children", () => {
     it("full attr", () => {
@@ -26,7 +26,7 @@ describe("toString", () => {
           }
         }
       };
-      const actually = toString(query.top, query.nodes);
+      const actually = service.toString(query.top, query.nodes);
       const a = `data-attr1="attr1" data-attr2="attr2" data-attr3="attr3"`;
       const c = `class="class1 class2"`;
       const s = `style="height:200px;width:100px;"`;
@@ -45,7 +45,7 @@ describe("toString", () => {
           }
         }
       };
-      const actually = toString(query.top, query.nodes);
+      const actually = service.toString(query.top, query.nodes);
       expect(actually).toBe(`<span>text2</span>`);
     });
   });
@@ -70,7 +70,7 @@ describe("toString", () => {
           }
         }
       };
-      const actually = toString(query.top, query.nodes);
+      const actually = service.toString(query.top, query.nodes);
       expect(actually).toBe(`<p><span>text2</span> text1</p>`);
     });
 
@@ -101,7 +101,7 @@ describe("toString", () => {
           }
         }
       };
-      const actually = toString(query.top, query.nodes);
+      const actually = service.toString(query.top, query.nodes);
       expect(actually).toBe(
         `<p><span>text2</span> text1 <span>text3</span></p>`
       );
@@ -135,7 +135,7 @@ describe("toString", () => {
           }
         }
       };
-      const actually = toString(query.top, query.nodes);
+      const actually = service.toString(query.top, query.nodes);
       expect(actually).toBe(`<ul><li><span>text3</span></li></ul>`);
     });
   });
@@ -167,7 +167,7 @@ describe("toString", () => {
           }
         }
       };
-      const actually = toString(query.top, query.nodes, true);
+      const actually = service.toString(query.top, query.nodes, true);
       expect(actually).toBe(`<ul>\n  <li><span>text3</span></li>\n</ul>`);
     });
   });

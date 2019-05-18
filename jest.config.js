@@ -2,7 +2,7 @@ module.exports = {
   moduleFileExtensions: ["js", "jsx", "json", "vue", "ts", "tsx"],
   transform: {
     "^.+\\.vue$": "vue-jest",
-    ".+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2)$":
+    ".+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2|ejs)$":
       "jest-transform-stub",
     "^.+\\.tsx?$": "ts-jest"
   },
