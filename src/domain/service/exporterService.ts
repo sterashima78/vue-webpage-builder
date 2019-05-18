@@ -1,4 +1,3 @@
-
 // tslint:disable-next-line:no-var-requires
 const Case = require("to-case");
 import ejs from "ejs/ejs.min.js";
