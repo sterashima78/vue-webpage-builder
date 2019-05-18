@@ -46,7 +46,7 @@ export default class ImportExport extends Vue {
       try {
         this.$emit("import", JSON.parse(json));
       } catch (e) {
-        console.error(e);
+        alert("インポートに失敗しました");
       }
     };
     reader.readAsText(file[0]);

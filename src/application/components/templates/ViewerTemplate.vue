@@ -43,6 +43,7 @@
           <ExternalResource 
             :scripts="scripts" 
             :styles="styles" 
+            :inlineScript="inlineScript"
             @removeStyle="removeStyle" 
             @removeStript="removeScript"
             @addStyle="addStyle" 
@@ -141,7 +142,9 @@ export default class Viewer extends Vue {
   }
 
   private emitStartImport(files: FileList) {
-    if (files.length < 1) return;
+    if (files.length < 1) {
+      return;
+    }
     this.$emit("import", files[0]);
   }
 

@@ -21,9 +21,9 @@ import EditorDialog from "@/application/components/molecules/JsEditorDialog.vue"
   }
 })
 export default class InlineJsResource extends Vue {
+  @Prop({default: ""})
+  private code!: string;
   private isOpen: boolean = false;
-  private code: string = "";
-
   private update(code: string) {
     this.$emit("update", code);
   }

@@ -13,7 +13,7 @@
     @addScript="addScript"
     @removeStyle="removeStyle"
     @addStyle="addStyle"
-    @import="importJsonFile"
+    @import="importJson"
     @export="exportJson"
     @download="download"
     @dragStart="dragStart"
@@ -39,8 +39,7 @@ import { Multipane, MultipaneResizer } from "vue-multipane";
 import download from "downloadjs";
 import { debounce } from "typescript-debounce-decorator";
 import { DragItem } from "@/domain/model/DragItem";
-import { toHtml } from "@/domain/model/View/Html";
-import { ExporterService } from "@/domain/service/exporterService"
+import { ExporterService } from "@/domain/service/exporterService";
 const service = new ExporterService();
 @Component({
   components: {
@@ -112,26 +111,11 @@ export default class Viewer extends Vue {
     );
   }
 
-  private importJsonFile(file: FileList) {
-    const reader = new FileReader();
-    reader.onload = event => {
-      // @ts-ignore
-      const text = event.target.result;
-      try {
-        this.importJson(text);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    reader.readAsText(file[0]);
-  }
-
-  private importJson(json: string) {
-    const { nodes, scripts, styles, inlineScript } = JSON.parse(json);
-    Nodes.SET_NODES(nodes);
-    this.styles = styles;
-    this.scripts = scripts;
-    this.inlineScript = inlineScript;
+  private importJson(obj: any) {
+    Nodes.SET_NODES(obj.nodes);
+    this.styles = obj.styles;
+    this.scripts = obj.scripts;
+    this.inlineScript = obj.inlineScript;
   }
 
   private initializeNodes() {
