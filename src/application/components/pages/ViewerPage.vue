@@ -32,7 +32,6 @@ import ViewerTemplate from "@/application/components/templates/ViewerTemplate.vu
 import { IVueNode, INodesState, IVueNodeTree } from "@/types";
 
 import LocalVue from "@/util/LocalVue";
-import toString from "@/util/toString";
 import uuid from "uuid";
 import Nodes from "@/store/modules/nodes";
 import { Multipane, MultipaneResizer } from "vue-multipane";
