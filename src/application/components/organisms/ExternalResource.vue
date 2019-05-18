@@ -40,7 +40,6 @@ export default class ExternamResource extends Vue {
 
   @Prop({ default: "" })
   private inlineScript!: string;
-
   private scriptUpdate(code: string) {
     this.$emit("updateInlineScript", code);
   }

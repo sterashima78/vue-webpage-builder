@@ -348,6 +348,5 @@ const buildTree = (
     )
   };
 };
-
 const NodesModule = getModule(Nodes);
 export default NodesModule;
