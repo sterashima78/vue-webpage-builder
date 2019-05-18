@@ -1,9 +1,6 @@
 import Vue, { CreateElement, VNode, VNodeData, VueConstructor } from "vue";
-import { nodeSubject, mouseSubject } from "@/observer/";
 import Optional from "typescript-optional";
 import clone from "lodash.clonedeep";
-import Nodes from "@/store/modules/nodes";
-import uuid from "uuid";
 import { IVueNode } from "@/types";
 import {
   dragStart,
@@ -13,41 +10,31 @@ import {
   mouseLeave,
   drop
 } from "./NodeUtils";
+import { DragItem } from "@/domain/model/DragItem";
 
 export default class LocalVue {
   public vm: Vue;
+  private VueJs!: VueConstructor<Vue>;
   constructor(ele: Element, VueJs: VueConstructor<Vue>) {
+    this.VueJs = VueJs;
     this.vm = new VueJs({
       el: ele,
       data() {
         return {
           topNodes: [] as IVueNode[],
           allNodes: {} as { [id: string]: IVueNode },
-          dropTargetId: "" as string,
-          hoverId: "" as string
+          dragItem: {} as DragItem
         };
-      },
-      created() {
-        nodeSubject.subscribe(nodes => {
-          this.allNodes = nodes;
-          this.topNodes = Object.keys(nodes)
-            .filter((id: string) => nodes[id].parentId === "")
-            .map((id: string) => nodes[id]);
-        });
-        mouseSubject.subscribe(({ dropTargetId, hoverId }) => {
-          this.dropTargetId = dropTargetId;
-          this.hoverId = hoverId;
-        });
       },
       render(h: CreateElement): VNode {
         return h("div", this.topNodes.map(n => this.rRender(n.id)));
       },
       methods: {
-        rRender(id: string): VNode {
+        rRender(id: string): VNode | string {
           return Optional.ofNullable(clone(this.allNodes[id]))
             .map((n: IVueNode) => {
-              const isDropTarget = n.id === this.dropTargetId;
-              const isHover = n.id === this.hoverId;
+              const isDropTarget = n.id === this.$data.dragItem.getDropTargetId;
+              const isHover = n.id === this.$data.dragItem.getHoverId;
               const attr = genAttr(n, isDropTarget, isHover);
               const vnode = this.$createElement(
                 n.tag,
@@ -60,11 +47,26 @@ export default class LocalVue {
         }
       }
     });
-    // @ts-ignore
-    Nodes.SET_COMPONENTS(Object.keys(VueJs.options.components));
   }
   public update(): void {
     this.vm.$forceUpdate();
+  }
+  public get components(): string[] {
+    if (!this.VueJs) {
+      return [];
+    }
+    // @ts-ignore
+    return Object.keys(this.VueJs.options.components);
+  }
+  public updateNodes(nodes: { [id: string]: IVueNode }) {
+    this.vm.$data.allNodes = nodes;
+    this.vm.$data.topNodes = Object.keys(nodes)
+      .filter((id: string) => nodes[id].parentId === "")
+      .map((id: string) => nodes[id]);
+  }
+
+  public updateDragItem(item: DragItem) {
+    this.vm.$data.dragItem = item;
   }
 }
 

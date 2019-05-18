@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Viewer from "@/components/Viewer.vue";
+import Viewer from "@/application/components/pages/ViewerPage.vue";
 
 @Component({
   components: {
