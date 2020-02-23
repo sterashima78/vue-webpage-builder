@@ -1,17 +1,18 @@
 <template>
-  <v-layout style="height:100%">
-    <Viewer />
-  </v-layout>
+  <div class="home">
+    <img alt="Vue logo" src="../assets/logo.png" />
+    <HelloWorld msg="Welcome to Your Vue.js App" />
+  </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import Viewer from "@/application/components/pages/ViewerPage.vue";
+<script>
+// @ is an alias to /src
+import HelloWorld from "@/components/HelloWorld.vue";
 
-@Component({
+export default {
+  name: "Home",
   components: {
-    Viewer
+    HelloWorld
   }
-})
-export default class Home extends Vue {}
+};
 </script>

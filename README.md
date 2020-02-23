@@ -1,43 +1,29 @@
 # vue-webpage-builder
 
-VuejsのWebページビルダー
+## Project setup
+```
+npm install
+```
 
-## Motivation
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
 
-コンポーネントベースのWeb作成が主流になってきたことに加えて、
-StoryBookなどのコンポーネントを整備・再利用するための基盤技術が整ってきた。
+### Compiles and minifies for production
+```
+npm run build
+```
 
-すると、既存のコンポーネント群を組み合わせて早いプロトタイピングがしたくなってくる。
-（レゴブロックのようにコンポーネントを組み合わせるだけでアプリケーションが完成すると助かるがそれはまだ難しいとおもっている。）
+### Run your unit tests
+```
+npm run test:unit
+```
 
-現状それに値する（私の気に入った）ツールがなかったので作ってみようと思った。
+### Lints and fixes files
+```
+npm run lint
+```
 
-### 最低限必要なこと
-
-- 実用的なソースを生成すること
-  - プロトタイピングをするためのツールとして考えているが、出力されたコードに対して適切な振る舞いを追記するだけでアプリケーションが完了することが望ましい。
-- 任意のコンポーネントを利用できること
-  - 特定のコンポーネントフレームワークが利用できるだけではなく、適切に作成されたVueコンポーネントであれば任意のものを複数利用できるようにする
-  - これは初めに書いた『実用的』という点に大きく関係する
-- Webで完結すること
-  - 使うのが簡単
-  - 必要ならElectron等でネイティブアプリにもできる
-
-### 既存の類似ツール
-
-- [Vuegg](https://github.com/vuegg/vuegg)
-- [Grapes](https://github.com/artf/grapesjs)
-- [PreVue](https://github.com/teamprevue/PreVue)
-
-## Demo
-
-https://sterashima78.github.io/vue-webpage-builder
-
-![](readme/img.gif)
-
-## TODO
-
-- [x] 任意のコンポーネントフレームワークを選択可能にする
-- [ ] 複数ページの作成可能にする (vue-router)
-- [x] プロジェクトデータの出力・入力可能にする
-- [ ] ややダイナミックなリファクタリング
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
