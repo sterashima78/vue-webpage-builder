@@ -7,10 +7,10 @@ export type createNodeId = () => NodeId;
 type NodeAttributes = object & { readonly _brand: unique symbol };
 export type toAttributes = (attr: object) => NodeAttributes;
 
-interface Node {
+export interface Node {
   id: string;
   tag: string;
-  text: string;
+  text?: string;
   attributes?: {
     [name: string]: string;
   };
