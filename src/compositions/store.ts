@@ -1,5 +1,4 @@
 import { ref, Ref } from "@vue/composition-api";
-import { VNode } from "vue";
 import { NodeTree } from "@/types";
 import { make } from "fp-ts/lib/Tree";
 export const useState = () => {
@@ -10,5 +9,5 @@ export const useState = () => {
       text: ""
     })
   );
-  return node;
+  return { node };
 };
