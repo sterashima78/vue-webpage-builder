@@ -14,6 +14,7 @@
 </template>
 
 <script lang="ts">
+import "@/plugin";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent } from "@vue/composition-api";
 import { useLocalVue } from "@/compositions/localVue";

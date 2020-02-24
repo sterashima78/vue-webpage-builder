@@ -1,6 +1,11 @@
 import { useState, toNodeData } from "../index";
 import { make, tree } from "fp-ts/lib/Tree";
 import { NodeTree, Node } from "@/types";
+import { createLocalVue } from "@vue/test-utils";
+import CompositionApi from "@vue/composition-api";
+import Vue from "vue";
+const localVue = createLocalVue();
+Vue.use(CompositionApi);
 describe("useState", () => {
   describe("toVNode", () => {
     test("NodeTree を VNode に変換する", () => {

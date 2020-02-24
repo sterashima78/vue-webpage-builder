@@ -1,9 +1,24 @@
-import { ref } from "@vue/composition-api";
+import "@/plugin/";
+import { ref, watch } from "@vue/composition-api";
 import Vue, { VueConstructor } from "vue";
 import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
 import { pipe } from "fp-ts/es6/pipeable";
+import { CreateElement, VNode } from "vue/types/umd";
+import { NodeData } from "@/types";
+import { useState, toNodeData } from "./store/";
 export const useLocalVue = () => {
+  const { node } = useState();
   const components = ref<string[]>([]);
+  const rederNode = (
+    h: CreateElement,
+    { tag, data, children }: NodeData
+  ): VNode => {
+    return h(
+      tag,
+      data,
+      children.map(i => (typeof i === "string" ? i : rederNode(h, i)))
+    );
+  };
   const init = (w: Window & { Vue?: VueConstructor<Vue> }) => {
     if (w.Vue === undefined) {
       return setTimeout(init, 100);
@@ -15,39 +30,14 @@ export const useLocalVue = () => {
       map(i => Object.keys(i)),
       getOrElse(() => [] as string[])
     );
-    const vm = ref(
-      new w.Vue({
-        el: "#main-wrapper",
-        render(h) {
-          const list = [
-            "default",
-            "primary",
-            "success",
-            "info",
-            "warning",
-            "danger"
-          ];
-          return h("div", [
-            h(
-              "el-row",
-              list.map(type => h("el-button", { attrs: { type } }, [type]))
-            ),
-            h(
-              "el-row",
-              list.map(type =>
-                h("el-button", { attrs: { type, plain: true } }, [type])
-              )
-            ),
-            h(
-              "el-row",
-              list.map(type =>
-                h("el-button", { attrs: { type, round: true } }, [type])
-              )
-            )
-          ]);
-        }
-      })
-    );
+    const store = w.Vue.observable({ node: node.value });
+    watch(node, v => (store.node = v));
+    const vm = new w.Vue({
+      el: "#main-wrapper",
+      render(h) {
+        return rederNode(h, toNodeData(store.node));
+      }
+    });
   };
   return { init, components };
 };

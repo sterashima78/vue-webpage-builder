@@ -1,5 +1,5 @@
 import { Tree } from "fp-ts/lib/Tree";
-import { VNode } from "vue";
+import { VNodeData } from "vue";
 
 type NodeId = string & { readonly _brand: unique symbol };
 export type createNodeId = () => NodeId;
@@ -12,7 +12,7 @@ export interface Node {
   tag: string;
   text?: string;
   attributes?: {
-    [name: string]: string;
+    [name: string]: string | boolean | number;
   };
   classes?: string[];
   on?: {
@@ -25,4 +25,8 @@ export interface Node {
 
 export type NodeTree = Tree<Node>;
 
-export type toVNode = (node: Node) => VNode;
+export interface NodeData {
+  tag: string;
+  data: VNodeData;
+  children: Array<NodeData | string>;
+}
