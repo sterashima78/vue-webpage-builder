@@ -9,7 +9,7 @@ import { useState, toNodeData } from "./store/";
 export const useLocalVue = (dragTag: Ref<string>) => {
   const ids: string[] = [];
   const dropTargetId = ref("");
-  const { node, addNodeTo, removeNodeById, moveNodeTo } = useState();
+  const { node, treeNode, addNodeTo, removeNodeById, moveNodeTo } = useState();
   setInterval(() => {
     const id = Math.random().toString(32);
     ids.push(id);
@@ -86,5 +86,5 @@ export const useLocalVue = (dragTag: Ref<string>) => {
       }
     });
   };
-  return { init, components };
+  return { init, components, treeNode };
 };

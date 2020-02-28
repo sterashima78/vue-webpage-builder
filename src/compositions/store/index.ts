@@ -102,6 +102,19 @@ const _moveNodeTo = (node: NodeTree) => (to: string, target: string) => {
   return _addNodeTo(to, targetNode.value.value)(nodeRemoved);
 };
 
+interface TreeView {
+  id: string;
+  name: string;
+  children: TreeView[];
+}
+const toTree = (node: NodeTree): TreeView => {
+  return {
+    id: node.value.id,
+    name: node.value.tag,
+    children: node.forest.map(toTree)
+  };
+};
+
 export const useState = () => {
   /**
    * ノードをツリーに追加する
@@ -123,7 +136,8 @@ export const useState = () => {
    */
   const moveNodeTo = (to: string, target: string) =>
     (node.value = _moveNodeTo(node.value)(to, target));
-  return { node, addNodeTo, removeNodeById, moveNodeTo };
+  const treeNode = computed(() => toTree(node.value));
+  return { node, treeNode, addNodeTo, removeNodeById, moveNodeTo };
 };
 
 export const toNodeData = (tree: NodeTree): NodeData => {

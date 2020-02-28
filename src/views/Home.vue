@@ -8,15 +8,36 @@
       draggable="true"
       @dragstart="dragTag = component"
     />
-    <VIframeSandbox
-      :body="body"
-      style="width:100%;height:100%"
-      :script="inlineScript"
-      :scriptsSrc="scriptsSrc"
-      :styles="stylesStr"
-      :cssLinks="cssLinks"
-      @loaded="loaded"
-    />
+    <div style="display:flex;width:100%;height:100%">
+      <VIframeSandbox
+        :body="body"
+        style="width:80%;height:100%"
+        :script="inlineScript"
+        :scriptsSrc="scriptsSrc"
+        :styles="stylesStr"
+        :cssLinks="cssLinks"
+        @loaded="loaded"
+      />
+      <v-treeview
+        :items="treeNode.children"
+        :hoverable="true"
+        style="width:20%;height:100%"
+      >
+        <template slot="label" slot-scope="{ item }">
+          <div
+            draggable="true"
+            style="cursor: move"
+            @dragover="$event.preventDefault()"
+          >
+            {{ item.name }}
+          </div>
+        </template>
+        <!-- <template slot="append">
+          <v-icon>tune</v-icon>
+          <v-icon>delete</v-icon>
+        </template> -->
+      </v-treeview>
+    </div>
   </div>
 </template>
 
@@ -52,7 +73,7 @@ export default defineComponent({
     // };
     const inlineScript = ``;
     const stylesStr = "";
-    const { init: loaded, components } = useLocalVue(dragTag);
+    const { init: loaded, components, treeNode } = useLocalVue(dragTag);
     return {
       scriptsSrc,
       cssLinks,
@@ -61,7 +82,8 @@ export default defineComponent({
       loaded,
       body,
       components,
-      dragTag
+      dragTag,
+      treeNode
     };
   }
 });
