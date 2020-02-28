@@ -1,6 +1,13 @@
 <template>
-  <div>
-    {{ components }}
+  <div style="height: 100%">
+    <span
+      style="display: inline-block;padding: 5px;cursor: move"
+      v-for="component in components"
+      v-text="component"
+      :key="component"
+      draggable="true"
+      @dragstart="dragTag = component"
+    />
     <VIframeSandbox
       :body="body"
       style="width:100%;height:100%"
@@ -16,7 +23,7 @@
 <script lang="ts">
 import "@/plugin";
 import { VIframeSandbox } from "vue-iframe-sandbox";
-import { defineComponent } from "@vue/composition-api";
+import { defineComponent, ref } from "@vue/composition-api";
 import { useLocalVue } from "@/compositions/localVue";
 export default defineComponent({
   name: "Home",
@@ -24,6 +31,7 @@ export default defineComponent({
     VIframeSandbox
   },
   setup() {
+    const dragTag = ref("");
     const scriptsSrc = [
       "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js",
       "https://unpkg.com/element-ui/lib/index.js"
@@ -44,8 +52,7 @@ export default defineComponent({
     // };
     const inlineScript = ``;
     const stylesStr = "";
-    // const loaded = (w: window) => console.log(w);
-    const { init: loaded, components } = useLocalVue();
+    const { init: loaded, components } = useLocalVue(dragTag);
     return {
       scriptsSrc,
       cssLinks,
@@ -53,7 +60,8 @@ export default defineComponent({
       stylesStr,
       loaded,
       body,
-      components
+      components,
+      dragTag
     };
   }
 });

@@ -14,6 +14,9 @@ export interface Node {
   attributes?: {
     [name: string]: string | boolean | number;
   };
+  style?: {
+    [name: string]: string;
+  };
   classes?: string[];
   on?: {
     [event: string]: (event: any) => void;
