@@ -115,7 +115,107 @@ const toTree = (node: NodeTree): TreeView => {
   };
 };
 
-export const useState = () => {
+const toNodeData = (
+  hoverNodeId: Ref<string>,
+  dropNodeId: Ref<string>,
+  dragNodeId: Ref<string>,
+  dragTag: Ref<string>,
+  addNodeTo: (to: string, node: Node) => void,
+  moveNodeTo: (to: string, target: string) => void
+) => (tree: NodeTree): NodeData => {
+  const { tag, text, id, attributes, style, classes } = clone(tree.value);
+  const texts = text ? [text] : [];
+  const styles = style || {};
+  if (hoverNodeId.value === id) styles.border = "solid red 5px";
+  if (dropNodeId.value === id) styles.border = "solid blue 5px";
+  return {
+    tag,
+    data: {
+      attrs: {
+        id,
+        draggable: true
+      },
+      on: {
+        mouseover: ($event: MouseEvent) => {
+          $event.stopPropagation();
+          $event.preventDefault();
+          const target = ($event.target as HTMLElement) || undefined;
+          hoverNodeId.value = (target && target.id) || "";
+        },
+        mouseenter: ($event: MouseEvent) => {
+          $event.stopPropagation();
+          $event.preventDefault();
+        },
+        mouseleave: ($event: MouseEvent) => {
+          $event.preventDefault();
+          $event.stopPropagation();
+          const target = ($event.target as HTMLElement) || undefined;
+          console.log(target && target.id, hoverNodeId.value);
+          if (
+            (target && target.id) === hoverNodeId.value ||
+            "root" === (target && target.id)
+          )
+            hoverNodeId.value = "";
+        },
+        dragenter: ($event: DragEvent) => {
+          $event.stopPropagation();
+          const target = ($event.target as HTMLElement) || undefined;
+          dropNodeId.value = (target && target.id) || "";
+        },
+        dragleave: ($event: DragEvent) => {
+          $event.stopPropagation();
+          const target = ($event.target as HTMLElement) || undefined;
+          if ((target && target.id) === dropNodeId.value) dropNodeId.value = "";
+        },
+        dragover: ($event: DragEvent) => $event.preventDefault(),
+        dragstart: ($event: DragEvent) => {
+          $event.stopPropagation();
+          const target = ($event.target as HTMLElement) || undefined;
+          dragNodeId.value = target && target.id;
+        },
+        dragend: ($event: DragEvent) => {
+          $event.stopPropagation();
+          const target = ($event.target as HTMLElement) || undefined;
+          if ((target && target.id) === dragNodeId.value) dragNodeId.value = "";
+        },
+        drop: ($event: DragEvent) => {
+          $event.stopPropagation();
+          if (dragTag.value !== "") {
+            addNodeTo(dropNodeId.value, {
+              tag: dragTag.value,
+              id: Math.random().toString(32),
+              text: "default"
+            });
+            dragTag.value = "";
+          }
+          if (dragNodeId.value !== "") {
+            moveNodeTo(dropNodeId.value, dragNodeId.value);
+            dragNodeId.value = "";
+          }
+          dropNodeId.value = "";
+        }
+      },
+      props: attributes,
+      style: styles,
+      class: classes
+    },
+    children: [
+      ...tree.forest.map(
+        toNodeData(
+          hoverNodeId,
+          dropNodeId,
+          dragNodeId,
+          dragTag,
+          addNodeTo,
+          moveNodeTo
+        )
+      ),
+      ...texts
+    ]
+  };
+};
+
+export const useState = (dragTag: Ref<string>) => {
   /**
    * ノードをツリーに追加する
    * @param id 追加先ノードのID
@@ -137,22 +237,26 @@ export const useState = () => {
   const moveNodeTo = (to: string, target: string) =>
     (node.value = _moveNodeTo(node.value)(to, target));
   const treeNode = computed(() => toTree(node.value));
-  return { node, treeNode, addNodeTo, removeNodeById, moveNodeTo };
-};
-
-export const toNodeData = (tree: NodeTree): NodeData => {
-  const { tag, text, id, attributes, style, classes } = tree.value;
-  const texts = text ? [text] : [];
+  const dragNodeId = ref("");
+  const hoverNodeId = ref("");
+  const dropNodeId = ref("");
+  const nodeDataTree = computed(() =>
+    toNodeData(
+      hoverNodeId,
+      dropNodeId,
+      dragNodeId,
+      dragTag,
+      addNodeTo,
+      moveNodeTo
+    )(node.value)
+  );
   return {
-    tag,
-    data: {
-      attrs: {
-        id
-      },
-      props: attributes,
-      style,
-      class: classes
-    },
-    children: [...tree.forest.map(toNodeData), ...texts]
+    node,
+    dragNodeId,
+    treeNode,
+    addNodeTo,
+    removeNodeById,
+    moveNodeTo,
+    nodeDataTree
   };
 };
