@@ -25,27 +25,104 @@
       >
         <template slot="label" slot-scope="{ item }">
           <div
+            :id="item.id"
             draggable="true"
             style="cursor: move"
-            @dragover="$event.preventDefault()"
+            @mouseenter="cancelEvent"
+            @mouseover="mouseOver"
+            @mouseleave="mouseLeave"
+            @dragstart="dragStart"
+            @dragleave="dragLeave"
+            @dragenter="dragEnter"
+            @dragover="cancelEvent"
+            @dragend="dragEnd"
+            @drop="drop"
           >
             {{ item.name }}
           </div>
         </template>
-        <!-- <template slot="append">
-          <v-icon>tune</v-icon>
-          <v-icon>delete</v-icon>
-        </template> -->
+        <template #append="{ item }">
+          <v-icon @click="activeDialog(item.id)">tune</v-icon>
+          <v-icon @click="removeNodeById(item.id)">delete</v-icon>
+        </template>
       </v-treeview>
     </div>
+    <v-dialog v-model="dialog" persistent>
+      <v-card>
+        <v-toolbar dense>
+          <v-toolbar-title>Edit Element</v-toolbar-title>
+          <v-spacer />
+          <v-icon @click="closeDialog">close</v-icon>
+        </v-toolbar>
+        <v-card-text>
+          <v-container>
+            {{ editNode }}
+            <v-row>
+              <v-text-field
+                :value="editNode && editNode.value.tag"
+                label="Element name"
+                disabled
+              ></v-text-field>
+            </v-row>
+            <v-row>
+              <v-text-field
+                :value="editNode && editNode.value.text"
+                label="Text"
+                @input="updateText(editNode.value.id, $event)"
+              ></v-text-field>
+            </v-row>
+            <v-row>
+              <v-container>
+                <h2>Attributes</h2>
+                <v-row
+                  v-for="(val, key) in editNode && editNode.value.attributes"
+                  :key="key"
+                >
+                  <v-text-field
+                    :value="val"
+                    :label="key"
+                    @input="updateAttr(editNode.value.id, key, $event)"
+                  >
+                    <template #append>
+                      <v-icon @click="removeAttr(editNode.value, key)"
+                        >delete</v-icon
+                      >
+                    </template>
+                  </v-text-field>
+                </v-row>
+                <v-row>
+                  <v-text-field label="attribute" v-model="newAttr.name" />
+                  <v-text-field label="value" v-model="newAttr.value" />
+                  <v-btn @click="addAttr(editNode.value.id)"
+                    >add attibute</v-btn
+                  >
+                </v-row>
+              </v-container>
+            </v-row>
+          </v-container>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script lang="ts">
 import "@/plugin";
+import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref } from "@vue/composition-api";
 import { useLocalVue } from "@/compositions/localVue";
+import { NodeTree, Node } from "@/type";
+import {
+  mouseOver,
+  mouseLeave,
+  dragStart,
+  dragLeave,
+  dragEnd,
+  dragEnter,
+  cancelEvent,
+  drop
+} from "@/compositions/store";
 export default defineComponent({
   name: "Home",
   components: {
@@ -73,8 +150,74 @@ export default defineComponent({
     // };
     const inlineScript = ``;
     const stylesStr = "";
-    const { init: loaded, components, treeNode } = useLocalVue(dragTag);
+    const {
+      init: loaded,
+      components,
+      treeNode,
+      hoverNodeId,
+      dragNodeId,
+      dropNodeId,
+      removeNodeById,
+      moveNodeTo,
+      addNodeTo,
+      findById,
+      editNode: editNodeById
+    } = useLocalVue(dragTag);
+    const dialog = ref(false);
+    const editNode = ref<Node | undefined>(undefined);
+    const setEditTarget = (id: string) => {
+      const node = findById(id);
+      if (isNone(node)) return false;
+      editNode.value = node.value;
+      return true;
+    };
+    const activeDialog = (id: string) => {
+      dialog.value = setEditTarget(id);
+    };
+    const closeDialog = () => (dialog.value = false);
+    const newAttr = ref({
+      name: "",
+      value: ""
+    });
+    const addAttr = (id: string) => {
+      if (newAttr.value.name === "") return false;
+      if (newAttr.value.value === "") return false;
+      if (isNone(findById(id))) return false;
+      editNodeById(id, (node: NodeTree) => {
+        node.value.attributes = node.value.attributes || {};
+        node.value.attributes[newAttr.value.name] = JSON.parse(
+          newAttr.value.value
+        );
+        return node;
+      });
+      newAttr.value.name = "";
+      newAttr.value.value = "";
+      setEditTarget(id);
+    };
+    const updateText = (id: string, text: string) => {
+      if (isNone(findById(id))) return false;
+      editNodeById(id, (node: NodeTree) => {
+        node.value.text = text;
+        return node;
+      });
+    };
+
+    const updateAttr = (id: string, key: string, text: string) => {
+      if (isNone(findById(id))) return false;
+      editNodeById(id, (node: NodeTree) => {
+        node.value.attributes[key] = text;
+        return node;
+      });
+    };
     return {
+      updateAttr,
+      updateText,
+      newAttr,
+      addAttr,
+      editNode,
+      activeDialog,
+      closeDialog,
+      dialog,
       scriptsSrc,
       cssLinks,
       inlineScript,
@@ -83,7 +226,23 @@ export default defineComponent({
       body,
       components,
       dragTag,
-      treeNode
+      treeNode,
+      mouseOver: mouseOver(hoverNodeId),
+      mouseLeave: mouseLeave(hoverNodeId),
+      cancelEvent,
+      dragStart: dragStart(dragNodeId),
+      dragLeave: dragLeave(dropNodeId),
+      dragEnd: dragEnd(dragNodeId),
+      dragEnter: dragEnter(dropNodeId),
+      drop: drop(dragTag, dragNodeId, dropNodeId, addNodeTo, moveNodeTo),
+      removeNodeById,
+      removeAttr: (node: Node, key: string) => {
+        editNodeById(node.id, (n: NodeTree) => {
+          delete n.value.attributes[key];
+          return n;
+        });
+        setEditTarget(node.id);
+      }
     };
   }
 });

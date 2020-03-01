@@ -67,20 +67,29 @@ const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
           isNone(before) ? findNodeById(id)(current) : before,
         none
       );
-
+const _editNode = (id: string, modifier: (node: NodeTree) => NodeTree) => (
+  node: NodeTree
+): NodeTree => {
+  return node.value.id === id
+    ? modifier(clone(node))
+    : {
+        value: clone(node.value),
+        forest: node.forest.map(_editNode(id, modifier))
+      };
+};
 const _removeNodeById = (id: string) => (treeState: NodeTree): NodeTree => ({
   value: clone(treeState.value),
   forest: treeState.forest
     .filter(i => i.value.id !== id)
     .map(_removeNodeById(id))
 });
-const _addNodeTo = (id: string, target: Node) => (
+const _addNodeTo = (id: string, target: NodeTree) => (
   treeState: NodeTree
 ): NodeTree =>
   treeState.value.id === id
     ? {
         value: clone(treeState.value),
-        forest: [...clone(treeState.forest), tree.of<Node>(target)]
+        forest: [...clone(treeState.forest), clone(target)]
       }
     : {
         value: clone(treeState.value),
@@ -93,13 +102,14 @@ const _moveNodeTo = (node: NodeTree) => (to: string, target: string) => {
     console.log("target is none");
     return node;
   }
+  console.log(targetNode.value);
   const nodeRemoved = _removeNodeById(target)(node);
   const toNode = findNodeById(to)(nodeRemoved);
   if (isNone(toNode)) {
     console.log("to is none");
     return node;
   }
-  return _addNodeTo(to, targetNode.value.value)(nodeRemoved);
+  return _addNodeTo(to, targetNode.value)(nodeRemoved);
 };
 
 interface TreeView {
@@ -115,12 +125,88 @@ const toTree = (node: NodeTree): TreeView => {
   };
 };
 
+export const mouseOver = (hoverNodeId: Ref<string>) => ($event: MouseEvent) => {
+  $event.stopPropagation();
+  $event.preventDefault();
+  const target = ($event.target as HTMLElement) || undefined;
+  hoverNodeId.value = (target && target.id) || "";
+};
+
+export const mouseLeave = (hoverNodeId: Ref<string>) => (
+  $event: MouseEvent
+) => {
+  $event.preventDefault();
+  $event.stopPropagation();
+  const target = ($event.target as HTMLElement) || undefined;
+  if (
+    (target && target.id) === hoverNodeId.value ||
+    "root" === (target && target.id)
+  )
+    hoverNodeId.value = "";
+};
+
+export const cancelEvent = ($event: MouseEvent) => {
+  $event.stopPropagation();
+  $event.preventDefault();
+};
+
+export const dragEnter = (dropNodeId: Ref<string>) => ($event: MouseEvent) => {
+  $event.stopPropagation();
+  const target = ($event.target as HTMLElement) || undefined;
+  dropNodeId.value = (target && target.id) || "";
+};
+
+export const dragStart = (dragNodeId: Ref<string>) => ($event: MouseEvent) => {
+  $event.stopPropagation();
+  const target = ($event.target as HTMLElement) || undefined;
+  dragNodeId.value = target && target.id;
+};
+
+export const dragLeave = (dropNodeId: Ref<string>) => ($event: MouseEvent) => {
+  $event.stopPropagation();
+  const target = ($event.target as HTMLElement) || undefined;
+  if ((target && target.id) === dropNodeId.value) dropNodeId.value = "";
+};
+
+export const dragEnd = (dragNodeId: Ref<string>) => ($event: MouseEvent) => {
+  $event.stopPropagation();
+  const target = ($event.target as HTMLElement) || undefined;
+  if ((target && target.id) === dragNodeId.value) dragNodeId.value = "";
+};
+
+export const drop = (
+  dragTag: Ref<string>,
+  dragNodeId: Ref<string>,
+  dropNodeId: Ref<string>,
+  addNodeTo: (to: string, target: NodeTree) => void,
+  moveNodeTo: (to: string, target: string) => void
+) => ($event: MouseEvent) => {
+  console.log("drop", dragNodeId.value, dropNodeId.value);
+  $event.stopPropagation();
+  if (dragTag.value !== "") {
+    addNodeTo(
+      dropNodeId.value,
+      tree.of<Node>({
+        tag: dragTag.value,
+        id: Math.random().toString(32),
+        text: "default"
+      })
+    );
+    dragTag.value = "";
+  }
+  if (dragNodeId.value !== "") {
+    moveNodeTo(dropNodeId.value, dragNodeId.value);
+    dragNodeId.value = "";
+  }
+  dropNodeId.value = "";
+};
+
 const toNodeData = (
   hoverNodeId: Ref<string>,
   dropNodeId: Ref<string>,
   dragNodeId: Ref<string>,
   dragTag: Ref<string>,
-  addNodeTo: (to: string, node: Node) => void,
+  addNodeTo: (to: string, node: NodeTree) => void,
   moveNodeTo: (to: string, target: string) => void
 ) => (tree: NodeTree): NodeData => {
   const { tag, text, id, attributes, style, classes } = clone(tree.value);
@@ -136,64 +222,15 @@ const toNodeData = (
         draggable: true
       },
       on: {
-        mouseover: ($event: MouseEvent) => {
-          $event.stopPropagation();
-          $event.preventDefault();
-          const target = ($event.target as HTMLElement) || undefined;
-          hoverNodeId.value = (target && target.id) || "";
-        },
-        mouseenter: ($event: MouseEvent) => {
-          $event.stopPropagation();
-          $event.preventDefault();
-        },
-        mouseleave: ($event: MouseEvent) => {
-          $event.preventDefault();
-          $event.stopPropagation();
-          const target = ($event.target as HTMLElement) || undefined;
-          console.log(target && target.id, hoverNodeId.value);
-          if (
-            (target && target.id) === hoverNodeId.value ||
-            "root" === (target && target.id)
-          )
-            hoverNodeId.value = "";
-        },
-        dragenter: ($event: DragEvent) => {
-          $event.stopPropagation();
-          const target = ($event.target as HTMLElement) || undefined;
-          dropNodeId.value = (target && target.id) || "";
-        },
-        dragleave: ($event: DragEvent) => {
-          $event.stopPropagation();
-          const target = ($event.target as HTMLElement) || undefined;
-          if ((target && target.id) === dropNodeId.value) dropNodeId.value = "";
-        },
-        dragover: ($event: DragEvent) => $event.preventDefault(),
-        dragstart: ($event: DragEvent) => {
-          $event.stopPropagation();
-          const target = ($event.target as HTMLElement) || undefined;
-          dragNodeId.value = target && target.id;
-        },
-        dragend: ($event: DragEvent) => {
-          $event.stopPropagation();
-          const target = ($event.target as HTMLElement) || undefined;
-          if ((target && target.id) === dragNodeId.value) dragNodeId.value = "";
-        },
-        drop: ($event: DragEvent) => {
-          $event.stopPropagation();
-          if (dragTag.value !== "") {
-            addNodeTo(dropNodeId.value, {
-              tag: dragTag.value,
-              id: Math.random().toString(32),
-              text: "default"
-            });
-            dragTag.value = "";
-          }
-          if (dragNodeId.value !== "") {
-            moveNodeTo(dropNodeId.value, dragNodeId.value);
-            dragNodeId.value = "";
-          }
-          dropNodeId.value = "";
-        }
+        mouseover: mouseOver(hoverNodeId),
+        mouseenter: cancelEvent,
+        mouseleave: mouseLeave(hoverNodeId),
+        dragenter: dragEnter(dropNodeId),
+        dragleave: dragLeave(dropNodeId),
+        dragover: cancelEvent,
+        dragstart: dragStart(dragNodeId),
+        dragend: dragEnd(dragNodeId),
+        drop: drop(dragTag, dragNodeId, dropNodeId, addNodeTo, moveNodeTo)
       },
       props: attributes,
       style: styles,
@@ -221,7 +258,7 @@ export const useState = (dragTag: Ref<string>) => {
    * @param id 追加先ノードのID
    * @param target 追加するノード
    */
-  const addNodeTo = (id: string, target: Node) =>
+  const addNodeTo = (id: string, target: NodeTree) =>
     (node.value = _addNodeTo(id, target)(node.value));
   /**
    * ノードをツリーから削除する
@@ -250,13 +287,20 @@ export const useState = (dragTag: Ref<string>) => {
       moveNodeTo
     )(node.value)
   );
+  const editNode = (id: string, modifier: (node: NodeTree) => NodeTree) =>
+    (node.value = _editNode(id, modifier)(node.value));
+  const findById = (id: string) => findNodeById(id)(node.value);
   return {
     node,
     dragNodeId,
+    dropNodeId,
+    hoverNodeId,
     treeNode,
     addNodeTo,
     removeNodeById,
     moveNodeTo,
-    nodeDataTree
+    findById,
+    nodeDataTree,
+    editNode
   };
 };

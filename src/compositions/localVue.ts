@@ -15,10 +15,14 @@ export const useLocalVue = (dragTag: Ref<string>) => {
     node,
     treeNode,
     dragNodeId,
+    dropNodeId,
+    hoverNodeId,
     addNodeTo,
     removeNodeById,
     moveNodeTo,
-    nodeDataTree
+    nodeDataTree,
+    findById,
+    editNode
   } = useState(dragTag);
   const components = ref<string[]>([]);
   const rederNode = (
@@ -55,5 +59,17 @@ export const useLocalVue = (dragTag: Ref<string>) => {
       }
     });
   };
-  return { init, components, treeNode };
+  return {
+    init,
+    components,
+    treeNode,
+    hoverNodeId,
+    dragNodeId,
+    dropNodeId,
+    addNodeTo,
+    moveNodeTo,
+    removeNodeById,
+    findById,
+    editNode
+  };
 };
