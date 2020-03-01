@@ -66,7 +66,7 @@ import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref } from "@vue/composition-api";
 import { useLocalVue } from "@/compositions/localVue";
-import { Node, NodeTree } from "@/types";
+import { Node } from "@/types";
 import {
   mouseOver,
   mouseLeave,
@@ -112,7 +112,6 @@ export default defineComponent({
       hoverNodeId,
       dragNodeId,
       dropNodeId,
-      removeNodeById,
       moveNodeTo,
       addNodeTo,
       findById,

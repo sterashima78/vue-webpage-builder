@@ -23,54 +23,64 @@
           ></v-text-field>
         </v-row>
         <v-row>
-          <v-container>
-            <h2>Attributes</h2>
-            <v-row v-for="(val, key) in editNode.attributes || {}" :key="key">
-              <v-text-field
-                :value="val"
-                :label="key"
-                @input="updateAttr(editNode.id, key, $event)"
-              >
-                <template #append>
-                  <v-icon @click="removeAttr(editNode.id, key)">delete</v-icon>
-                </template>
-              </v-text-field>
-            </v-row>
-            <v-row>
-              <v-text-field label="attribute" v-model="newAttr.name" />
-              <v-text-field label="value" v-model="newAttr.value" />
-              <v-btn @click="addAttr(editNode.id)">add attibute</v-btn>
-            </v-row>
-          </v-container>
+          <AttributeEditor
+            :data="editNode.attributes"
+            @add="addAttr(editNode.id, $event)"
+            @update="addAttr(editNode.id, $event)"
+            @remove="removeAttr(editNode.id, $event)"
+          >
+            <template #title>
+              <h2>Attributes</h2>
+            </template>
+          </AttributeEditor>
+        </v-row>
+        <v-row>
+          <AttributeEditor
+            :data="editNode.attributes"
+            @add="addStyle(editNode.id, $event)"
+            @update="addStyle(editNode.id, $event)"
+            @remove="removeStyle(editNode.id, $event)"
+          >
+            <template #title>
+              <h2>Style</h2>
+            </template>
+          </AttributeEditor>
         </v-row>
       </v-container>
     </v-card-text>
   </v-card>
 </template>
 <script lang="ts">
-import { PropType } from "vue";
+import {
+  PropType,
+  PropOptions
+} from "@vue/composition-api/dist/component/componentProps";
+
 import { defineComponent, ref } from "@vue/composition-api";
 import { Node, NodeTree } from "@/types";
 import { isNone, Option } from "fp-ts/lib/Option";
-
+import AttributeEditor from "./AttributeEditor.vue";
 export default defineComponent({
   name: "ElementEditor",
+  components: {
+    AttributeEditor
+  },
   props: {
     editNode: {
-      type: Object as PropType<Node>,
+      type: Object,
       default: () => ({
         id: "default",
         tag: "div"
       })
-    },
+    } as PropOptions<Node>,
     findById: {
-      type: Function as PropType<(id: string) => Option<NodeTree>>
-    },
+      type: Function
+    } as PropOptions<(id: string) => Option<NodeTree>>,
     editNodeById: {
-      type: Function as PropType<
-        (id: string, modifier: (node: NodeTree) => NodeTree) => void
-      >
-    }
+      type: Function
+    } as PropOptions<
+      (id: string, modifier: (node: NodeTree) => NodeTree) => void
+    >
   },
   setup(
     props: {
@@ -91,23 +101,19 @@ export default defineComponent({
     if (!editNodeById) {
       throw new Error("editNodeById is required");
     }
-    const newAttr = ref<{ name: string; value: string }>({
-      name: "",
-      value: ""
-    });
-    const addAttr = (id: string) => {
-      if (newAttr.value.name === "") return false;
-      if (newAttr.value.value === "") return false;
+    const addAttr = (id: string, newAttr: { name: string; value: string }) => {
+      if (newAttr.name === "") return false;
+      if (newAttr.value === "") return false;
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
         node.value.attributes = node.value.attributes || {};
-        node.value.attributes[newAttr.value.name] = JSON.parse(
-          newAttr.value.value
-        );
+        try {
+          node.value.attributes[newAttr.name] = JSON.parse(newAttr.value);
+        } catch {
+          node.value.attributes[newAttr.name] = newAttr.value;
+        }
         return node;
       });
-      newAttr.value.name = "";
-      newAttr.value.value = "";
       emit("update");
     };
     const updateText = (id: string, text: string) => {
@@ -118,11 +124,14 @@ export default defineComponent({
       });
     };
 
-    const updateAttr = (id: string, key: string, text: string) => {
+    const updateAttr = (
+      id: string,
+      { name, value }: { name: string; value: string }
+    ) => {
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
         node.value.attributes = node.value.attributes || {};
-        node.value.attributes[key] = text;
+        node.value.attributes[name] = value;
         return node;
       });
     };
@@ -135,13 +144,50 @@ export default defineComponent({
       });
       emit("update");
     };
+
+    const updateStyle = (
+      id: string,
+      { name, value }: { name: string; value: string }
+    ) => {
+      if (isNone(findById(id))) return false;
+      editNodeById(id, (node: NodeTree) => {
+        node.value.style = node.value.style || {};
+        node.value.style[name] = value;
+        return node;
+      });
+    };
+
+    const removeStyle = (id: string, key: string) => {
+      editNodeById(id, (n: NodeTree) => {
+        if (!n.value.style) return n;
+        delete n.value.style[key];
+        return n;
+      });
+      emit("update");
+    };
+    const addStyle = (id: string, newAttr: { name: string; value: string }) => {
+      if (newAttr.name === "") return false;
+      if (newAttr.value === "") return false;
+      if (isNone(findById(id))) return false;
+      editNodeById(id, (node: NodeTree) => {
+        node.value.style = node.value.style || {};
+        try {
+          node.value.style[newAttr.name] = JSON.parse(newAttr.value);
+        } catch {
+          node.value.style[newAttr.name] = newAttr.value;
+        }
+        return node;
+      });
+      emit("update");
+    };
     return {
-      newAttr,
       removeAttr,
       updateAttr,
-      updateText,
       addAttr,
-      editNode: props.editNode,
+      removeStyle,
+      updateStyle,
+      addStyle,
+      updateText,
       close: () => emit("close")
     };
   }
