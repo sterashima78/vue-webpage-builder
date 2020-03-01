@@ -101,21 +101,52 @@ export default defineComponent({
     if (!editNodeById) {
       throw new Error("editNodeById is required");
     }
-    const addAttr = (id: string, newAttr: { name: string; value: string }) => {
+    const add = (key: "attributes" | "style") => (
+      id: string,
+      newAttr: { name: string; value: string }
+    ) => {
       if (newAttr.name === "") return false;
       if (newAttr.value === "") return false;
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
-        node.value.attributes = node.value.attributes || {};
+        node.value[key] = node.value[key] || {};
         try {
-          node.value.attributes[newAttr.name] = JSON.parse(newAttr.value);
+          node.value[key][newAttr.name] = JSON.parse(newAttr.value);
         } catch {
-          node.value.attributes[newAttr.name] = newAttr.value;
+          node.value[key][newAttr.name] = newAttr.value;
         }
         return node;
       });
       emit("update");
     };
+    const update = (key: "attributes" | "style") => (
+      id: string,
+      { name, value }: { name: string; value: string }
+    ) => {
+      if (isNone(findById(id))) return false;
+      editNodeById(id, (node: NodeTree) => {
+        node.value[key] = node.value[key] || {};
+        node.value[key][name] = value;
+        return node;
+      });
+    };
+
+    const remove = (k: "attributes" | "style") => (id: string, key: string) => {
+      editNodeById(id, (n: NodeTree) => {
+        if (!n.value[k]) return n;
+        delete n.value[k][key];
+        return n;
+      });
+      emit("update");
+    };
+
+    const addAttr = add("attributes");
+    const updateAttr = update("attributes");
+    const removeAttr = remove("attributes");
+    const addStyle = add("style");
+    const updateStyle = update("style");
+    const removeStyle = remove("style");
+
     const updateText = (id: string, text: string) => {
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
@@ -124,62 +155,6 @@ export default defineComponent({
       });
     };
 
-    const updateAttr = (
-      id: string,
-      { name, value }: { name: string; value: string }
-    ) => {
-      if (isNone(findById(id))) return false;
-      editNodeById(id, (node: NodeTree) => {
-        node.value.attributes = node.value.attributes || {};
-        node.value.attributes[name] = value;
-        return node;
-      });
-    };
-
-    const removeAttr = (id: string, key: string) => {
-      editNodeById(id, (n: NodeTree) => {
-        if (!n.value.attributes) return n;
-        delete n.value.attributes[key];
-        return n;
-      });
-      emit("update");
-    };
-
-    const updateStyle = (
-      id: string,
-      { name, value }: { name: string; value: string }
-    ) => {
-      if (isNone(findById(id))) return false;
-      editNodeById(id, (node: NodeTree) => {
-        node.value.style = node.value.style || {};
-        node.value.style[name] = value;
-        return node;
-      });
-    };
-
-    const removeStyle = (id: string, key: string) => {
-      editNodeById(id, (n: NodeTree) => {
-        if (!n.value.style) return n;
-        delete n.value.style[key];
-        return n;
-      });
-      emit("update");
-    };
-    const addStyle = (id: string, newAttr: { name: string; value: string }) => {
-      if (newAttr.name === "") return false;
-      if (newAttr.value === "") return false;
-      if (isNone(findById(id))) return false;
-      editNodeById(id, (node: NodeTree) => {
-        node.value.style = node.value.style || {};
-        try {
-          node.value.style[newAttr.name] = JSON.parse(newAttr.value);
-        } catch {
-          node.value.style[newAttr.name] = newAttr.value;
-        }
-        return node;
-      });
-      emit("update");
-    };
     return {
       removeAttr,
       updateAttr,
