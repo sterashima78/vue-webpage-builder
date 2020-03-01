@@ -48,71 +48,25 @@
       </v-treeview>
     </div>
     <v-dialog v-model="dialog" persistent>
-      <v-card>
-        <v-toolbar dense>
-          <v-toolbar-title>Edit Element</v-toolbar-title>
-          <v-spacer />
-          <v-icon @click="closeDialog">close</v-icon>
-        </v-toolbar>
-        <v-card-text>
-          <v-container>
-            {{ editNode }}
-            <v-row>
-              <v-text-field
-                :value="editNode && editNode.value.tag"
-                label="Element name"
-                disabled
-              ></v-text-field>
-            </v-row>
-            <v-row>
-              <v-text-field
-                :value="editNode && editNode.value.text"
-                label="Text"
-                @input="updateText(editNode.value.id, $event)"
-              ></v-text-field>
-            </v-row>
-            <v-row>
-              <v-container>
-                <h2>Attributes</h2>
-                <v-row
-                  v-for="(val, key) in editNode && editNode.value.attributes"
-                  :key="key"
-                >
-                  <v-text-field
-                    :value="val"
-                    :label="key"
-                    @input="updateAttr(editNode.value.id, key, $event)"
-                  >
-                    <template #append>
-                      <v-icon @click="removeAttr(editNode.value, key)"
-                        >delete</v-icon
-                      >
-                    </template>
-                  </v-text-field>
-                </v-row>
-                <v-row>
-                  <v-text-field label="attribute" v-model="newAttr.name" />
-                  <v-text-field label="value" v-model="newAttr.value" />
-                  <v-btn @click="addAttr(editNode.value.id)"
-                    >add attibute</v-btn
-                  >
-                </v-row>
-              </v-container>
-            </v-row>
-          </v-container>
-        </v-card-text>
-      </v-card>
+      <ElementEditor
+        :findById="findById"
+        :editNodeById="editNodeById"
+        :editNode="editNode"
+        @close="dialog = false"
+        @update="setEditTarget(editNode.id)"
+      />
     </v-dialog>
   </div>
 </template>
 
 <script lang="ts">
 import "@/plugin";
+import ElementEditor from "@/components/ElementEditor.vue";
 import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref } from "@vue/composition-api";
 import { useLocalVue } from "@/compositions/localVue";
-import { NodeTree, Node } from "@/type";
+import { Node, NodeTree } from "@/types";
 import {
   mouseOver,
   mouseLeave,
@@ -126,7 +80,8 @@ import {
 export default defineComponent({
   name: "Home",
   components: {
-    VIframeSandbox
+    VIframeSandbox,
+    ElementEditor
   },
   setup() {
     const dragTag = ref("");
@@ -168,55 +123,17 @@ export default defineComponent({
     const setEditTarget = (id: string) => {
       const node = findById(id);
       if (isNone(node)) return false;
-      editNode.value = node.value;
+      editNode.value = node.value.value;
       return true;
     };
     const activeDialog = (id: string) => {
       dialog.value = setEditTarget(id);
     };
-    const closeDialog = () => (dialog.value = false);
-    const newAttr = ref({
-      name: "",
-      value: ""
-    });
-    const addAttr = (id: string) => {
-      if (newAttr.value.name === "") return false;
-      if (newAttr.value.value === "") return false;
-      if (isNone(findById(id))) return false;
-      editNodeById(id, (node: NodeTree) => {
-        node.value.attributes = node.value.attributes || {};
-        node.value.attributes[newAttr.value.name] = JSON.parse(
-          newAttr.value.value
-        );
-        return node;
-      });
-      newAttr.value.name = "";
-      newAttr.value.value = "";
-      setEditTarget(id);
-    };
-    const updateText = (id: string, text: string) => {
-      if (isNone(findById(id))) return false;
-      editNodeById(id, (node: NodeTree) => {
-        node.value.text = text;
-        return node;
-      });
-    };
-
-    const updateAttr = (id: string, key: string, text: string) => {
-      if (isNone(findById(id))) return false;
-      editNodeById(id, (node: NodeTree) => {
-        node.value.attributes[key] = text;
-        return node;
-      });
-    };
     return {
-      updateAttr,
-      updateText,
-      newAttr,
-      addAttr,
+      findById,
+      editNodeById,
       editNode,
       activeDialog,
-      closeDialog,
       dialog,
       scriptsSrc,
       cssLinks,
@@ -235,14 +152,7 @@ export default defineComponent({
       dragEnd: dragEnd(dragNodeId),
       dragEnter: dragEnter(dropNodeId),
       drop: drop(dragTag, dragNodeId, dropNodeId, addNodeTo, moveNodeTo),
-      removeNodeById,
-      removeAttr: (node: Node, key: string) => {
-        editNodeById(node.id, (n: NodeTree) => {
-          delete n.value.attributes[key];
-          return n;
-        });
-        setEditTarget(node.id);
-      }
+      setEditTarget
     };
   }
 });
