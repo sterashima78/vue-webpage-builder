@@ -111,66 +111,20 @@
             <v-btn dark text @click="showSetting = false">Save</v-btn>
           </v-toolbar-items>
         </v-toolbar>
-        <v-list three-line subheader>
-          <v-subheader>User Controls</v-subheader>
-          <v-list-item>
-            <v-list-item-content>
-              <v-list-item-title>Content filtering</v-list-item-title>
-              <v-list-item-subtitle
-                >Set the content filtering level to restrict apps that can be
-                downloaded</v-list-item-subtitle
-              >
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-content>
-              <v-list-item-title>Password</v-list-item-title>
-              <v-list-item-subtitle
-                >Require password for purchase or use password to restrict
-                purchase</v-list-item-subtitle
-              >
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-        <v-divider></v-divider>
-        <v-list three-line subheader>
-          <v-subheader>General</v-subheader>
-          <v-list-item>
-            <v-list-item-action>
-              <v-checkbox></v-checkbox>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Notifications</v-list-item-title>
-              <v-list-item-subtitle
-                >Notify me about updates to apps or games that I
-                downloaded</v-list-item-subtitle
-              >
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-action>
-              <v-checkbox></v-checkbox>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Sound</v-list-item-title>
-              <v-list-item-subtitle
-                >Auto-update apps at any time. Data charges may
-                apply</v-list-item-subtitle
-              >
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-action>
-              <v-checkbox></v-checkbox>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Auto-add widgets</v-list-item-title>
-              <v-list-item-subtitle
-                >Automatically add home screen widgets</v-list-item-subtitle
-              >
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
+        <!-- <InlineScript @update="scriptUpdate" :code="inlineScript"/> -->
+        <ExternalResource
+          title="JavaScript"
+          :resources="scripts"
+          @add="addScript"
+          @remove="removeScript"
+        />
+
+        <ExternalResource
+          title="Style"
+          :resources="styles"
+          @add="addStyle"
+          @remove="removeStyle"
+        />
       </v-card>
     </v-dialog>
   </div>
@@ -179,9 +133,10 @@
 <script lang="ts">
 import "@/plugin";
 import ElementEditor from "@/components/ElementEditor.vue";
+import ExternalResource from "@/components/ExternalResource.vue";
 import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
-import { defineComponent, ref } from "@vue/composition-api";
+import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
 import { useLocalVue } from "@/compositions/localVue";
 import { Node } from "@/types";
 import {
@@ -194,32 +149,37 @@ import {
   cancelEvent,
   drop
 } from "@/compositions/store";
+interface Resource {
+  url: string;
+  name: string;
+}
 export default defineComponent({
   name: "Home",
   components: {
     VIframeSandbox,
-    ElementEditor
+    ElementEditor,
+    ExternalResource
   },
   setup() {
     const dragTag = ref("");
-    const scriptsSrc = [
+    const scripts: Ref<Resource[]> = ref([
+      {
+        name: "element-ui",
+        url: "https://unpkg.com/element-ui/lib/index.js"
+      }
+    ]);
+    const styles: Ref<Resource[]> = ref([
+      {
+        name: "element-ui",
+        url: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+      }
+    ]);
+    const scriptsSrc = computed(() => [
       "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js",
-      "https://unpkg.com/element-ui/lib/index.js"
-    ];
-    const cssLinks = ["https://unpkg.com/element-ui/lib/theme-chalk/index.css"];
+      ...scripts.value.map(i => i.url)
+    ]);
+    const cssLinks = computed(() => styles.value.map(i => i.url));
     const body = `<div id='main-wrapper' />`;
-    // const scriptsSrc = {
-    //   element: {
-    //     name: "element",
-    //     url: "https://unpkg.com/element-ui/lib/index.js"
-    //   }
-    // };
-    // const cssLinks = {
-    //   element: {
-    //     name: "element",
-    //     url: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-    //   }
-    // };
     const inlineScript = ``;
     const stylesStr = "";
     const {
@@ -232,7 +192,8 @@ export default defineComponent({
       moveNodeTo,
       addNodeTo,
       findById,
-      editNode: editNodeById
+      editNode: editNodeById,
+      removeNodeById
     } = useLocalVue(dragTag);
     const dialog = ref(false);
     const editNode = ref<Node | undefined>(undefined);
@@ -246,6 +207,7 @@ export default defineComponent({
       dialog.value = setEditTarget(id);
     };
     return {
+      removeNodeById,
       findById,
       editNodeById,
       editNode,
@@ -269,9 +231,23 @@ export default defineComponent({
       dragEnter: dragEnter(dropNodeId),
       drop: drop(dragTag, dragNodeId, dropNodeId, addNodeTo, moveNodeTo),
       setEditTarget,
-      showWindow: ref(true),
-      showTree: ref(true),
-      showSetting: ref(true)
+      showWindow: ref(false),
+      showTree: ref(false),
+      showSetting: ref(false),
+      addStyle: ({ url, name }: { url: string; name: string }) => {
+        styles.value.push({ url, name });
+      },
+      addScript: ({ url, name }: { url: string; name: string }) => {
+        scripts.value.push({ url, name });
+      },
+      removeStyle: (key: string) => {
+        styles.value = styles.value.filter(({ name }) => name !== key);
+      },
+      removeScript: (key: string) => {
+        scripts.value = scripts.value.filter(({ name }) => name !== key);
+      },
+      scripts,
+      styles
     };
   }
 });

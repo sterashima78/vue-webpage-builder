@@ -1,0 +1,57 @@
+<template>
+  <v-container>
+    <h3>{{ title }}</h3>
+    <v-layout>
+      <v-text-field v-model="name" label="name" />
+      <v-text-field v-model="url" label="url" />
+      <v-btn @click="add" :disabled="name == '' || url == ''">add</v-btn>
+    </v-layout>
+    <v-list>
+      <v-list-item v-for="(obj, id) in resources" :key="id">
+        <v-list-item-content>
+          <v-list-item-title v-text="`${obj.name} (${obj.url})`" />
+        </v-list-item-content>
+        <v-list-item-action>
+          <v-icon @click="remove(id)" v-text="'delete'" />
+        </v-list-item-action>
+      </v-list-item>
+    </v-list>
+  </v-container>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref } from "@vue/composition-api";
+import { PropType } from "@vue/composition-api/dist/component/componentProps";
+interface Resource {
+  url: string;
+  name: string;
+}
+export default defineComponent({
+  props: {
+    title: {
+      type: String as PropType<string>,
+      default: ""
+    },
+    resources: {
+      type: Array as PropType<Resource[]>,
+      default: (): Resource[] => []
+    }
+  },
+  setup(_, { emit }) {
+    const url = ref<string>("");
+    const name = ref<string>("");
+    const remove = (id: string) => emit("remove", id);
+    const add = () => {
+      emit("add", { url: url.value, name: name.value });
+      url.value = "";
+      name.value = "";
+    };
+    return {
+      url,
+      name,
+      remove,
+      add
+    };
+  }
+});
+</script>
