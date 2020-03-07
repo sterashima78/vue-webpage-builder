@@ -6,12 +6,33 @@
       <v-btn icon @click="showTree = !showTree">
         <v-icon>format_list_bulleted</v-icon>
       </v-btn>
-      <v-btn icon @click="showWindow = !showWindow">
-        <v-icon>code</v-icon>
-      </v-btn>
-      <v-btn icon @click="showSetting = !showSetting">
-        <v-icon>settings</v-icon>
-      </v-btn>
+      <ComponentSelectorDialog
+        :components="components"
+        @select="dragTag = $event"
+      >
+        <template #activator="{ toggle }">
+          <v-btn icon @click="toggle">
+            <v-icon>view_quilt</v-icon>
+          </v-btn>
+        </template>
+      </ComponentSelectorDialog>
+
+      <SettingDialog
+        :code="inlineScript"
+        :scripts="scripts"
+        :styles="styles"
+        @add:script="addScript"
+        @add:style="addStyle"
+        @remove:script="removeScript"
+        @remove:style="removeStyle"
+      >
+        <template #activator="{ open }">
+          <v-btn icon @click="open">
+            <v-icon>settings</v-icon>
+          </v-btn>
+        </template>
+      </SettingDialog>
+
       <v-menu bottom left>
         <template v-slot:activator="{ on }">
           <v-btn dark icon v-on="on">
@@ -93,66 +114,15 @@
           </template>
         </v-treeview>
       </hsc-window>
-
-      <hsc-window
-        v-show="showWindow"
-        title="Components"
-        style="background: white;border:1px solid black;overflow: hidden;"
-        :resizable="true"
-        :minWidth="300"
-        :minHeight="300"
-        :maxWidth="500"
-        :maxHeight="600"
-      >
-        <ComponentSelector
-          :components="components"
-          @select="dragTag = $event"
-        />
-      </hsc-window>
     </hsc-window-style-black>
-    <v-dialog
-      v-model="showSetting"
-      fullscreen
-      hide-overlay
-      transition="dialog-bottom-transition"
-    >
-      <v-card>
-        <v-toolbar dark color="primary">
-          <v-btn icon dark @click="showSetting = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-          <v-toolbar-title>Settings</v-toolbar-title>
-        </v-toolbar>
-        <ExternalResource
-          title="JavaScript"
-          :resources="scripts"
-          @add="addScript"
-          @remove="removeScript"
-        />
-
-        <ExternalResource
-          title="Style"
-          :resources="styles"
-          @add="addStyle"
-          @remove="removeStyle"
-        />
-        <v-container>
-          <h3>Inline Javascript</h3>
-          <div style="height:500px;">
-            <ace @change="inlineScript = $event" :code="inlineScript" />
-          </div>
-        </v-container>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
 <script lang="ts">
 import "@/plugin";
 import ElementEditor from "@/components/ElementEditor.vue";
-import ExternalResource from "@/components/ExternalResource.vue";
-import ComponentSelector from "@/components/ComponentSelector.vue";
-import Ace from "@/components/Ace.vue";
+import ComponentSelectorDialog from "@/components/ComponentSelectorDialog.vue";
+import SettingDialog from "@/components/SettingDialog.vue";
 import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
@@ -162,7 +132,7 @@ import {
   exportToJson,
   importProject
 } from "@/compositions/exporter";
-import { Node } from "@/types";
+import { Node, Resource } from "@/types";
 import {
   mouseOver,
   mouseLeave,
@@ -173,18 +143,14 @@ import {
   cancelEvent,
   drop
 } from "@/compositions/store";
-interface Resource {
-  url: string;
-  name: string;
-}
+
 export default defineComponent({
   name: "Home",
   components: {
     VIframeSandbox,
     ElementEditor,
-    ExternalResource,
-    ComponentSelector,
-    Ace
+    ComponentSelectorDialog,
+    SettingDialog
   },
   setup() {
     const dragTag = ref("");
@@ -283,6 +249,7 @@ export default defineComponent({
         scripts.value.push({ url, name });
       },
       removeStyle: (key: string) => {
+        console.log(key);
         styles.value = styles.value.filter(({ name }) => name !== key);
       },
       removeScript: (key: string) => {

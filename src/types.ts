@@ -33,3 +33,8 @@ export interface NodeData {
   data: VNodeData;
   children: Array<NodeData | string>;
 }
+
+export interface Resource {
+  url: string;
+  name: string;
+}

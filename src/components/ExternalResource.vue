@@ -7,12 +7,12 @@
       <v-btn @click="add" :disabled="name == '' || url == ''">add</v-btn>
     </v-layout>
     <v-list>
-      <v-list-item v-for="(obj, id) in resources" :key="id">
+      <v-list-item v-for="obj in resources" :key="obj.name">
         <v-list-item-content>
           <v-list-item-title v-text="`${obj.name} (${obj.url})`" />
         </v-list-item-content>
         <v-list-item-action>
-          <v-icon @click="remove(id)" v-text="'delete'" />
+          <v-icon @click="remove(obj.name)" v-text="'delete'" />
         </v-list-item-action>
       </v-list-item>
     </v-list>
@@ -40,7 +40,7 @@ export default defineComponent({
   setup(_, { emit }) {
     const url = ref<string>("");
     const name = ref<string>("");
-    const remove = (id: string) => emit("remove", id);
+    const remove = (name: string) => emit("remove", name);
     const add = () => {
       emit("add", { url: url.value, name: name.value });
       url.value = "";
