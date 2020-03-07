@@ -37,6 +37,7 @@
       <hsc-window
         v-show="showTree"
         title="Componet Tree"
+        style="background: white;border:1px solid black;"
         :resizable="true"
         :isScrollable="true"
         :minWidth="300"
@@ -77,20 +78,16 @@
       <hsc-window
         v-show="showWindow"
         title="Components"
+        style="background: white;border:1px solid black;overflow: hidden;"
         :resizable="true"
-        :isScrollable="true"
         :minWidth="300"
         :minHeight="300"
         :maxWidth="500"
         :maxHeight="600"
       >
-        <span
-          style="display: inline-block;padding: 5px;cursor: move"
-          v-for="component in components"
-          v-text="component"
-          :key="component"
-          draggable="true"
-          @dragstart="dragTag = component"
+        <ComponentSelector
+          :components="components"
+          @dragStart="dragTag = $event"
         />
       </hsc-window>
     </hsc-window-style-black>
@@ -134,6 +131,7 @@
 import "@/plugin";
 import ElementEditor from "@/components/ElementEditor.vue";
 import ExternalResource from "@/components/ExternalResource.vue";
+import ComponentSelector from "@/components/ComponentSelector.vue";
 import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
@@ -158,7 +156,8 @@ export default defineComponent({
   components: {
     VIframeSandbox,
     ElementEditor,
-    ExternalResource
+    ExternalResource,
+    ComponentSelector
   },
   setup() {
     const dragTag = ref("");
