@@ -38,11 +38,7 @@ export const useLocalVue = (dragTag: Ref<string>) => {
     );
   };
   const init = (
-    w: Window & {
-      Vue?: VueConstructor<Vue>;
-      vm: Vue;
-      VueOption: any;
-    }
+    w: Window & { Vue?: VueConstructor<Vue>; vm: Vue; VueOption: any }
   ) => {
     if (w.Vue === undefined) {
       return setTimeout(init, 100);

@@ -87,7 +87,7 @@
       >
         <ComponentSelector
           :components="components"
-          @dragStart="dragTag = $event"
+          @select="dragTag = $event"
         />
       </hsc-window>
     </hsc-window-style-black>
@@ -185,6 +185,8 @@ export default defineComponent({
     const inlineScript = ref(
       '/** before created vue */\n \
       console.log(window.vm);\n \
+      /** Custom Component */\n \
+      Vue.component("MyButton", {name: "MyButton",template: "<button>MyButton</button>"});\n \
       /** after created vue */\n \
       window.addEventListener("createdVue", ()=> console.log(window.vm));'.replace(
         /^ +|\n +/g,

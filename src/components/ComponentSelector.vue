@@ -15,7 +15,7 @@
         v-text="component"
         :key="component"
         draggable="true"
-        @dragstart="dragTag = component"
+        @dragstart="dragStart(component)"
         style="cursor: move"
       >
         <v-list-item-content>
@@ -38,7 +38,7 @@ export default defineComponent({
   setup(props: { components: string[] }, { emit }) {
     const keyword = ref("");
     const search = ref("");
-    const dragStart = component => emit("dragStart", component);
+    const dragStart = component => emit("select", component);
     const filteredComponents = computed(() =>
       search.value === null || search.value === ""
         ? props.components
