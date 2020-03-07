@@ -33,13 +33,18 @@ export default defineComponent({
     const editor = ref<HTMLElement>(null);
     onMounted(() => {
       const aceEditor = ace.edit(editor.value);
-      console.log(props.code);
+      watch(
+        () => props.code,
+        val => {
+          if (val !== aceEditor.getValue()) {
+            aceEditor.setValue(val, 1);
+          }
+        }
+      );
       aceEditor.setValue(props.code, 1);
       aceEditor.getSession().setMode(`ace/mode/${props.lang}`);
       aceEditor.setTheme(`ace/theme/${props.theme}`);
       aceEditor.on("change", () => {
-        console.log(props.code);
-
         emit("change", aceEditor.getValue());
       });
     });

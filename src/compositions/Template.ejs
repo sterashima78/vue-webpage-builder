@@ -1,0 +1,28 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Vue Webpage Builder</title>
+    <% style.forEach(function(item){ -%>
+    <link rel="stylesheet" href="<%= item.url %>" />
+    <% }); -%>
+  </head>
+  <body>
+    <div id="app-main" style="height:100%;width:100%">
+      <%- nodes %>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <% script.forEach(function(item){ -%>
+    <script src="<%= item.url %>"></script>
+    <% }); -%>
+    <script>
+      <%- inlineScript %>
+        const CustomVue = ("VueOption" in window) ? Vue.extend(VueOption) : Vue;
+        window.vm = new CustomVue({
+          el: "#app-main"
+        });
+        window.dispatchEvent(new Event("createdVue"))
+    </script>
+  </body>
+</html>

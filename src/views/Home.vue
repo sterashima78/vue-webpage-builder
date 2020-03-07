@@ -12,6 +12,25 @@
       <v-btn icon @click="showSetting = !showSetting">
         <v-icon>settings</v-icon>
       </v-btn>
+      <v-menu bottom left>
+        <template v-slot:activator="{ on }">
+          <v-btn dark icon v-on="on">
+            <v-icon>insert_drive_file</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item @click="saveHtml">
+            <v-list-item-title>Download HTML</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="saveJson">
+            <v-list-item-title>Download Project as JSON</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="importProject">
+            <v-list-item-title>Import Project from JSON</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
     <div style="display:flex;width:100%;height: calc(100% - 50px)">
       <VIframeSandbox
@@ -138,6 +157,11 @@ import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
 import { useLocalVue } from "@/compositions/localVue";
+import {
+  exportToHtml,
+  exportToJson,
+  importProject
+} from "@/compositions/exporter";
 import { Node } from "@/types";
 import {
   mouseOver,
@@ -164,6 +188,7 @@ export default defineComponent({
   },
   setup() {
     const dragTag = ref("");
+    const file = ref<File | undefined>(undefined);
     const scripts: Ref<Resource[]> = ref([
       {
         name: "element-ui",
@@ -195,6 +220,7 @@ export default defineComponent({
     );
     const stylesStr = "";
     const {
+      node,
       init,
       components,
       treeNode,
@@ -218,6 +244,7 @@ export default defineComponent({
     const activeDialog = (id: string) => {
       dialog.value = setEditTarget(id);
     };
+
     return {
       removeNodeById,
       findById,
@@ -262,7 +289,32 @@ export default defineComponent({
         scripts.value = scripts.value.filter(({ name }) => name !== key);
       },
       scripts,
-      styles
+      styles,
+      saveHtml: () =>
+        exportToHtml(
+          node.value,
+          styles.value,
+          scripts.value,
+          inlineScript.value
+        ),
+      saveJson: () =>
+        exportToJson(
+          node.value,
+          styles.value,
+          scripts.value,
+          inlineScript.value
+        ),
+      importProject: async () => {
+        try {
+          const data = await importProject();
+          node.value = data.node;
+          styles.value = data.style;
+          scripts.value = data.script;
+          inlineScript.value = data.inlineScript;
+        } catch (e) {
+          console.log(e);
+        }
+      }
     };
   }
 });

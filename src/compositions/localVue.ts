@@ -74,6 +74,7 @@ export const useLocalVue = (dragTag: Ref<string>) => {
     moveNodeTo,
     removeNodeById,
     findById,
-    editNode
+    editNode,
+    node
   };
 };
