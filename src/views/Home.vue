@@ -17,7 +17,7 @@
       <VIframeSandbox
         :body="body"
         style="width:100%;height:100%"
-        :script="inlineScript"
+        :script="inlineScript.replace('<br>', '\n')"
         :scriptsSrc="scriptsSrc"
         :styles="stylesStr"
         :cssLinks="cssLinks"
@@ -103,12 +103,7 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
           <v-toolbar-title>Settings</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-toolbar-items>
-            <v-btn dark text @click="showSetting = false">Save</v-btn>
-          </v-toolbar-items>
         </v-toolbar>
-        <!-- <InlineScript @update="scriptUpdate" :code="inlineScript"/> -->
         <ExternalResource
           title="JavaScript"
           :resources="scripts"
@@ -122,6 +117,12 @@
           @add="addStyle"
           @remove="removeStyle"
         />
+        <v-container>
+          <h3>Inline Javascript</h3>
+          <div style="height:500px;">
+            <ace @change="inlineScript = $event" :code="inlineScript" />
+          </div>
+        </v-container>
       </v-card>
     </v-dialog>
   </div>
@@ -132,6 +133,7 @@ import "@/plugin";
 import ElementEditor from "@/components/ElementEditor.vue";
 import ExternalResource from "@/components/ExternalResource.vue";
 import ComponentSelector from "@/components/ComponentSelector.vue";
+import Ace from "@/components/Ace.vue";
 import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
@@ -157,7 +159,8 @@ export default defineComponent({
     VIframeSandbox,
     ElementEditor,
     ExternalResource,
-    ComponentSelector
+    ComponentSelector,
+    Ace
   },
   setup() {
     const dragTag = ref("");
@@ -179,10 +182,18 @@ export default defineComponent({
     ]);
     const cssLinks = computed(() => styles.value.map(i => i.url));
     const body = `<div id='main-wrapper' />`;
-    const inlineScript = ``;
+    const inlineScript = ref(
+      '/** before created vue */\n \
+      console.log(window.vm);\n \
+      /** after created vue */\n \
+      window.addEventListener("createdVue", ()=> console.log(window.vm));'.replace(
+        /^ +|\n +/g,
+        "\n"
+      )
+    );
     const stylesStr = "";
     const {
-      init: loaded,
+      init,
       components,
       treeNode,
       hoverNodeId,
@@ -216,7 +227,10 @@ export default defineComponent({
       cssLinks,
       inlineScript,
       stylesStr,
-      loaded,
+      loaded: w => {
+        console.log("reload");
+        init(w);
+      },
       body,
       components,
       dragTag,
