@@ -37,7 +37,13 @@ export const useLocalVue = (dragTag: Ref<string>) => {
       children.map(i => (typeof i === "string" ? i : rederNode(h, i)))
     );
   };
-  const init = (w: Window & { Vue?: VueConstructor<Vue>; vm: Vue }) => {
+  const init = (
+    w: Window & {
+      Vue?: VueConstructor<Vue>;
+      vm: Vue;
+      VueOption: any;
+    }
+  ) => {
     if (w.Vue === undefined) {
       return setTimeout(init, 100);
     }
@@ -52,7 +58,8 @@ export const useLocalVue = (dragTag: Ref<string>) => {
     watch(nodeDataTree, v => {
       store.node = clone(v);
     });
-    w.vm = new w.Vue({
+    const CustomVue = w.VueOption ? w.Vue.extend(w.VueOption) : w.Vue;
+    w.vm = new CustomVue({
       el: "#main-wrapper",
       render(h) {
         return rederNode(h, store.node);
