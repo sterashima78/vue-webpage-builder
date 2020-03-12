@@ -4,8 +4,7 @@ import { make, tree, duplicate, flatten, reduce, chain } from "fp-ts/lib/Tree";
 import { fromNullable, map, getOrElse, Option, fold } from "fp-ts/es6/Option";
 import { pipe } from "fp-ts/lib/pipeable";
 
-const prevent = (e: MouseEvent) => {
-  e.preventDefault();
+const stopEvent = (e: MouseEvent) => {
   e.stopPropagation();
   return e;
 };
@@ -16,7 +15,7 @@ const eventToHtmlTarget = (e: MouseEvent): Option<HTMLElement> =>
 const getId = (ele: HTMLElement) => ele.id;
 
 const getEventTargetId = ($event: MouseEvent): Option<string> =>
-  pipe($event, prevent, eventToHtmlTarget, map(getId));
+  pipe($event, stopEvent, eventToHtmlTarget, map(getId));
 
 const updateEventTargetId = (updateTo: Ref<string>) => ($event: MouseEvent) =>
   pipe(
@@ -97,7 +96,10 @@ export const createEvents = (
   dragenter: dragEnter(dropId),
   dragleave: dragLeave(dropId),
   dragover: cancelEvent,
-  dragstart: dragStart(dragId),
+  dragstart: (e: MouseEvent) => {
+    console.log("drag");
+    dragStart(dragId)(e);
+  },
   dragend: dragEnd(dragId),
   drop: drop(dragTag, dragId, dropId, addNodeTo, moveNodeTo)
 });
