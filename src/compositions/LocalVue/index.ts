@@ -6,25 +6,32 @@ import { pipe } from "fp-ts/es6/pipeable";
 import { CreateElement, VNode } from "vue/types/umd";
 import { NodeData } from "@/types";
 import clone from "lodash.clonedeep";
-import { rederNode } from "./render";
+import { createRenderer } from "./render";
 import { createVue } from "./createInstance";
 import { useState } from "@/compositions/store/";
-export const useLocalVue = (dragTag: Ref<string>) => {
+export const useLocalVue = () => {
   const ids: string[] = [];
+  const dragNodeId = ref("");
+  const hoverNodeId = ref("");
+  const dropNodeId = ref("");
+  const dragTag = ref("");
   const dropTargetId = ref("");
   const {
     node,
     treeNode,
-    dragNodeId,
-    dropNodeId,
-    hoverNodeId,
     addNodeTo,
     removeNodeById,
     moveNodeTo,
-    nodeDataTree,
     findById,
     editNode
   } = useState(dragTag);
+  const { renderNode, nodeData, eventHandler } = createRenderer(
+    node,
+    dragNodeId,
+    hoverNodeId,
+    dropNodeId,
+    dragTag
+  );
   const components = ref<string[]>([]);
   const init = (
     w: Window & { Vue?: VueConstructor<Vue>; vm: Vue; VueOption: any }
@@ -32,21 +39,20 @@ export const useLocalVue = (dragTag: Ref<string>) => {
     if (w.Vue === undefined) {
       return setTimeout(init, 100);
     }
-    w.vm = createVue(components, nodeDataTree, w.Vue, w.VueOption);
+    w.vm = createVue(components, nodeData, renderNode, w.Vue, w.VueOption);
     w.dispatchEvent(new Event("createdVue"));
   };
   return {
     init,
     components,
     treeNode,
-    hoverNodeId,
-    dragNodeId,
-    dropNodeId,
     addNodeTo,
     moveNodeTo,
     removeNodeById,
     findById,
     editNode,
-    node
+    node,
+    dragTag,
+    eventHandler
   };
 };

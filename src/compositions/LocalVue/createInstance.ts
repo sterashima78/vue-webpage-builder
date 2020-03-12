@@ -1,13 +1,13 @@
 import { Ref, watch } from "@vue/composition-api";
-import { NodeData } from "@/types";
+import { NodeData, NodeTree } from "@/types";
 import { pipe } from "fp-ts/es6/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
 import clone from "lodash.clonedeep";
-import Vue, { VueConstructor } from "vue";
-import { rederNode } from "./render";
+import Vue, { VueConstructor, VNode, CreateElement } from "vue";
 export const createVue = (
   components: Ref<string[]>,
   nodeData: Ref<NodeData>,
+  renderNode: (h: CreateElement, node: NodeData) => VNode,
   Vue: VueConstructor<Vue>,
   VueOption: any | undefined
 ) => {
@@ -24,7 +24,7 @@ export const createVue = (
   return new CustomVue({
     el: "#main-wrapper",
     render(h) {
-      return rederNode(h, store.node);
+      return renderNode(h, store.node);
     }
   });
 };

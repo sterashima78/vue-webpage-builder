@@ -95,15 +95,15 @@
               :id="item.id"
               draggable="true"
               style="cursor: move"
-              @mouseenter="cancelEvent"
-              @mouseover="mouseOver"
-              @mouseleave="mouseLeave"
-              @dragstart="dragStart"
-              @dragleave="dragLeave"
-              @dragenter="dragEnter"
-              @dragover="cancelEvent"
-              @dragend="dragEnd"
-              @drop="drop"
+              @mouseenter="eventHandlers.mouseenter"
+              @mouseover="eventHandlers.mouseover"
+              @mouseleave="eventHandlers.mouseleave"
+              @dragstart="eventHandlers.dragstart"
+              @dragleave="eventHandlers.dragleave"
+              @dragenter="eventHandlers.dragenter"
+              @dragover="eventHandlers.dragover"
+              @dragend="eventHandlers.dragend"
+              @drop="eventHandlers.drop"
             >
               {{ item.name }}
             </div>
@@ -126,23 +126,13 @@ import SettingDialog from "@/components/SettingDialog.vue";
 import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
-import { useLocalVue } from "@/compositions/localVue";
+import { useLocalVue, eventHandlers } from "@/compositions/LocalVue/";
 import {
   exportToHtml,
   exportToJson,
   importProject
 } from "@/compositions/exporter";
 import { Node, Resource } from "@/types";
-import {
-  mouseOver,
-  mouseLeave,
-  dragStart,
-  dragLeave,
-  dragEnd,
-  dragEnter,
-  cancelEvent,
-  drop
-} from "@/compositions/store";
 
 export default defineComponent({
   name: "Home",
@@ -190,9 +180,6 @@ export default defineComponent({
       init,
       components,
       treeNode,
-      hoverNodeId,
-      dragNodeId,
-      dropNodeId,
       moveNodeTo,
       addNodeTo,
       findById,
@@ -230,14 +217,7 @@ export default defineComponent({
       components,
       dragTag,
       treeNode,
-      mouseOver: mouseOver(hoverNodeId),
-      mouseLeave: mouseLeave(hoverNodeId),
-      cancelEvent,
-      dragStart: dragStart(dragNodeId),
-      dragLeave: dragLeave(dropNodeId),
-      dragEnd: dragEnd(dragNodeId),
-      dragEnter: dragEnter(dropNodeId),
-      drop: drop(dragTag, dragNodeId, dropNodeId, addNodeTo, moveNodeTo),
+      eventHandlers,
       setEditTarget,
       showWindow: ref(false),
       showTree: ref(false),

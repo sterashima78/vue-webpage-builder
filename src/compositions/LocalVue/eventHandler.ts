@@ -22,6 +22,10 @@ const updateEventTargetId = (updateTo: Ref<string>) => ($event: MouseEvent) =>
   pipe(
     $event,
     getEventTargetId,
+    (i: Option<string>) => {
+      console.log(i);
+      return i;
+    },
     fold(
       () => console.log("id is none"),
       id => (updateTo.value = id)
