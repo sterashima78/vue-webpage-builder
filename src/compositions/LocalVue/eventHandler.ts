@@ -21,10 +21,6 @@ const updateEventTargetId = (updateTo: Ref<string>) => ($event: MouseEvent) =>
   pipe(
     $event,
     getEventTargetId,
-    (i: Option<string>) => {
-      console.log(i);
-      return i;
-    },
     fold(
       () => console.log("id is none"),
       id => (updateTo.value = id)
@@ -96,10 +92,7 @@ export const createEvents = (
   dragenter: dragEnter(dropId),
   dragleave: dragLeave(dropId),
   dragover: cancelEvent,
-  dragstart: (e: MouseEvent) => {
-    console.log("drag");
-    dragStart(dragId)(e);
-  },
+  dragstart: dragStart(dragId),
   dragend: dragEnd(dragId),
   drop: drop(dragTag, dragId, dropId, addNodeTo, moveNodeTo)
 });
