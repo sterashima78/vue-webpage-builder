@@ -59,6 +59,7 @@ const node: Ref<NodeTree> = ref(
   )
 );
 
+type NodeTreeMapper = (node: NodeTree) => NodeTree;
 const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
   tree.value.id === id
     ? some(clone(tree))
@@ -96,7 +97,7 @@ const _addNodeTo = (id: string, target: NodeTree) => (
         forest: treeState.forest.map(_addNodeTo(id, target))
       };
 
-const _moveNodeTo = (node: NodeTree) => (to: string, target: string) => {
+const _moveNodeTo = (to: string, target: string) => (node: NodeTree) => {
   const targetNode = findNodeById(target)(node);
   if (isNone(targetNode)) {
     console.log("target is none");
@@ -251,6 +252,10 @@ const toNodeData = (
     ]
   };
 };
+const updateNode = (nodeValue: NodeTree) => (node.value = nodeValue);
+
+const effectNode = (effect: NodeTreeMapper) =>
+  pipe(node.value, effect, updateNode);
 
 export const useState = (dragTag: Ref<string>) => {
   /**
@@ -259,37 +264,52 @@ export const useState = (dragTag: Ref<string>) => {
    * @param target 追加するノード
    */
   const addNodeTo = (id: string, target: NodeTree) =>
-    (node.value = _addNodeTo(id, target)(node.value));
+    effectNode(_addNodeTo(id, target));
   /**
    * ノードをツリーから削除する
    * @param id 削除するノード
    */
-  const removeNodeById = (id: string) =>
-    (node.value = _removeNodeById(id)(node.value));
+  const removeNodeById = (id: string) => effectNode(_removeNodeById(id));
+
   /**
    * ノードを別ノードの子ノードへ追加する
    * @param to 移動先ノードのID
    * @param target 移動するノードのID
    */
   const moveNodeTo = (to: string, target: string) =>
-    (node.value = _moveNodeTo(node.value)(to, target));
+    effectNode(_moveNodeTo(to, target));
+  /**
+   * ノードを変更する
+   * @param id 変更対象ノードのID
+   * @param modifier 変更処理
+   */
+  const editNode = (id: string, modifier: NodeTreeMapper) =>
+    effectNode(_editNode(id, modifier));
+
+  /**
+   * ノードツリーからIDに相当するノードを検索する
+   * @param id 検索対象ID
+   */
+  const findById = (id: string) => pipe(node.value, findNodeById(id));
+
   const treeNode = computed(() => toTree(node.value));
   const dragNodeId = ref("");
   const hoverNodeId = ref("");
   const dropNodeId = ref("");
   const nodeDataTree = computed(() =>
-    toNodeData(
-      hoverNodeId,
-      dropNodeId,
-      dragNodeId,
-      dragTag,
-      addNodeTo,
-      moveNodeTo
-    )(node.value)
+    pipe(
+      node.value,
+      toNodeData(
+        hoverNodeId,
+        dropNodeId,
+        dragNodeId,
+        dragTag,
+        addNodeTo,
+        moveNodeTo
+      )
+    )
   );
-  const editNode = (id: string, modifier: (node: NodeTree) => NodeTree) =>
-    (node.value = _editNode(id, modifier)(node.value));
-  const findById = (id: string) => findNodeById(id)(node.value);
+
   return {
     node,
     dragNodeId,
