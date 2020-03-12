@@ -95,15 +95,15 @@
               :id="item.id"
               draggable="true"
               style="cursor: move"
-              @mouseenter="eventHandlers.mouseenter"
-              @mouseover="eventHandlers.mouseover"
-              @mouseleave="eventHandlers.mouseleave"
-              @dragstart="eventHandlers.dragstart"
-              @dragleave="eventHandlers.dragleave"
-              @dragenter="eventHandlers.dragenter"
-              @dragover="eventHandlers.dragover"
-              @dragend="eventHandlers.dragend"
-              @drop="eventHandlers.drop"
+              @mouseenter="eventHandler.mouseenter"
+              @mouseover="eventHandler.mouseover"
+              @mouseleave="eventHandler.mouseleave"
+              @dragstart="eventHandler.dragstart"
+              @dragleave="eventHandler.dragleave"
+              @dragenter="eventHandler.dragenter"
+              @dragover="eventHandler.dragover"
+              @dragend="eventHandler.dragend"
+              @drop="eventHandler.drop"
             >
               {{ item.name }}
             </div>
@@ -127,11 +127,13 @@ import { isNone } from "fp-ts/lib/Option";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
 import { useLocalVue, eventHandlers } from "@/compositions/LocalVue/";
+import { useState } from "@/compositions/store/";
 import {
   exportToHtml,
   exportToJson,
   importProject
 } from "@/compositions/exporter";
+import { useHtml } from "@/compositions/useHtml";
 import { Node, Resource } from "@/types";
 
 export default defineComponent({
@@ -143,49 +145,24 @@ export default defineComponent({
     SettingDialog
   },
   setup() {
-    const dragTag = ref("");
     const file = ref<File | undefined>(undefined);
-    const scripts: Ref<Resource[]> = ref([
-      {
-        name: "element-ui",
-        url: "https://unpkg.com/element-ui/lib/index.js"
-      }
-    ]);
-    const styles: Ref<Resource[]> = ref([
-      {
-        name: "element-ui",
-        url: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-      }
-    ]);
-    const scriptsSrc = computed(() => [
-      "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js",
-      ...scripts.value.map(i => i.url)
-    ]);
-    const cssLinks = computed(() => styles.value.map(i => i.url));
-    const body = `<div id='main-wrapper' />`;
-    const inlineScript = ref(
-      '/** before created vue */\n \
-      console.log(window.vm);\n \
-      /** Custom Component */\n \
-      Vue.component("MyButton", {name: "MyButton",template: "<button>MyButton</button>"});\n \
-      /** after created vue */\n \
-      window.addEventListener("createdVue", ()=> console.log(window.vm));'.replace(
-        /^ +|\n +/g,
-        "\n"
-      )
-    );
-    const stylesStr = "";
+    const {
+      scripts,
+      styles,
+      scriptsSrc,
+      cssLinks,
+      body,
+      inlineScript,
+      stylesStr
+    } = useHtml();
+    const { init, components, dragTag, eventHandler } = useLocalVue();
     const {
       node,
-      init,
-      components,
       treeNode,
-      moveNodeTo,
-      addNodeTo,
       findById,
       editNode: editNodeById,
       removeNodeById
-    } = useLocalVue(dragTag);
+    } = useState();
     const dialog = ref(false);
     const editNode = ref<Node | undefined>(undefined);
     const setEditTarget = (id: string) => {
@@ -217,7 +194,7 @@ export default defineComponent({
       components,
       dragTag,
       treeNode,
-      eventHandlers,
+      eventHandler,
       setEditTarget,
       showWindow: ref(false),
       showTree: ref(false),

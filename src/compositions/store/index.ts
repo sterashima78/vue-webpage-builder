@@ -130,7 +130,7 @@ const updateNode = (nodeValue: NodeTree) => (node.value = nodeValue);
 const effectNode = (effect: NodeTreeMapper) =>
   pipe(node.value, effect, updateNode);
 
-export const useState = (dragTag: Ref<string>) => {
+export const useState = () => {
   /**
    * ノードをツリーに追加する
    * @param id 追加先ノードのID

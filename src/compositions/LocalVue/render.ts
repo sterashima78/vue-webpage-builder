@@ -12,7 +12,7 @@ export const createRenderer = (
   dragTag: Ref<string>,
   dropNodeId: Ref<string>
 ) => {
-  const { addNodeTo, moveNodeTo } = useState(dragTag);
+  const { addNodeTo, moveNodeTo } = useState();
   const eventHandler = createEvents(
     hoverNodeId,
     dragNodeId,
