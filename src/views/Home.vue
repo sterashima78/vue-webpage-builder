@@ -3,9 +3,13 @@
     <v-app-bar color="deep-purple accent-4" dense dark>
       <v-toolbar-title>Vue Webpage Builder</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon @click="showTree = !showTree">
-        <v-icon>format_list_bulleted</v-icon>
-      </v-btn>
+      <ComponentTreeDialog :eventHandler="eventHandler">
+        <template #activator="{ toggle }">
+          <v-btn icon @click="toggle">
+            <v-icon>format_list_bulleted</v-icon>
+          </v-btn>
+        </template>
+      </ComponentTreeDialog>
       <ComponentSelectorDialog
         :components="components"
         @select="dragTag = $event"
@@ -32,37 +36,16 @@
           </v-btn>
         </template>
       </SettingDialog>
-
-      <v-menu bottom left>
+      <FileMenu>
         <template v-slot:activator="{ on }">
           <v-btn dark icon v-on="on">
             <v-icon>insert_drive_file</v-icon>
           </v-btn>
         </template>
-
-        <v-list>
-          <v-list-item @click="saveHtml">
-            <v-list-item-title>Download HTML</v-list-item-title>
-          </v-list-item>
-          <v-list-item @click="saveJson">
-            <v-list-item-title>Download Project as JSON</v-list-item-title>
-          </v-list-item>
-          <v-list-item @click="importProject">
-            <v-list-item-title>Import Project from JSON</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      </FileMenu>
     </v-app-bar>
     <div style="display:flex;width:100%;height: calc(100% - 50px)">
-      <VIframeSandbox
-        :body="body"
-        style="width:100%;height:100%"
-        :script="inlineScript.replace('<br>', '\n')"
-        :scriptsSrc="scriptsSrc"
-        :styles="stylesStr"
-        :cssLinks="cssLinks"
-        @loaded="loaded"
-      />
+      <VueCanvas @loaded="loaded" />
     </div>
     <v-dialog v-model="dialog" persistent>
       <ElementEditor
@@ -123,26 +106,25 @@ import "@/plugin";
 import ElementEditor from "@/components/ElementEditor.vue";
 import ComponentSelectorDialog from "@/components/ComponentSelectorDialog.vue";
 import SettingDialog from "@/components/SettingDialog.vue";
+import FileMenu from "@/components/FileMenu.vue";
+import VueCanvas from "@/components/VueCanvas.vue";
+import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
 import { isNone } from "fp-ts/lib/Option";
-import { VIframeSandbox } from "vue-iframe-sandbox";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
 import { useLocalVue, eventHandlers } from "@/compositions/LocalVue/";
 import { useState } from "@/compositions/store/";
-import {
-  exportToHtml,
-  exportToJson,
-  importProject
-} from "@/compositions/exporter";
 import { useHtml } from "@/compositions/useHtml";
 import { Node, Resource } from "@/types";
 
 export default defineComponent({
   name: "Home",
   components: {
-    VIframeSandbox,
     ElementEditor,
     ComponentSelectorDialog,
-    SettingDialog
+    SettingDialog,
+    FileMenu,
+    VueCanvas,
+    ComponentTreeDialog
   },
   setup() {
     const file = ref<File | undefined>(undefined);
@@ -188,8 +170,9 @@ export default defineComponent({
       inlineScript,
       stylesStr,
       loaded: async w => {
+        const c = await init(w);
         console.log("reload");
-        components.value = await init(w);
+        components.value = c;
       },
       body,
       components,
@@ -214,32 +197,7 @@ export default defineComponent({
         scripts.value = scripts.value.filter(({ name }) => name !== key);
       },
       scripts,
-      styles,
-      saveHtml: () =>
-        exportToHtml(
-          node.value,
-          styles.value,
-          scripts.value,
-          inlineScript.value
-        ),
-      saveJson: () =>
-        exportToJson(
-          node.value,
-          styles.value,
-          scripts.value,
-          inlineScript.value
-        ),
-      importProject: async () => {
-        try {
-          const data = await importProject();
-          node.value = data.node;
-          styles.value = data.style;
-          scripts.value = data.script;
-          inlineScript.value = data.inlineScript;
-        } catch (e) {
-          console.log(e);
-        }
-      }
+      styles
     };
   }
 });

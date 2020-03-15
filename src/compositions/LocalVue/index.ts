@@ -41,19 +41,21 @@ export const useLocalVue = () => {
   const init = (w: IframeWindow): Promise<string[]> => {
     return new Promise(resolve => {
       if (w.Vue === undefined) {
-        return setTimeout(async () => {
+        setTimeout(async () => {
           const components = await init(w);
           resolve(components);
         }, 100);
+      } else {
+        const { vm, components } = createVue(
+          nodeData,
+          renderNode,
+          w.Vue,
+          w.VueOption
+        );
+        w.vm = vm;
+        resolve(components);
+        w.dispatchEvent(new Event("createdVue"));
       }
-      const { vm, components } = createVue(
-        nodeData,
-        renderNode,
-        w.Vue,
-        w.VueOption
-      );
-      w.vm = vm;
-      w.dispatchEvent(new Event("createdVue"));
     });
   };
   return {

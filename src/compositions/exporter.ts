@@ -1,9 +1,13 @@
 import ejs from "ejs/ejs.min.js";
 import download from "downloadjs";
 import HtmlTemplate from "./Template.ejs";
+import { useState } from "./store";
+import { useHtml } from "./useHtml";
 import { NodeTree } from "@/types";
 import pretty from "pretty";
 
+const { node } = useState();
+const { styles, scripts, inlineScript } = useHtml();
 interface Resource {
   url: string;
   name: string;
@@ -61,35 +65,29 @@ const readAsText = (file: File): Promise<string> =>
 export const importProject = async () => {
   const file = await selectFile();
   const json = await readAsText(file);
-  return JSON.parse(json);
+  const { nodes, styles, scripts, inlineScript } = JSON.parse(json);
+  node.value = nodes;
+  styles.value = styles;
+  scripts.value = scripts;
+  inlineScript.value = inlineScript;
 };
-export const exportToHtml = (
-  node: NodeTree,
-  style: Resource[],
-  script: Resource[],
-  inlineScript: string
-) => {
+export const exportToHtml = () => {
   const template = ejs.render(HtmlTemplate, {
-    style,
-    nodes: pretty(treeToString(node)),
-    script,
-    inlineScript
+    styles: styles.value,
+    nodes: pretty(treeToString(node.value)),
+    scripts: scripts.value,
+    inlineScript: inlineScript.value
   });
   download(template, "index.html", "text/html");
 };
 
-export const exportToJson = (
-  node: NodeTree,
-  style: Resource[],
-  script: Resource[],
-  inlineScript: string
-) => {
+export const exportToJson = () => {
   download(
     JSON.stringify({
-      node,
-      style,
-      script,
-      inlineScript
+      node: node.value,
+      styles: styles.value,
+      scripts: scripts.value,
+      inlineScript: inlineScript.value
     }),
     "vue-webpage-project.json",
     "application/json"

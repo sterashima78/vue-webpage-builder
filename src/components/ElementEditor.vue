@@ -60,6 +60,7 @@ import { defineComponent, ref } from "@vue/composition-api";
 import { Node, NodeTree } from "@/types";
 import { isNone, Option } from "fp-ts/lib/Option";
 import AttributeEditor from "./AttributeEditor.vue";
+import { useState } from "@/compositions/store";
 export default defineComponent({
   name: "ElementEditor",
   components: {
@@ -85,22 +86,10 @@ export default defineComponent({
   setup(
     props: {
       editNode: Node;
-      findById: (id: string) => Option<NodeTree>;
-      editNodeById: (
-        id: string,
-        modifier: (node: NodeTree) => NodeTree
-      ) => void;
     },
     { emit }
   ) {
-    const findById = props.findById;
-    const editNodeById = props.editNodeById;
-    if (!findById) {
-      throw new Error("findById is required");
-    }
-    if (!editNodeById) {
-      throw new Error("editNodeById is required");
-    }
+    const { findById, editNode: editNodeById } = useState();
     const add = (key: "attributes" | "style") => (
       id: string,
       newAttr: { name: string; value: string }
