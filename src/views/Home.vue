@@ -155,7 +155,7 @@ export default defineComponent({
       inlineScript,
       stylesStr
     } = useHtml();
-    const { init, components, dragTag, eventHandler } = useLocalVue();
+    const { init, dragTag, eventHandler } = useLocalVue();
     const {
       node,
       treeNode,
@@ -174,6 +174,7 @@ export default defineComponent({
     const activeDialog = (id: string) => {
       dialog.value = setEditTarget(id);
     };
+    const components = ref<string[]>([]);
 
     return {
       removeNodeById,
@@ -186,9 +187,9 @@ export default defineComponent({
       cssLinks,
       inlineScript,
       stylesStr,
-      loaded: w => {
+      loaded: async w => {
         console.log("reload");
-        init(w);
+        components.value = await init(w);
       },
       body,
       components,

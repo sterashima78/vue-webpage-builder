@@ -38,16 +38,26 @@ export const useLocalVue = () => {
     dragTag
   );
   const components = ref<string[]>([]);
-  const init = (w: IframeWindow) => {
-    if (w.Vue === undefined) {
-      return setTimeout(() => init(w), 100);
-    }
-    w.vm = createVue(components, nodeData, renderNode, w.Vue, w.VueOption);
-    w.dispatchEvent(new Event("createdVue"));
+  const init = (w: IframeWindow): Promise<string[]> => {
+    return new Promise(resolve => {
+      if (w.Vue === undefined) {
+        return setTimeout(async () => {
+          const components = await init(w);
+          resolve(components);
+        }, 100);
+      }
+      const { vm, components } = createVue(
+        nodeData,
+        renderNode,
+        w.Vue,
+        w.VueOption
+      );
+      w.vm = vm;
+      w.dispatchEvent(new Event("createdVue"));
+    });
   };
   return {
     init,
-    components,
     dragTag,
     eventHandler
   };
