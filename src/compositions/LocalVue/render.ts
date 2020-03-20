@@ -1,9 +1,7 @@
-import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node, NodeData } from "@/types";
+import { Ref, computed } from "@vue/composition-api";
+import { NodeTree, NodeData } from "@/types";
 import clone from "lodash.clonedeep";
-import { createEvents } from "./eventHandler";
 import { CreateElement, VNode } from "vue";
-import { useState } from "@/compositions/store/";
 
 export const createRenderer = (
   node: Ref<NodeTree>,
@@ -12,15 +10,6 @@ export const createRenderer = (
   dragTag: Ref<string>,
   dropNodeId: Ref<string>
 ) => {
-  const { addNodeTo, moveNodeTo } = useState();
-  const eventHandler = createEvents(
-    hoverNodeId,
-    dragNodeId,
-    dragTag,
-    dropNodeId,
-    addNodeTo,
-    moveNodeTo
-  );
   const toNodeData = (tree: NodeTree): NodeData => {
     const { tag, text, id, attributes, style, classes } = clone(tree.value);
     const texts = text ? [text] : [];
@@ -34,9 +23,11 @@ export const createRenderer = (
           id,
           draggable: true
         },
-        on: {
-          ...eventHandler
-        },
+        directives: [
+          {
+            name: "web-builder"
+          }
+        ],
         props: attributes,
         style: styles,
         class: classes
@@ -59,7 +50,6 @@ export const createRenderer = (
   const nodeData = computed(() => toNodeData(node.value));
   return {
     renderNode,
-    nodeData,
-    eventHandler
+    nodeData
   };
 };

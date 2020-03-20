@@ -73,11 +73,6 @@ const toTree = (node: NodeTree): TreeView => {
   };
 };
 export default defineComponent({
-  props: {
-    eventHandler: {
-      type: Object
-    }
-  },
   setup() {
     const { on, off, isActive: editorIsActive } = useTogglable();
     const {

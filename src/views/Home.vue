@@ -47,57 +47,6 @@
     <div style="display:flex;width:100%;height: calc(100% - 50px)">
       <VueCanvas @loaded="loaded" />
     </div>
-    <v-dialog v-model="dialog" persistent>
-      <ElementEditor
-        :findById="findById"
-        :editNodeById="editNodeById"
-        :editNode="editNode"
-        @close="dialog = false"
-        @update="setEditTarget(editNode.id)"
-      />
-    </v-dialog>
-    <hsc-window-style-black>
-      <hsc-window
-        v-show="showTree"
-        title="Componet Tree"
-        style="background: white;border:1px solid black;"
-        :resizable="true"
-        :isScrollable="true"
-        :minWidth="300"
-        :minHeight="300"
-        :maxWidth="500"
-        :maxHeight="600"
-      >
-        <v-treeview
-          :items="treeNode.children"
-          :hoverable="true"
-          style="width:100%;height:100%"
-        >
-          <template slot="label" slot-scope="{ item }">
-            <div
-              :id="item.id"
-              draggable="true"
-              style="cursor: move"
-              @mouseenter="eventHandler.mouseenter"
-              @mouseover="eventHandler.mouseover"
-              @mouseleave="eventHandler.mouseleave"
-              @dragstart="eventHandler.dragstart"
-              @dragleave="eventHandler.dragleave"
-              @dragenter="eventHandler.dragenter"
-              @dragover="eventHandler.dragover"
-              @dragend="eventHandler.dragend"
-              @drop="eventHandler.drop"
-            >
-              {{ item.name }}
-            </div>
-          </template>
-          <template #append="{ item }">
-            <v-icon @click="activeDialog(item.id)">tune</v-icon>
-            <v-icon @click="removeNodeById(item.id)">delete</v-icon>
-          </template>
-        </v-treeview>
-      </hsc-window>
-    </hsc-window-style-black>
   </div>
 </template>
 

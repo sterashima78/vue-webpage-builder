@@ -1,10 +1,10 @@
 import "@/plugin/";
 import clone from "lodash.clonedeep";
 import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node, NodeData } from "@/types";
-import { make, tree, duplicate, flatten, reduce, chain } from "fp-ts/lib/Tree";
+import { NodeTree, Node } from "@/types";
+import { make, tree } from "fp-ts/lib/Tree";
 import { pipe } from "fp-ts/lib/pipeable";
-import { Option, some, none, isNone, fold } from "fp-ts/lib/Option";
+import { Option, some, none, isNone } from "fp-ts/lib/Option";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
 const node: Ref<NodeTree> = ref(
   make<Node>(
@@ -103,7 +103,6 @@ const _moveNodeTo = (to: string, target: string) => (node: NodeTree) => {
     console.log("target is none");
     return node;
   }
-  console.log(targetNode.value);
   const nodeRemoved = _removeNodeById(target)(node);
   const toNode = findNodeById(to)(nodeRemoved);
   if (isNone(toNode)) {
@@ -174,6 +173,11 @@ export const useState = () => {
     removeNodeById,
     moveNodeTo,
     findById,
-    editNode
+    editNode,
+    dragNodeId: ref(""),
+    hoverNodeId: ref(""),
+    dropNodeId: ref(""),
+    dragTag: ref(""),
+    dropTargetId: ref("")
   };
 };

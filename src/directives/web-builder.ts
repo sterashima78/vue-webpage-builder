@@ -1,9 +1,10 @@
 import { VueConstructor } from "vue";
-import { Ref } from "@vue/composition-api";
-import { NodeTree, Node } from "@/types";
-import { tree } from "fp-ts/lib/Tree";
-import { fromNullable, map, Option, fold } from "fp-ts/es6/Option";
+import { ref, Ref, computed } from "@vue/composition-api";
+import { NodeTree, Node, NodeData } from "@/types";
+import { make, tree, duplicate, flatten, reduce, chain } from "fp-ts/lib/Tree";
+import { fromNullable, map, getOrElse, Option, fold } from "fp-ts/es6/Option";
 import { pipe } from "fp-ts/lib/pipeable";
+import { elem } from "fp-ts/es6/Either";
 
 const stopEvent = (e: MouseEvent) => {
   e.stopPropagation();
