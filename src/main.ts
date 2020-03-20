@@ -1,13 +1,15 @@
 import Vue from "vue";
-import "./plugins/vuetify";
+import "./plugins/";
 import App from "./App.vue";
+import "./registerServiceWorker";
 import router from "./router";
-import store from "./store/";
-
+import { register } from "@/directives";
+import vuetify from "./plugins/vuetify";
+register(Vue);
 Vue.config.productionTip = false;
 
 new Vue({
   router,
-  store,
+  vuetify,
   render: h => h(App)
 }).$mount("#app");

@@ -1,27 +1,40 @@
+import { Tree } from "fp-ts/lib/Tree";
 import { VNodeData } from "vue";
 
-export interface IVueNode {
+type NodeId = string & { readonly _brand: unique symbol };
+export type createNodeId = () => NodeId;
+
+type NodeAttributes = object & { readonly _brand: unique symbol };
+export type toAttributes = (attr: object) => NodeAttributes;
+
+export interface Node {
   id: string;
   tag: string;
-  attr: VNodeData;
-  childrenId: string[];
-  parentId: string;
-}
-
-export interface IVueNodeTree {
-  id: string;
-  name: string;
-  children: IVueNodeTree[];
-}
-
-export interface INodesState {
-  nodes: {
-    [id: string]: IVueNode;
+  text?: string;
+  attributes?: {
+    [name: string]: string | boolean | number;
+  };
+  style?: {
+    [name: string]: string;
+  };
+  classes?: string[];
+  on?: {
+    [event: string]: (event: any) => void;
+  };
+  domProps?: {
+    [name: string]: string;
   };
 }
 
-export interface IVueNodeTree {
-  id: string;
+export type NodeTree = Tree<Node>;
+
+export interface NodeData {
+  tag: string;
+  data: VNodeData;
+  children: Array<NodeData | string>;
+}
+
+export interface Resource {
+  url: string;
   name: string;
-  children: IVueNodeTree[];
 }

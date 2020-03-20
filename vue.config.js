@@ -1,7 +1,8 @@
 module.exports = {
-  runtimeCompiler: true,
-  transpileDependencies: ["vuex-module-decorators"],
-  baseUrl: process.env.DEPLOY === "github" ? "/vue-webpage-builder/" : "/",
+  devServer: {
+    disableHostCheck: true
+  },
+  transpileDependencies: ["vuetify"],
   chainWebpack: config => {
     config.module
       .rule("template")
