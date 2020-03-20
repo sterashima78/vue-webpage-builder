@@ -59,13 +59,16 @@ export default defineComponent({
   setup(props: { components: string[] }, { emit }) {
     const keyword = ref("");
     const search = ref("");
-    const dragStart = component => emit("select", component);
+    const dragStart = (component: string) => emit("select", component);
     const filteredComponents = computed(() =>
       search.value === null || search.value === ""
         ? props.components
         : props.components.filter(i => i.indexOf(search.value) >= 0)
     );
-    watch(keyword.value, v => (search.value = v));
+    watch(
+      () => keyword.value,
+      v => (search.value = v)
+    );
     return {
       ...useTogglable(),
       filteredComponents,

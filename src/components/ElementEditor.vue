@@ -36,7 +36,7 @@
         </v-row>
         <v-row>
           <AttributeEditor
-            :data="editNode.attributes"
+            :data="editNode.style"
             @add="addStyle(editNode.id, $event)"
             @update="addStyle(editNode.id, $event)"
             @remove="removeStyle(editNode.id, $event)"
@@ -51,14 +51,9 @@
   </v-card>
 </template>
 <script lang="ts">
-import {
-  PropType,
-  PropOptions
-} from "@vue/composition-api/dist/component/componentProps";
-
-import { defineComponent, ref } from "@vue/composition-api";
+import { defineComponent, ref, PropType } from "@vue/composition-api";
 import { Node, NodeTree } from "@/types";
-import { isNone, Option } from "fp-ts/lib/Option";
+import { isNone, Option, none } from "fp-ts/lib/Option";
 import AttributeEditor from "./AttributeEditor.vue";
 import { useState } from "@/compositions/store";
 export default defineComponent({
@@ -68,20 +63,15 @@ export default defineComponent({
   },
   props: {
     editNode: {
-      type: Object,
+      type: Object as PropType<Node>,
       default: () => ({
         id: "default",
-        tag: "div"
+        tag: "div",
+        text: "",
+        style: {},
+        attributes: {}
       })
-    } as PropOptions<Node>,
-    findById: {
-      type: Function
-    } as PropOptions<(id: string) => Option<NodeTree>>,
-    editNodeById: {
-      type: Function
-    } as PropOptions<
-      (id: string, modifier: (node: NodeTree) => NodeTree) => void
-    >
+    }
   },
   setup(
     props: {
@@ -98,11 +88,16 @@ export default defineComponent({
       if (newAttr.value === "") return false;
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
-        node.value[key] = node.value[key] || {};
         try {
-          node.value[key][newAttr.name] = JSON.parse(newAttr.value);
+          node.value[key] = {
+            ...node.value[key],
+            [newAttr.name]: JSON.parse(newAttr.value)
+          };
         } catch {
-          node.value[key][newAttr.name] = newAttr.value;
+          node.value[key] = {
+            ...node.value[key],
+            [newAttr.name]: newAttr.value as any
+          };
         }
         return node;
       });
@@ -114,17 +109,27 @@ export default defineComponent({
     ) => {
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
-        node.value[key] = node.value[key] || {};
-        node.value[key][name] = value;
+        node.value[key] = {
+          ...node.value[key],
+          [name]: value as any
+        };
         return node;
       });
     };
 
     const remove = (k: "attributes" | "style") => (id: string, key: string) => {
       editNodeById(id, (n: NodeTree) => {
-        if (!n.value[k]) return n;
-        delete n.value[k][key];
-        return n;
+        const tmp = n.value[k];
+        if (tmp === undefined) return n;
+        if (tmp[key] === undefined) return n;
+        delete tmp[key];
+        return {
+          ...n,
+          value: {
+            ...n.value,
+            [k]: tmp
+          }
+        };
       });
       emit("update");
     };

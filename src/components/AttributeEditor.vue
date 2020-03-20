@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <slot name="title"></slot>
-    <v-row v-for="(val, key) in data" :key="key">
+    <v-row v-for="(val, key) in data ? data : {}" :key="key">
       <v-text-field :value="val" :label="key" @input="updateAttr(key, $event)">
         <template #append>
           <v-icon @click="removeAttr(key)">delete</v-icon>
@@ -9,8 +9,8 @@
       </v-text-field>
     </v-row>
     <v-row>
-      <v-text-field label="attribute" v-model="newAttr.name" />
-      <v-text-field label="value" v-model="newAttr.value" />
+      <v-text-field label="attribute" v-model="newAttr" />
+      <v-text-field label="value" v-model="newAttr" />
       <v-btn @click="addAttr">add</v-btn>
     </v-row>
   </v-container>

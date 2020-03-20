@@ -32,7 +32,7 @@ export default defineComponent({
   setup(props: { code: string; lang: string; theme: string }, { emit }) {
     const editor = ref<HTMLElement>(null);
     onMounted(() => {
-      const aceEditor = ace.edit(editor.value);
+      const aceEditor = ace.edit(editor.value ? editor.value.id : "");
       watch(
         () => props.code,
         val => {
