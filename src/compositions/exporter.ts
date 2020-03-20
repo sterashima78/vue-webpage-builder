@@ -35,13 +35,16 @@ const styleToStr = (style: { [name: string]: string } | undefined) => {
   );
 };
 const treeToString = (node: NodeTree): string => {
+  console.log(node.value.tag);
   return `
-    <${node.value.tag} ${attrToStr(node.value.attributes)} ${styleToStr(
+    <${node.value.tag
+      .replace(/([a-z])([A-Z])/g, "$1-$2")
+      .toLowerCase()} ${attrToStr(node.value.attributes)} ${styleToStr(
     node.value.style
   )}>
       ${node.forest.map(n => treeToString(n)).join("")}
        ${node.value.text ? node.value.text : ""}
-    </${node.value.tag}>`;
+    </${node.value.tag.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}>`;
 };
 const selectFile = (): Promise<File> =>
   new Promise(resolve => {
@@ -65,11 +68,13 @@ const readAsText = (file: File): Promise<string> =>
 export const importProject = async () => {
   const file = await selectFile();
   const json = await readAsText(file);
-  const { nodes, styles, scripts, inlineScript } = JSON.parse(json);
-  node.value = nodes;
-  styles.value = styles;
-  scripts.value = scripts;
-  inlineScript.value = inlineScript;
+  const { node: n, styles: st, scripts: sc, inlineScript: inline } = JSON.parse(
+    json
+  );
+  node.value = n;
+  styles.value = st;
+  scripts.value = sc;
+  inlineScript.value = inline;
 };
 export const exportToHtml = () => {
   const template = ejs.render(HtmlTemplate, {
