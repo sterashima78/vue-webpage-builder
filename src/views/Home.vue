@@ -29,6 +29,7 @@
         @add:style="addStyle"
         @remove:script="removeScript"
         @remove:style="removeStyle"
+        @update:js="inlineScript = $event"
       >
         <template #activator="{ open }">
           <v-btn icon @click="open">
