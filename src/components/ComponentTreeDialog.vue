@@ -7,7 +7,7 @@
         dense
         :items="treeNode.children"
         :hoverable="true"
-        style="width:100%;height:100%;"
+        style="width:100%;height:100%;overflow-y: scroll;"
       >
         <template slot="label" slot-scope="{ item }">
           <div

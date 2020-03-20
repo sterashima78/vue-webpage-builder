@@ -39,6 +39,7 @@ import { defineComponent, ref, watch, computed } from "@vue/composition-api";
 import { PropType } from "@vue/composition-api/dist/component/componentProps";
 import { useTogglable } from "@/compositions/useTogglable";
 import DraggableWindow from "./DraggableWindow.vue";
+import tags from "@/tags";
 export default defineComponent({
   components: {
     DraggableWindow
@@ -50,13 +51,14 @@ export default defineComponent({
     }
   },
   setup(props: { components: string[] }, { emit }) {
+    const elements = computed(() => tags.concat(props.components));
     const keyword = ref("");
     const search = ref("");
     const dragStart = (component: string) => emit("select", component);
     const filteredComponents = computed(() =>
       search.value === null || search.value === ""
-        ? props.components
-        : props.components.filter(i => i.indexOf(search.value) >= 0)
+        ? elements.value
+        : elements.value.filter(i => i.indexOf(search.value) >= 0)
     );
     watch(
       () => keyword.value,
