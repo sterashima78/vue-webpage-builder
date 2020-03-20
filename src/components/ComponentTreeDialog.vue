@@ -4,6 +4,7 @@
     <draggable-window :is-active="isActive">
       <template #title>Componet Tree</template>
       <v-treeview
+        dense
         :items="treeNode.children"
         :hoverable="true"
         style="width:100%;height:100%;"
@@ -40,7 +41,7 @@ import { defineComponent, computed, ref } from "@vue/composition-api";
 import DraggableWindow from "./DraggableWindow.vue";
 import ElementEditor from "./ElementEditor.vue";
 import { useTogglable } from "@/compositions/useTogglable";
-import { useState } from "@/compositions/store";
+import { useState } from "@/compositions/useNodeState";
 import { fold } from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/es6/pipeable";
 import { Node, NodeTree } from "@/types";
@@ -77,7 +78,7 @@ export default defineComponent({
     const setEditTarget = (n?: Node) =>
       pipe(
         findById(n ? n.id : ""),
-        fold(off, node => {
+        fold(off, (node: NodeTree) => {
           editNode.value = node.value;
           return on();
         })

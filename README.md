@@ -1,29 +1,17 @@
 # vue-webpage-builder
 
-## Project setup
-```
-npm install
-```
+## Motivation
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+StoryBook などの、デザインコンポーネントを構築するシステムの利用が広がりを見せる一方で、
+それをかんたんに組み合わせる仕組みは整備されていないと感じため、作ろうと思った
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## Usage
 
-### Run your unit tests
-```
-npm run test:unit
-```
+作成中
 
-### Lints and fixes files
-```
-npm run lint
-```
+## TODO
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- [ ] 複数ページの作成 (vue-router)
+- [ ] 設定可能項目の拡張
+  - [ ] イベントハンドラー
+  - [ ] slot

@@ -54,7 +54,7 @@ import { defineComponent, PropType, computed } from "@vue/composition-api";
 import { Node, NodeTree } from "@/types";
 import { isNone } from "fp-ts/lib/Option";
 import AttributeEditor from "./AttributeEditor.vue";
-import { useState } from "@/compositions/store";
+import { useState } from "@/compositions/useNodeState";
 export default defineComponent({
   name: "ElementEditor",
   components: {

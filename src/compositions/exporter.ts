@@ -1,7 +1,7 @@
 import ejs from "ejs/ejs.min.js";
 import download from "downloadjs";
 import HtmlTemplate from "./Template.ejs";
-import { useState } from "./store";
+import { useState } from "./useNodeState";
 import { useHtml } from "./useHtml";
 import { NodeTree } from "@/types";
 import pretty from "pretty";

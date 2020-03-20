@@ -1,7 +1,7 @@
 import Vue, { VueConstructor } from "vue";
 import { createRenderer } from "./render";
 import { createVue } from "./createInstance";
-import { useState } from "@/compositions/store/";
+import { useState } from "@/compositions/useNodeState/";
 import { register } from "@/directives";
 
 export type IframeWindow = Window & {

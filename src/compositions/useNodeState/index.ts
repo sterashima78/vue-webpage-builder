@@ -10,7 +10,10 @@ const node: Ref<NodeTree> = ref(
   make<Node>(
     {
       id: "root",
-      tag: "div"
+      tag: "div",
+      style: {
+        height: "calc(100% - 15px)"
+      }
     },
     [
       make<Node>(

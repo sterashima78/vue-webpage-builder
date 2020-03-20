@@ -58,8 +58,8 @@ import FileMenu from "@/components/FileMenu.vue";
 import VueCanvas from "@/components/VueCanvas.vue";
 import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
 import { defineComponent, ref } from "@vue/composition-api";
-import { useLocalVue, IframeWindow } from "@/compositions/LocalVue/";
-import { useState } from "@/compositions/store/";
+import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
+import { useState } from "@/compositions/useNodeState/";
 import { useHtml } from "@/compositions/useHtml";
 
 export default defineComponent({
