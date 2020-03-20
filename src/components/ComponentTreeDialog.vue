@@ -40,7 +40,7 @@
         :editNodeById="editNodeById"
         :editNode="editNode"
         @close="hide"
-        @update="setEditTarget(editNode.id)"
+        @update="setEditTarget(editNode ? editNode.id : '')"
       />
     </v-dialog>
   </div>
@@ -51,7 +51,7 @@ import { useTogglable } from "@/compositions/useTogglable";
 import { useState } from "@/compositions/store";
 import { fold } from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/es6/pipeable";
-import { NodeTree } from "@/types";
+import { Node, NodeTree } from "@/types";
 
 interface TreeView {
   id: string;
@@ -80,7 +80,7 @@ export default defineComponent({
         findById(id),
         fold(off, node => {
           editNode.value = node.value;
-          on();
+          return on();
         })
       );
     const treeNode = computed(() => toTree(node.value));
