@@ -5,19 +5,17 @@ import { createVue } from "./createInstance";
 import { useState } from "@/compositions/store/";
 import { register } from "@/directives";
 
-type IframeWindow = Window & {
+export type IframeWindow = Window & {
   Vue?: VueConstructor<Vue>;
   vm: Vue;
   VueOption: any;
 };
 export const useLocalVue = () => {
-  const { node, dragNodeId, hoverNodeId, dropNodeId, dragTag } = useState();
+  const { node, hoverNodeId, dropNodeId, dragTag } = useState();
   const { renderNode, nodeData } = createRenderer(
     node,
-    dragNodeId,
     hoverNodeId,
-    dropNodeId,
-    dragTag
+    dropNodeId
   );
   const init = (w: IframeWindow): Promise<string[]> => {
     return new Promise(resolve => {

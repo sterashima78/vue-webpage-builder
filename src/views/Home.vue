@@ -60,7 +60,7 @@ import VueCanvas from "@/components/VueCanvas.vue";
 import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
 import { isNone } from "fp-ts/lib/Option";
 import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
-import { useLocalVue, eventHandlers } from "@/compositions/LocalVue/";
+import { useLocalVue, IframeWindow } from "@/compositions/LocalVue/";
 import { useState } from "@/compositions/store/";
 import { useHtml } from "@/compositions/useHtml";
 import { Node, Resource } from "@/types";
@@ -86,7 +86,7 @@ export default defineComponent({
       inlineScript,
       stylesStr
     } = useHtml();
-    const { init, dragTag, eventHandler } = useLocalVue();
+    const { init, dragTag } = useLocalVue();
     const {
       node,
       treeNode,
@@ -118,7 +118,7 @@ export default defineComponent({
       cssLinks,
       inlineScript,
       stylesStr,
-      loaded: async w => {
+      loaded: async (w: IframeWindow) => {
         const c = await init(w);
         console.log("reload");
         components.value = c;
@@ -127,7 +127,6 @@ export default defineComponent({
       components,
       dragTag,
       treeNode,
-      eventHandler,
       setEditTarget,
       showWindow: ref(false),
       showTree: ref(false),

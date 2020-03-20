@@ -6,8 +6,6 @@ import { CreateElement, VNode } from "vue";
 export const createRenderer = (
   node: Ref<NodeTree>,
   hoverNodeId: Ref<string>,
-  dragNodeId: Ref<string>,
-  dragTag: Ref<string>,
   dropNodeId: Ref<string>
 ) => {
   const toNodeData = (tree: NodeTree): NodeData => {

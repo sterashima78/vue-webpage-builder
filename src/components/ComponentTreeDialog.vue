@@ -22,15 +22,7 @@
               :id="item.id"
               draggable="true"
               style="cursor: move"
-              @mouseenter="eventHandler.mouseenter"
-              @mouseover="eventHandler.mouseover"
-              @mouseleave="eventHandler.mouseleave"
-              @dragstart="eventHandler.dragstart"
-              @dragleave="eventHandler.dragleave"
-              @dragenter="eventHandler.dragenter"
-              @dragover="eventHandler.dragover"
-              @dragend="eventHandler.dragend"
-              @drop="eventHandler.drop"
+              v-web-builder
             >
               {{ item.name }}
             </div>
@@ -59,6 +51,7 @@ import { useTogglable } from "@/compositions/useTogglable";
 import { useState } from "@/compositions/store";
 import { fold } from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/es6/pipeable";
+import { NodeTree } from "@/types";
 
 interface TreeView {
   id: string;
