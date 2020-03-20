@@ -1,4 +1,3 @@
-import "@/plugin/";
 import Vue, { VueConstructor } from "vue";
 import { createRenderer } from "./render";
 import { createVue } from "./createInstance";
@@ -11,7 +10,7 @@ export type IframeWindow = Window & {
   VueOption: any;
 };
 export const useLocalVue = () => {
-  const { node, hoverNodeId, dropNodeId, dragTag } = useState();
+  const { node, hoverNodeId, dropNodeId } = useState();
   const { renderNode, nodeData } = createRenderer(
     node,
     hoverNodeId,
@@ -39,7 +38,6 @@ export const useLocalVue = () => {
     });
   };
   return {
-    init,
-    dragTag
+    init
   };
 };

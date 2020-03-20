@@ -1,4 +1,4 @@
-import "@/plugin/";
+import "@/plugins/";
 import clone from "lodash.clonedeep";
 import { ref, Ref, computed } from "@vue/composition-api";
 import { NodeTree, Node } from "@/types";
@@ -100,13 +100,11 @@ const _addNodeTo = (id: string, target: NodeTree) => (
 const _moveNodeTo = (to: string, target: string) => (node: NodeTree) => {
   const targetNode = findNodeById(target)(node);
   if (isNone(targetNode)) {
-    console.log("target is none");
     return node;
   }
   const nodeRemoved = _removeNodeById(target)(node);
   const toNode = findNodeById(to)(nodeRemoved);
   if (isNone(toNode)) {
-    console.log("to is none");
     return node;
   }
   return _addNodeTo(to, targetNode.value)(nodeRemoved);
@@ -128,6 +126,11 @@ const updateNode = (nodeValue: NodeTree) => (node.value = nodeValue);
 
 const effectNode = (effect: NodeTreeMapper) =>
   pipe(node.value, effect, updateNode);
+
+const dragNodeId = ref("");
+const hoverNodeId = ref("");
+const dropNodeId = ref("");
+const dragTag = ref("");
 
 export const useState = () => {
   /**
@@ -174,10 +177,9 @@ export const useState = () => {
     moveNodeTo,
     findById,
     editNode,
-    dragNodeId: ref(""),
-    hoverNodeId: ref(""),
-    dropNodeId: ref(""),
-    dragTag: ref(""),
-    dropTargetId: ref("")
+    dragNodeId,
+    hoverNodeId,
+    dropNodeId,
+    dragTag
   };
 };

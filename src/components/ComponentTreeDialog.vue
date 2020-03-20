@@ -1,52 +1,44 @@
 <template>
   <div>
     <slot name="activator" :toggle="toggle"></slot>
-    <hsc-window-style-black v-show="isActive">
-      <hsc-window
-        title="Componet Tree"
-        style="background: white;border:1px solid black;"
-        :resizable="true"
-        :isScrollable="true"
-        :minWidth="300"
-        :minHeight="300"
-        :maxWidth="500"
-        :maxHeight="600"
+    <draggable-window :is-active="isActive">
+      <template #title>Componet Tree</template>
+      <v-treeview
+        :items="treeNode.children"
+        :hoverable="true"
+        style="width:100%;height:100%;"
       >
-        <v-treeview
-          :items="treeNode.children"
-          :hoverable="true"
-          style="width:100%;height:100%;color: black !important"
-        >
-          <template slot="label" slot-scope="{ item }">
-            <div
-              :id="item.id"
-              draggable="true"
-              style="cursor: move"
-              v-web-builder
-            >
-              {{ item.name }}
-            </div>
-          </template>
-          <template #append="{ item }">
-            <v-icon @click="setEditTarget(item.id)">tune</v-icon>
-            <v-icon @click="removeNodeById(item.id)">delete</v-icon>
-          </template>
-        </v-treeview>
-      </hsc-window>
-    </hsc-window-style-black>
+        <template slot="label" slot-scope="{ item }">
+          <div
+            :id="item.id"
+            draggable="true"
+            style="cursor: move"
+            v-web-builder
+          >
+            {{ item.name }}
+          </div>
+        </template>
+        <template #append="{ item }">
+          <v-icon @click="setEditTarget(item)">tune</v-icon>
+          <v-icon @click="removeNodeById(item.id)">delete</v-icon>
+        </template>
+      </v-treeview>
+    </draggable-window>
     <v-dialog v-model="editorIsActive" persistent>
       <ElementEditor
         :findById="findById"
         :editNodeById="editNodeById"
         :editNode="editNode"
         @close="hide"
-        @update="setEditTarget(editNode ? editNode.id : '')"
+        @update="setEditTarget(editNode)"
       />
     </v-dialog>
   </div>
 </template>
 <script lang="ts">
 import { defineComponent, computed, ref } from "@vue/composition-api";
+import DraggableWindow from "./DraggableWindow.vue";
+import ElementEditor from "./ElementEditor.vue";
 import { useTogglable } from "@/compositions/useTogglable";
 import { useState } from "@/compositions/store";
 import { fold } from "fp-ts/lib/Option";
@@ -66,6 +58,10 @@ const toTree = (node: NodeTree): TreeView => {
   };
 };
 export default defineComponent({
+  components: {
+    ElementEditor,
+    DraggableWindow
+  },
   setup() {
     const { on, off, isActive: editorIsActive } = useTogglable();
     const {
@@ -74,10 +70,13 @@ export default defineComponent({
       findById,
       editNode: editNodeById
     } = useState();
-    const editNode = ref<Node | undefined>(undefined);
-    const setEditTarget = (id: string) =>
+    const editNode = ref<Node>({
+      id: "",
+      tag: "div"
+    });
+    const setEditTarget = (n?: Node) =>
       pipe(
-        findById(id),
+        findById(n ? n.id : ""),
         fold(off, node => {
           editNode.value = node.value;
           return on();

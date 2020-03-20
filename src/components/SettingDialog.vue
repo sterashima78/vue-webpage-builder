@@ -42,7 +42,7 @@ import { Resource } from "@/types";
 import ExternalResource from "@/components/ExternalResource.vue";
 import Ace from "@/components/Ace.vue";
 import { useTogglable } from "@/compositions/useTogglable";
-import { defineComponent, ref } from "@vue/composition-api";
+import { defineComponent } from "@vue/composition-api";
 import { PropType } from "@vue/composition-api/dist/component/componentProps";
 interface Props {
   scripts: Resource[];

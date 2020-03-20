@@ -14,3 +14,4 @@ declare module "ejs/ejs.min.js" {
 }
 
 declare module "vue-iframe-sandbox";
+declare module "vue-draggable-resizable";

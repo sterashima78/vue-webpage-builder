@@ -1,10 +1,9 @@
 import { VueConstructor } from "vue";
-import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node, NodeData } from "@/types";
-import { make, tree, duplicate, flatten, reduce, chain } from "fp-ts/lib/Tree";
-import { fromNullable, map, getOrElse, Option, fold } from "fp-ts/es6/Option";
+import { Ref, watch } from "@vue/composition-api";
+import { NodeTree, Node } from "@/types";
+import { tree } from "fp-ts/lib/Tree";
+import { fromNullable, map, Option, fold } from "fp-ts/es6/Option";
 import { pipe } from "fp-ts/lib/pipeable";
-import { elem } from "fp-ts/es6/Either";
 
 const stopEvent = (e: MouseEvent) => {
   e.stopPropagation();
@@ -25,7 +24,9 @@ const updateEventTargetId = (updateTo: Ref<string>) => ($event: MouseEvent) =>
     getEventTargetId,
     fold(
       () => console.log("id is none"),
-      id => (updateTo.value = id)
+      id => {
+        updateTo.value = id;
+      }
     )
   );
 const clearEventTargetId = (clearTo: Ref<string>) => ($event: MouseEvent) =>
@@ -40,21 +41,21 @@ const clearEventTargetId = (clearTo: Ref<string>) => ($event: MouseEvent) =>
     )
   );
 
-export const cancelEvent = ($event: MouseEvent) => {
+const cancelEvent = ($event: MouseEvent) => {
   $event.stopPropagation();
   $event.preventDefault();
 };
 
-export const mouseOver = updateEventTargetId;
-export const mouseLeave = clearEventTargetId;
+const mouseOver = updateEventTargetId;
+const mouseLeave = clearEventTargetId;
 
-export const dragEnter = updateEventTargetId;
-export const dragLeave = clearEventTargetId;
+const dragEnter = updateEventTargetId;
+const dragLeave = clearEventTargetId;
 
-export const dragStart = updateEventTargetId;
-export const dragEnd = clearEventTargetId;
+const dragStart = updateEventTargetId;
+const dragEnd = clearEventTargetId;
 
-export const drop = (
+const drop = (
   dragTag: Ref<string>,
   dragNodeId: Ref<string>,
   dropNodeId: Ref<string>,
@@ -98,6 +99,10 @@ export const registerDirective = (
   const dragstart = dragStart(dragId);
   const dragend = dragEnd(dragId);
   const _drop = drop(dragTag, dragId, dropId, addNodeTo, moveNodeTo);
+  watch(
+    () => dragId.value,
+    v => `dropId = ${v}`
+  );
   vue.directive("web-builder", {
     bind(el: HTMLElement) {
       el.addEventListener("mouseover", mouseover);

@@ -3,7 +3,7 @@
     <v-app-bar color="deep-purple accent-4" dense dark>
       <v-toolbar-title>Vue Webpage Builder</v-toolbar-title>
       <v-spacer></v-spacer>
-      <ComponentTreeDialog :eventHandler="eventHandler">
+      <ComponentTreeDialog>
         <template #activator="{ toggle }">
           <v-btn icon @click="toggle">
             <v-icon>format_list_bulleted</v-icon>
@@ -51,19 +51,16 @@
 </template>
 
 <script lang="ts">
-import "@/plugin";
 import ElementEditor from "@/components/ElementEditor.vue";
 import ComponentSelectorDialog from "@/components/ComponentSelectorDialog.vue";
 import SettingDialog from "@/components/SettingDialog.vue";
 import FileMenu from "@/components/FileMenu.vue";
 import VueCanvas from "@/components/VueCanvas.vue";
 import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
-import { isNone } from "fp-ts/lib/Option";
-import { defineComponent, ref, computed, Ref } from "@vue/composition-api";
+import { defineComponent, ref } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/LocalVue/";
 import { useState } from "@/compositions/store/";
 import { useHtml } from "@/compositions/useHtml";
-import { Node, Resource } from "@/types";
 
 export default defineComponent({
   name: "Home",
@@ -76,7 +73,6 @@ export default defineComponent({
     ComponentTreeDialog
   },
   setup() {
-    const file = ref<File | undefined>(undefined);
     const {
       scripts,
       styles,
@@ -86,34 +82,11 @@ export default defineComponent({
       inlineScript,
       stylesStr
     } = useHtml();
-    const { init, dragTag } = useLocalVue();
-    const {
-      node,
-      treeNode,
-      findById,
-      editNode: editNodeById,
-      removeNodeById
-    } = useState();
-    const dialog = ref(false);
-    const editNode = ref<Node | undefined>(undefined);
-    const setEditTarget = (id: string) => {
-      const node = findById(id);
-      if (isNone(node)) return false;
-      editNode.value = node.value.value;
-      return true;
-    };
-    const activeDialog = (id: string) => {
-      dialog.value = setEditTarget(id);
-    };
+    const { init } = useLocalVue();
+    const { dragTag } = useState();
     const components = ref<string[]>([]);
 
     return {
-      removeNodeById,
-      findById,
-      editNodeById,
-      editNode,
-      activeDialog,
-      dialog,
       scriptsSrc,
       cssLinks,
       inlineScript,
@@ -126,11 +99,6 @@ export default defineComponent({
       body,
       components,
       dragTag,
-      treeNode,
-      setEditTarget,
-      showWindow: ref(false),
-      showTree: ref(false),
-      showSetting: ref(false),
       addStyle: ({ url, name }: { url: string; name: string }) => {
         styles.value.push({ url, name });
       },
@@ -138,7 +106,6 @@ export default defineComponent({
         scripts.value.push({ url, name });
       },
       removeStyle: (key: string) => {
-        console.log(key);
         styles.value = styles.value.filter(({ name }) => name !== key);
       },
       removeScript: (key: string) => {

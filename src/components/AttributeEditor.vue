@@ -9,29 +9,22 @@
       </v-text-field>
     </v-row>
     <v-row>
-      <v-text-field label="attribute" v-model="newAttr" />
-      <v-text-field label="value" v-model="newAttr" />
+      <v-text-field label="attribute" v-model="newAttr.name" />
+      <v-text-field label="value" v-model="newAttr.val" />
       <v-btn @click="addAttr">add</v-btn>
     </v-row>
   </v-container>
 </template>
 <script lang="ts">
-// import { PropType } from "vue";
-import {
-  PropType,
-  PropOptions
-} from "@vue/composition-api/dist/component/componentProps";
-import { defineComponent, ref } from "@vue/composition-api";
-import { Node, NodeTree } from "@/types";
-import { isNone, Option } from "fp-ts/lib/Option";
+import { defineComponent, ref, PropType } from "@vue/composition-api";
 
 export default defineComponent({
   name: "ElementEditor",
   props: {
     data: {
-      type: Object,
+      type: Object as PropType<{ [name: string]: string }>,
       default: () => ({})
-    } as PropOptions<{ [name: string]: string }>
+    }
   },
   setup(
     props: {
@@ -39,16 +32,16 @@ export default defineComponent({
     },
     { emit }
   ) {
-    const newAttr = ref<{ name: string; value: string }>({
+    const newAttr = ref({
       name: "",
-      value: ""
+      val: ""
     });
     const addAttr = () => {
       if (newAttr.value.name === "") return false;
-      if (newAttr.value.value === "") return false;
+      if (newAttr.value.val === "") return false;
       emit("add", newAttr.value);
       newAttr.value.name = "";
-      newAttr.value.value = "";
+      newAttr.value.val = "";
     };
 
     const updateAttr = (name: string, value: string) =>

@@ -7,7 +7,7 @@ export const register = (Vue: VueConstructor) => {
     dragNodeId,
     hoverNodeId,
     dragTag,
-    dropTargetId,
+    dropNodeId,
     addNodeTo,
     moveNodeTo
   } = useState();
@@ -15,7 +15,7 @@ export const register = (Vue: VueConstructor) => {
     hoverNodeId,
     dragNodeId,
     dragTag,
-    dropTargetId,
+    dropNodeId,
     addNodeTo,
     moveNodeTo,
     Vue

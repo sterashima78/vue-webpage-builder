@@ -18,8 +18,7 @@
   </v-menu>
 </template>
 <script lang="ts">
-import { defineComponent, ref } from "@vue/composition-api";
-import { PropType } from "@vue/composition-api/dist/component/componentProps";
+import { defineComponent } from "@vue/composition-api";
 import {
   importProject,
   exportToHtml,

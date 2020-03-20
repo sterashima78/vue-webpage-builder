@@ -1,4 +1,4 @@
-import { Node, Resource } from "@/types";
+import { Resource } from "@/types";
 import { Ref, ref, computed } from "@vue/composition-api";
 
 const scripts: Ref<Resource[]> = ref([

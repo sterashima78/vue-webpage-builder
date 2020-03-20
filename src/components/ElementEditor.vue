@@ -7,7 +7,6 @@
     </v-toolbar>
     <v-card-text>
       <v-container>
-        {{ editNode }}
         <v-row>
           <v-text-field
             :value="editNode.tag"
@@ -51,9 +50,9 @@
   </v-card>
 </template>
 <script lang="ts">
-import { defineComponent, ref, PropType } from "@vue/composition-api";
+import { defineComponent, PropType, computed } from "@vue/composition-api";
 import { Node, NodeTree } from "@/types";
-import { isNone, Option, none } from "fp-ts/lib/Option";
+import { isNone } from "fp-ts/lib/Option";
 import AttributeEditor from "./AttributeEditor.vue";
 import { useState } from "@/compositions/store";
 export default defineComponent({
@@ -70,7 +69,8 @@ export default defineComponent({
         text: "",
         style: {},
         attributes: {}
-      })
+      }),
+      required: true
     }
   },
   setup(
@@ -82,21 +82,21 @@ export default defineComponent({
     const { findById, editNode: editNodeById } = useState();
     const add = (key: "attributes" | "style") => (
       id: string,
-      newAttr: { name: string; value: string }
+      newAttr: { name: string; val: string }
     ) => {
       if (newAttr.name === "") return false;
-      if (newAttr.value === "") return false;
+      if (newAttr.val === "") return false;
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
         try {
           node.value[key] = {
             ...node.value[key],
-            [newAttr.name]: JSON.parse(newAttr.value)
+            [newAttr.name]: JSON.parse(newAttr.val)
           };
         } catch {
           node.value[key] = {
             ...node.value[key],
-            [newAttr.name]: newAttr.value as any
+            [newAttr.name]: newAttr.val as any
           };
         }
         return node;
@@ -116,20 +116,20 @@ export default defineComponent({
         return node;
       });
     };
+    const removeByKey = (vals: { [name: string]: any }, keys: string[]) => {
+      if (keys.length === 1) {
+        delete vals[keys[0]];
+        return;
+      }
 
+      if (keys[0] in vals) {
+        removeByKey(vals[keys[0]], keys.slice(1));
+      }
+    };
     const remove = (k: "attributes" | "style") => (id: string, key: string) => {
       editNodeById(id, (n: NodeTree) => {
-        const tmp = n.value[k];
-        if (tmp === undefined) return n;
-        if (tmp[key] === undefined) return n;
-        delete tmp[key];
-        return {
-          ...n,
-          value: {
-            ...n.value,
-            [k]: tmp
-          }
-        };
+        removeByKey(n.value, [k, key]);
+        return n;
       });
       emit("update");
     };
@@ -157,6 +157,7 @@ export default defineComponent({
       updateStyle,
       addStyle,
       updateText,
+      target: computed(() => props.editNode),
       close: () => emit("close")
     };
   }

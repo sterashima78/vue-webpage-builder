@@ -1,9 +1,9 @@
-import { ref, Ref, watch } from "@vue/composition-api";
-import { NodeData, NodeTree } from "@/types";
+import { Ref, watch } from "@vue/composition-api";
+import { NodeData } from "@/types";
 import { pipe } from "fp-ts/es6/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
 import clone from "lodash.clonedeep";
-import Vue, { VueConstructor, VNode, CreateElement } from "vue";
+import { VueConstructor, VNode, CreateElement } from "vue";
 export const createVue = (
   nodeData: Ref<NodeData>,
   renderNode: (h: CreateElement, node: NodeData) => VNode,

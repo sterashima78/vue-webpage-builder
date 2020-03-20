@@ -12,6 +12,7 @@ export const createRenderer = (
     const { tag, text, id, attributes, style, classes } = clone(tree.value);
     const texts = text ? [text] : [];
     const styles = style || {};
+
     if (hoverNodeId.value === id) styles.border = "solid red 5px";
     if (dropNodeId.value === id) styles.border = "solid blue 5px";
     return {
