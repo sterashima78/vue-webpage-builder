@@ -44,15 +44,17 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item-group :value="currentRoute" color="primary">
-            <v-list-item
-              v-for="route in allRoute"
-              :key="route"
-              @click="routing(route)"
-            >
+          <v-list-item
+            v-for="route in allRoute"
+            :key="route"
+            :style="{ background: currentRoute === route ? '#eee' : '' }"
+            :disabled="currentRoute === route"
+            @click="routing.push({ path: route })"
+          >
+            <v-list-item-content>
               <v-list-item-title v-text="route" />
-            </v-list-item>
-          </v-list-item-group>
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-menu>
       <FileMenu>
@@ -105,9 +107,11 @@ export default defineComponent({
     const { dragTag, nodeTree } = useState();
     const allRoute = computed(() => Object.keys(nodeTree.value));
     const components = ref<string[]>([]);
-    let routing: any = () => {
-      console.log("not init");
-    };
+    const routing: any = ref({
+      push() {
+        console.log("not init");
+      }
+    });
     return {
       allRoute,
       currentRoute,
@@ -117,10 +121,10 @@ export default defineComponent({
       inlineScript,
       stylesStr,
       loaded: async (w: IframeWindow) => {
-        const { components: c, routing: r } = await init(w);
+        const { components: c, router } = await init(w);
         console.log("reload");
         components.value = c;
-        routing = r;
+        routing.value = router;
       },
       body,
       components,

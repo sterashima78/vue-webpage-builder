@@ -1,5 +1,5 @@
 <template>
-  <v-menu bottom left>
+  <v-menu offset-y bottom left>
     <template v-slot:activator="{ on }">
       <slot name="activator" :on="on"></slot>
     </template>

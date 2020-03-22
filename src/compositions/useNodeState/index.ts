@@ -1,6 +1,6 @@
 import "@/plugins/";
 import clone from "lodash.clonedeep";
-import { ref, Ref } from "@vue/composition-api";
+import { ref, Ref, computed } from "@vue/composition-api";
 import { NodeTree, Node, RouteNodeTree } from "@/types";
 import { make, tree } from "fp-ts/lib/Tree";
 import { pipe } from "fp-ts/lib/pipeable";
@@ -68,16 +68,29 @@ const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
       )
     ]
   ),
-  "/some-path": make<Node>({
-    id: "link2",
-    tag: "router-link",
-    text: "to home",
-    attributes: {
-      to: "/"
-    }
-  })
+  "/some-path": make<Node>(
+    {
+      id: "root",
+      tag: "div",
+      style: {
+        height: "100%"
+      }
+    },
+    [
+      make<Node>({
+        id: "link2",
+        tag: "router-link",
+        text: "to home",
+        attributes: {
+          to: "/"
+        }
+      })
+    ]
+  )
 });
-const node = ref<NodeTree>(nodeTree.value["/"]);
+const currentRoute = ref<string>("/");
+const node = computed(() => nodeTree.value[currentRoute.value]);
+
 type NodeTreeMapper = (node: NodeTree) => NodeTree;
 const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
   tree.value.id === id
@@ -129,7 +142,8 @@ const _moveNodeTo = (to: string, target: string) => (node: NodeTree) => {
   return _addNodeTo(to, targetNode.value)(nodeRemoved);
 };
 
-const updateNode = (nodeValue: NodeTree) => (node.value = nodeValue);
+const updateNode = (nodeValue: NodeTree) =>
+  (nodeTree.value[currentRoute.value] = nodeValue);
 
 const effectNode = (effect: NodeTreeMapper) =>
   pipe(node.value, effect, updateNode);
@@ -175,6 +189,7 @@ export const useState = () => {
   const findById = (id: string) => pipe(node.value, findNodeById(id));
 
   return {
+    currentRoute,
     nodeTree,
     node,
     addNodeTo,
