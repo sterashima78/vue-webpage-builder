@@ -12,19 +12,26 @@
 
 <body>
 	<div id="app-main" style="height:100%;width:100%">
-		<%- nodes %>
+		<router-view />
 	</div>
+	<%- nodes %>
 	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
 	<% scripts.forEach(function(item){ -%>
 	<script src="<%= item.url %>"></script>
 	<% }); -%>
 	<script>
 		<%- inlineScript %>
-        const CustomVue = ("VueOption" in window) ? Vue.extend(VueOption) : Vue;
-        window.vm = new CustomVue({
-          el: "#app-main"
-        });
-        window.dispatchEvent(new Event("createdVue"))
+    const routes = <%- path %>
+    const router = new VueRouter({
+      routes
+    })
+    const CustomVue = ("VueOption" in window) ? Vue.extend(VueOption) : Vue;
+    window.vm = new CustomVue({
+      el: "#app-main",
+      router
+    });
+    window.dispatchEvent(new Event("createdVue"))
 	</script>
 </body>
 
