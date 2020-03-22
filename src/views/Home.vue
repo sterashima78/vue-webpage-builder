@@ -37,6 +37,24 @@
           </v-btn>
         </template>
       </SettingDialog>
+      <v-menu offset-y>
+        <template #activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon>mdi-file-multiple-outline</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item-group :value="currentRoute" color="primary">
+            <v-list-item
+              v-for="route in allRoute"
+              :key="route"
+              @click="routing(route)"
+            >
+              <v-list-item-title v-text="route" />
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-menu>
       <FileMenu>
         <template v-slot:activator="{ on }">
           <v-btn dark icon v-on="on">
@@ -58,7 +76,7 @@ import SettingDialog from "@/components/SettingDialog.vue";
 import FileMenu from "@/components/FileMenu.vue";
 import VueCanvas from "@/components/VueCanvas.vue";
 import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
-import { defineComponent, ref } from "@vue/composition-api";
+import { defineComponent, ref, computed } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
 import { useHtml } from "@/compositions/useHtml";
@@ -83,19 +101,26 @@ export default defineComponent({
       inlineScript,
       stylesStr
     } = useHtml();
-    const { init } = useLocalVue();
-    const { dragTag } = useState();
+    const { init, currentRoute } = useLocalVue();
+    const { dragTag, nodeTree } = useState();
+    const allRoute = computed(() => Object.keys(nodeTree.value));
     const components = ref<string[]>([]);
-
+    let routing: any = () => {
+      console.log("not init");
+    };
     return {
+      allRoute,
+      currentRoute,
+      routing,
       scriptsSrc,
       cssLinks,
       inlineScript,
       stylesStr,
       loaded: async (w: IframeWindow) => {
-        const c = await init(w);
+        const { components: c, routing: r } = await init(w);
         console.log("reload");
         components.value = c;
+        routing = r;
       },
       body,
       components,

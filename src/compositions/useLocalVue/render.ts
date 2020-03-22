@@ -1,10 +1,10 @@
 import { Ref, computed } from "@vue/composition-api";
-import { NodeTree, NodeData } from "@/types";
+import { NodeTree, NodeData, RouteNodeTree, RouteNodeTreeData } from "@/types";
 import clone from "lodash.clonedeep";
 import { CreateElement, VNode } from "vue";
 
 export const createRenderer = (
-  node: Ref<NodeTree>,
+  node: Ref<RouteNodeTree>,
   hoverNodeId: Ref<string>,
   dropNodeId: Ref<string>
 ) => {
@@ -46,7 +46,12 @@ export const createRenderer = (
       children.map(i => (typeof i === "string" ? i : renderNode(h, i)))
     );
   };
-  const nodeData = computed(() => toNodeData(node.value));
+  const nodeData = computed(() =>
+    Object.keys(node.value).reduce((data, key) => {
+      data[key] = toNodeData(node.value[key]);
+      return data;
+    }, {} as RouteNodeTreeData)
+  );
   return {
     renderNode,
     nodeData

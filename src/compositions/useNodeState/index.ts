@@ -1,13 +1,13 @@
 import "@/plugins/";
 import clone from "lodash.clonedeep";
-import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node } from "@/types";
+import { ref, Ref } from "@vue/composition-api";
+import { NodeTree, Node, RouteNodeTree } from "@/types";
 import { make, tree } from "fp-ts/lib/Tree";
 import { pipe } from "fp-ts/lib/pipeable";
 import { Option, some, none, isNone } from "fp-ts/lib/Option";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
-const node: Ref<NodeTree> = ref(
-  make<Node>(
+const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
+  "/": make<Node>(
     {
       id: "root",
       tag: "div",
@@ -19,9 +19,9 @@ const node: Ref<NodeTree> = ref(
       make<Node>({
         id: "link",
         tag: "router-link",
-        text: "to hoge",
+        text: "to some path",
         attributes: {
-          to: "/hoge"
+          to: "/some-path"
         }
       }),
       make<Node>(
@@ -67,9 +67,17 @@ const node: Ref<NodeTree> = ref(
         )
       )
     ]
-  )
-);
-
+  ),
+  "/some-path": make<Node>({
+    id: "link2",
+    tag: "router-link",
+    text: "to home",
+    attributes: {
+      to: "/"
+    }
+  })
+});
+const node = ref<NodeTree>(nodeTree.value["/"]);
 type NodeTreeMapper = (node: NodeTree) => NodeTree;
 const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
   tree.value.id === id
@@ -121,18 +129,6 @@ const _moveNodeTo = (to: string, target: string) => (node: NodeTree) => {
   return _addNodeTo(to, targetNode.value)(nodeRemoved);
 };
 
-interface TreeView {
-  id: string;
-  name: string;
-  children: TreeView[];
-}
-const toTree = (node: NodeTree): TreeView => {
-  return {
-    id: node.value.id,
-    name: node.value.tag,
-    children: node.forest.map(toTree)
-  };
-};
 const updateNode = (nodeValue: NodeTree) => (node.value = nodeValue);
 
 const effectNode = (effect: NodeTreeMapper) =>
@@ -178,11 +174,9 @@ export const useState = () => {
    */
   const findById = (id: string) => pipe(node.value, findNodeById(id));
 
-  const treeNode = computed(() => toTree(node.value));
-
   return {
+    nodeTree,
     node,
-    treeNode,
     addNodeTo,
     removeNodeById,
     moveNodeTo,

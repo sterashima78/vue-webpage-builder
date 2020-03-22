@@ -38,3 +38,11 @@ export interface Resource {
   url: string;
   name: string;
 }
+
+export type RouteNodeTree = {
+  [path: string]: NodeTree;
+};
+
+export type RouteNodeTreeData = {
+  [path: string]: NodeData;
+};

@@ -3,7 +3,8 @@ import { createRenderer } from "./render";
 import { createVue } from "./createInstance";
 import { useState } from "@/compositions/useNodeState/";
 import { register } from "@/directives";
-import VueRouter from "vue-router";
+import VueRouter, { Route } from "vue-router";
+import { ref } from "@vue/composition-api";
 
 export type IframeWindow = Window & {
   Vue?: VueConstructor<Vue>;
@@ -12,18 +13,21 @@ export type IframeWindow = Window & {
   VueRouter: typeof VueRouter;
 };
 export const useLocalVue = () => {
-  const { node, hoverNodeId, dropNodeId } = useState();
+  const { nodeTree, hoverNodeId, dropNodeId } = useState();
   const { renderNode, nodeData } = createRenderer(
-    node,
+    nodeTree,
     hoverNodeId,
     dropNodeId
   );
-  const init = (w: IframeWindow): Promise<string[]> => {
+  const currentRoute = ref("/");
+  const init = (
+    w: IframeWindow
+  ): Promise<{ components: string[]; routing: VueRouter["push"] }> => {
     return new Promise(resolve => {
       if (w.Vue === undefined) {
         setTimeout(async () => {
-          const components = await init(w);
-          resolve(components);
+          const ret = await init(w);
+          resolve(ret);
         }, 100);
       } else {
         register(w.Vue);
@@ -36,22 +40,16 @@ export const useLocalVue = () => {
           w.VueOption
         );
         w.vm = vm;
-        resolve(components);
+        resolve({ components, routing: router.push });
         w.dispatchEvent(new Event("createdVue"));
-        console.log(router.currentRoute);
-        router.afterEach((to, from) => {
-          console.log(to, from);
+        router.afterEach((to: Route) => {
+          currentRoute.value = to.fullPath;
         });
-        setTimeout(() => {
-          router.push({ path: "/hoge" });
-          setTimeout(() => {
-            router.push({ path: "/" });
-          }, 3000);
-        }, 3000);
       }
     });
   };
   return {
-    init
+    init,
+    currentRoute
   };
 };
