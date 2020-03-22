@@ -55,6 +55,20 @@
               <v-list-item-title v-text="route" />
             </v-list-item-content>
           </v-list-item>
+          <v-divider></v-divider>
+          <v-dialog width="500">
+            <template v-slot:activator="{ on }">
+              <v-list-item v-on="on">New Page</v-list-item>
+            </template>
+
+            <v-card>
+              <v-card-title class="headline grey lighten-2" primary-title>
+                New Page
+              </v-card-title>
+
+              <v-card-text>Path</v-card-text>
+            </v-card>
+          </v-dialog>
         </v-list>
       </v-menu>
       <FileMenu>
