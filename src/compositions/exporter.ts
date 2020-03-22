@@ -66,7 +66,7 @@ export const importProject = async () => {
   const { node: n, styles: st, scripts: sc, inlineScript: inline } = JSON.parse(
     json
   );
-  node.value = n;
+  nodeTree.value = n;
   styles.value = st;
   scripts.value = sc;
   inlineScript.value = inline;
@@ -106,7 +106,7 @@ export const exportToHtml = () => {
 export const exportToJson = () => {
   download(
     JSON.stringify({
-      node: node.value,
+      node: nodeTree.value,
       styles: styles.value,
       scripts: scripts.value,
       inlineScript: inlineScript.value
