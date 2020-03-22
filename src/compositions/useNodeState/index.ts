@@ -12,10 +12,18 @@ const node: Ref<NodeTree> = ref(
       id: "root",
       tag: "div",
       style: {
-        height: "calc(100% - 15px)"
+        height: "100%"
       }
     },
     [
+      make<Node>({
+        id: "link",
+        tag: "router-link",
+        text: "to hoge",
+        attributes: {
+          to: "/hoge"
+        }
+      }),
       make<Node>(
         {
           id: "c1",

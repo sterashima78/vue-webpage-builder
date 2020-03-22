@@ -31,6 +31,7 @@ const stylesStr = "";
 export const useHtml = () => {
   const scriptsSrc = computed(() => [
     "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js",
+    "https://unpkg.com/vue-router/dist/vue-router.js",
     ...scripts.value.map(i => i.url)
   ]);
   const cssLinks = computed(() => styles.value.map(i => i.url));
