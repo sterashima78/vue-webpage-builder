@@ -44,6 +44,18 @@ export const createVue = (
       `
     }),
     components,
-    router
+    router,
+    addRoute(path: string) {
+      router.addRoutes([
+        {
+          path,
+          component: Vue.extend({
+            render(h) {
+              return renderNode(h, store.node[path]);
+            }
+          })
+        }
+      ]);
+    }
   };
 };

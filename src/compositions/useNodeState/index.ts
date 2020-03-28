@@ -88,9 +88,9 @@ const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
     ]
   )
 });
+const allRoute = computed(() => Object.keys(nodeTree.value));
 const currentRoute = ref<string>("/");
 const node = computed(() => nodeTree.value[currentRoute.value]);
-
 type NodeTreeMapper = (node: NodeTree) => NodeTree;
 const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
   tree.value.id === id
@@ -188,9 +188,32 @@ export const useState = () => {
    */
   const findById = (id: string) => pipe(node.value, findNodeById(id));
 
+  /**
+   * ルートを追加
+   * @param path 新しいパス
+   */
+  const addNewPath = (path: string) => {
+    if (path in nodeTree.value) return;
+    nodeTree.value = {
+      [path]: make<Node>(
+        {
+          id: "root",
+          tag: "div",
+          style: {
+            height: "100%"
+          }
+        },
+        []
+      ),
+      ...nodeTree.value
+    };
+  };
+
   return {
     currentRoute,
+    addNewPath,
     nodeTree,
+    allRoute,
     node,
     addNodeTo,
     removeNodeById,

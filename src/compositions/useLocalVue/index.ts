@@ -21,7 +21,11 @@ export const useLocalVue = () => {
   );
   const init = (
     w: IframeWindow
-  ): Promise<{ components: string[]; router: VueRouter }> => {
+  ): Promise<{
+    components: string[];
+    router: VueRouter;
+    addRoute: (path: string) => void;
+  }> => {
     return new Promise(resolve => {
       if (w.Vue === undefined) {
         setTimeout(async () => {
@@ -30,7 +34,7 @@ export const useLocalVue = () => {
         }, 100);
       } else {
         register(w.Vue);
-        const { vm, components, router } = createVue(
+        const { vm, components, router, addRoute } = createVue(
           "#main-wrapper",
           nodeData,
           renderNode,
@@ -40,7 +44,7 @@ export const useLocalVue = () => {
         );
         w.vm = vm;
         w.router = router;
-        resolve({ components, router });
+        resolve({ components, router, addRoute });
         w.dispatchEvent(new Event("createdVue"));
         router.afterEach((to: Route) => {
           currentRoute.value = to.path;

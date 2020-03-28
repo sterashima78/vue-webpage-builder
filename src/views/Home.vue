@@ -66,7 +66,14 @@
                 New Page
               </v-card-title>
 
-              <v-card-text>Path</v-card-text>
+              <v-card-text>
+                <v-text-field
+                  label="Page path"
+                  placeholder="/path/to/new/page"
+                  v-model="newPath"
+                ></v-text-field>
+                <v-btn @click="createRoute">Create</v-btn>
+              </v-card-text>
             </v-card>
           </v-dialog>
         </v-list>
@@ -74,7 +81,7 @@
       <FileMenu>
         <template v-slot:activator="{ on }">
           <v-btn dark icon v-on="on">
-            <v-icon>insert_drive_file</v-icon>
+            <v-icon>mdi-file-download-outline</v-icon>
           </v-btn>
         </template>
       </FileMenu>
@@ -92,7 +99,7 @@ import SettingDialog from "@/components/SettingDialog.vue";
 import FileMenu from "@/components/FileMenu.vue";
 import VueCanvas from "@/components/VueCanvas.vue";
 import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
-import { defineComponent, ref, computed } from "@vue/composition-api";
+import { defineComponent, ref } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
 import { useHtml } from "@/compositions/useHtml";
@@ -118,27 +125,36 @@ export default defineComponent({
       stylesStr
     } = useHtml();
     const { init, currentRoute } = useLocalVue();
-    const { dragTag, nodeTree } = useState();
-    const allRoute = computed(() => Object.keys(nodeTree.value));
+    const { dragTag, addNewPath, allRoute } = useState();
     const components = ref<string[]>([]);
     const routing: any = ref({
       push() {
         console.log("not init");
       }
     });
+    const newPath = ref("");
+    let addLocalRoute: (path: string) => void;
+    const createRoute = () => {
+      addNewPath(newPath.value);
+      addLocalRoute(newPath.value);
+      newPath.value = "";
+    };
     return {
       allRoute,
       currentRoute,
       routing,
+      createRoute,
+      newPath,
       scriptsSrc,
       cssLinks,
       inlineScript,
       stylesStr,
       loaded: async (w: IframeWindow) => {
-        const { components: c, router } = await init(w);
+        const { components: c, router, addRoute } = await init(w);
         console.log("reload");
         components.value = c;
         routing.value = router;
+        addLocalRoute = addRoute;
       },
       body,
       components,
