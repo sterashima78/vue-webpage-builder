@@ -3,88 +3,18 @@
     <v-app-bar color="deep-purple accent-4" dense dark>
       <v-toolbar-title>Vue Webpage Builder</v-toolbar-title>
       <v-spacer></v-spacer>
-      <ComponentTreeDialog>
-        <template #activator="{ toggle }">
-          <v-btn icon @click="toggle">
-            <v-icon>format_list_bulleted</v-icon>
-          </v-btn>
-        </template>
-      </ComponentTreeDialog>
+      <ComponentTreeDialog />
       <ComponentSelectorDialog
         :components="components"
         @select="dragTag = $event"
-      >
-        <template #activator="{ toggle }">
-          <v-btn icon @click="toggle">
-            <v-icon>view_quilt</v-icon>
-          </v-btn>
-        </template>
-      </ComponentSelectorDialog>
-
-      <SettingDialog
-        :code="inlineScript"
-        :scripts="scripts"
-        :styles="styles"
-        @add:script="addScript"
-        @add:style="addStyle"
-        @remove:script="removeScript"
-        @remove:style="removeStyle"
-        @update:js="inlineScript = $event"
-      >
-        <template #activator="{ open }">
-          <v-btn icon @click="open">
-            <v-icon>settings</v-icon>
-          </v-btn>
-        </template>
-      </SettingDialog>
-      <v-menu offset-y>
-        <template #activator="{ on }">
-          <v-btn icon v-on="on">
-            <v-icon>mdi-file-multiple-outline</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item
-            v-for="route in allRoute"
-            :key="route"
-            :style="{ background: currentRoute === route ? '#eee' : '' }"
-            :disabled="currentRoute === route"
-            @click="routing.push({ path: route })"
-          >
-            <v-list-item-content>
-              <v-list-item-title v-text="route" />
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider></v-divider>
-          <v-dialog width="500">
-            <template v-slot:activator="{ on }">
-              <v-list-item v-on="on">New Page</v-list-item>
-            </template>
-
-            <v-card>
-              <v-card-title class="headline grey lighten-2" primary-title>
-                New Page
-              </v-card-title>
-
-              <v-card-text>
-                <v-text-field
-                  label="Page path"
-                  placeholder="/path/to/new/page"
-                  v-model="newPath"
-                ></v-text-field>
-                <v-btn @click="createRoute">Create</v-btn>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
-        </v-list>
-      </v-menu>
-      <FileMenu>
-        <template v-slot:activator="{ on }">
-          <v-btn dark icon v-on="on">
-            <v-icon>mdi-file-download-outline</v-icon>
-          </v-btn>
-        </template>
-      </FileMenu>
+      />
+      <SettingDialog />
+      <PageMenu
+        :addRoute="addLocalRoute"
+        :currentRoute="currentRoute"
+        :routing="routing"
+      />
+      <FileMenu />
     </v-app-bar>
     <div style="display:flex;width:100%;height: calc(100% - 50px)">
       <VueCanvas @loaded="loaded" />
@@ -94,19 +24,20 @@
 
 <script lang="ts">
 import ElementEditor from "@/components/ElementEditor.vue";
+import PageMenu from "@/components/PageMenu.vue";
 import ComponentSelectorDialog from "@/components/ComponentSelectorDialog.vue";
 import SettingDialog from "@/components/SettingDialog.vue";
 import FileMenu from "@/components/FileMenu.vue";
 import VueCanvas from "@/components/VueCanvas.vue";
 import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
-import { defineComponent, ref } from "@vue/composition-api";
+import { defineComponent, ref, Ref } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
-import { useHtml } from "@/compositions/useHtml";
 
 export default defineComponent({
   name: "Home",
   components: {
+    PageMenu,
     ElementEditor,
     ComponentSelectorDialog,
     SettingDialog,
@@ -115,64 +46,28 @@ export default defineComponent({
     ComponentTreeDialog
   },
   setup() {
-    const {
-      scripts,
-      styles,
-      scriptsSrc,
-      cssLinks,
-      body,
-      inlineScript,
-      stylesStr
-    } = useHtml();
-    const { init, currentRoute } = useLocalVue();
-    const { dragTag, addNewPath, allRoute } = useState();
+    const { init } = useLocalVue();
+    const { dragTag, currentRoute } = useState();
     const components = ref<string[]>([]);
     const routing: any = ref({
       push() {
         console.log("not init");
       }
     });
-    const newPath = ref("");
-    let addLocalRoute: (path: string) => void;
-    const createRoute = () => {
-      addNewPath(newPath.value);
-      addLocalRoute(newPath.value);
-      newPath.value = "";
-    };
+    const addLocalRoute: Ref<(path: string) => void> = ref(() => console.log());
     return {
-      allRoute,
       currentRoute,
+      addLocalRoute,
       routing,
-      createRoute,
-      newPath,
-      scriptsSrc,
-      cssLinks,
-      inlineScript,
-      stylesStr,
       loaded: async (w: IframeWindow) => {
         const { components: c, router, addRoute } = await init(w);
         console.log("reload");
         components.value = c;
         routing.value = router;
-        addLocalRoute = addRoute;
+        addLocalRoute.value = addRoute;
       },
-      body,
       components,
-      dragTag,
-      addStyle: ({ url, name }: { url: string; name: string }) => {
-        styles.value.push({ url, name });
-      },
-      addScript: ({ url, name }: { url: string; name: string }) => {
-        scripts.value.push({ url, name });
-      },
-      removeStyle: (key: string) => {
-        styles.value = styles.value.filter(({ name }) => name !== key);
-      },
-      removeScript: (key: string) => {
-        scripts.value = scripts.value.filter(({ name }) => name !== key);
-      },
-      scripts,
-      styles
+      dragTag
     };
   }
 });

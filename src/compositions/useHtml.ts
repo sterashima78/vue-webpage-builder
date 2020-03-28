@@ -28,6 +28,11 @@ const inlineScript = ref(
 );
 const stylesStr = "";
 
+const store = {
+  scripts,
+  styles
+};
+
 export const useHtml = () => {
   const scriptsSrc = computed(() => [
     "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js",
@@ -35,6 +40,14 @@ export const useHtml = () => {
     ...scripts.value.map(i => i.url)
   ]);
   const cssLinks = computed(() => styles.value.map(i => i.url));
+  const add = (resource: "styles" | "scripts") => (item: Resource) => {
+    store[resource].value.push(item);
+  };
+  const remove = (resource: "styles" | "scripts") => (key: string) => {
+    store[resource].value = store[resource].value.filter(
+      ({ name }) => name !== key
+    );
+  };
   return {
     scripts,
     styles,
@@ -42,6 +55,10 @@ export const useHtml = () => {
     cssLinks,
     body,
     inlineScript,
-    stylesStr
+    stylesStr,
+    addScript: add("scripts"),
+    addStyle: add("styles"),
+    removeScript: remove("scripts"),
+    removeStyle: remove("styles")
   };
 };

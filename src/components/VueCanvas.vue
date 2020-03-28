@@ -2,7 +2,7 @@
   <VIframeSandbox
     :body="body"
     style="width:100%;height:100%"
-    :script="inlineScript.replace('<br>', '\n')"
+    :script="inlineScript"
     :scriptsSrc="scriptsSrc"
     :styles="stylesStr"
     :cssLinks="cssLinks"

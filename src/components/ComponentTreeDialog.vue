@@ -1,6 +1,10 @@
 <template>
   <div>
-    <slot name="activator" :toggle="toggle"></slot>
+    <slot name="activator" :toggle="toggle">
+      <v-btn icon @click="toggle">
+        <v-icon>format_list_bulleted</v-icon>
+      </v-btn>
+    </slot>
     <draggable-window :is-active="isActive">
       <template #title>Componet Tree</template>
       <v-treeview
