@@ -1,21 +1,29 @@
 import "@/plugins/";
 import clone from "lodash.clonedeep";
 import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node } from "@/types";
+import { NodeTree, Node, RouteNodeTree } from "@/types";
 import { make, tree } from "fp-ts/lib/Tree";
 import { pipe } from "fp-ts/lib/pipeable";
 import { Option, some, none, isNone } from "fp-ts/lib/Option";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
-const node: Ref<NodeTree> = ref(
-  make<Node>(
+const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
+  "/": make<Node>(
     {
       id: "root",
       tag: "div",
       style: {
-        height: "calc(100% - 15px)"
+        height: "100%"
       }
     },
     [
+      make<Node>({
+        id: "link",
+        tag: "router-link",
+        text: "to some path",
+        attributes: {
+          to: "/some-path"
+        }
+      }),
       make<Node>(
         {
           id: "c1",
@@ -59,9 +67,30 @@ const node: Ref<NodeTree> = ref(
         )
       )
     ]
+  ),
+  "/some-path": make<Node>(
+    {
+      id: "root",
+      tag: "div",
+      style: {
+        height: "100%"
+      }
+    },
+    [
+      make<Node>({
+        id: "link2",
+        tag: "router-link",
+        text: "to home",
+        attributes: {
+          to: "/"
+        }
+      })
+    ]
   )
-);
-
+});
+const allRoute = computed(() => Object.keys(nodeTree.value));
+const currentRoute = ref<string>("/");
+const node = computed(() => nodeTree.value[currentRoute.value]);
 type NodeTreeMapper = (node: NodeTree) => NodeTree;
 const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
   tree.value.id === id
@@ -113,19 +142,8 @@ const _moveNodeTo = (to: string, target: string) => (node: NodeTree) => {
   return _addNodeTo(to, targetNode.value)(nodeRemoved);
 };
 
-interface TreeView {
-  id: string;
-  name: string;
-  children: TreeView[];
-}
-const toTree = (node: NodeTree): TreeView => {
-  return {
-    id: node.value.id,
-    name: node.value.tag,
-    children: node.forest.map(toTree)
-  };
-};
-const updateNode = (nodeValue: NodeTree) => (node.value = nodeValue);
+const updateNode = (nodeValue: NodeTree) =>
+  (nodeTree.value[currentRoute.value] = nodeValue);
 
 const effectNode = (effect: NodeTreeMapper) =>
   pipe(node.value, effect, updateNode);
@@ -170,11 +188,33 @@ export const useState = () => {
    */
   const findById = (id: string) => pipe(node.value, findNodeById(id));
 
-  const treeNode = computed(() => toTree(node.value));
+  /**
+   * ルートを追加
+   * @param path 新しいパス
+   */
+  const addNewPath = (path: string) => {
+    if (path in nodeTree.value) return;
+    nodeTree.value = {
+      [path]: make<Node>(
+        {
+          id: "root",
+          tag: "div",
+          style: {
+            height: "100%"
+          }
+        },
+        []
+      ),
+      ...nodeTree.value
+    };
+  };
 
   return {
+    currentRoute,
+    addNewPath,
+    nodeTree,
+    allRoute,
     node,
-    treeNode,
     addNodeTo,
     removeNodeById,
     moveNodeTo,

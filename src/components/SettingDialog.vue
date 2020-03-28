@@ -1,6 +1,10 @@
 <template>
   <div>
-    <slot name="activator" :open="on" />
+    <slot name="activator" :open="on">
+      <v-btn icon @click="on">
+        <v-icon>settings</v-icon>
+      </v-btn>
+    </slot>
     <v-dialog
       v-model="isActive"
       fullscreen
@@ -17,20 +21,20 @@
         <ExternalResource
           title="JavaScript"
           :resources="scripts"
-          @add="add('script', $event)"
-          @remove="remove('script', $event)"
+          @add="addScript"
+          @remove="removeScript"
         />
 
         <ExternalResource
           title="Style"
           :resources="styles"
-          @add="add('style', $event)"
-          @remove="remove('style', $event)"
+          @add="addStyle"
+          @remove="removeStyle"
         />
         <v-container>
           <h3>Inline Javascript</h3>
           <div style="height:500px;">
-            <ace @change="update" :code="code" />
+            <ace @change="code = $event" :code="code" />
           </div>
         </v-container>
       </v-card>
@@ -43,7 +47,7 @@ import ExternalResource from "@/components/ExternalResource.vue";
 import Ace from "@/components/Ace.vue";
 import { useTogglable } from "@/compositions/useTogglable";
 import { defineComponent } from "@vue/composition-api";
-import { PropType } from "@vue/composition-api/dist/component/componentProps";
+import { useHtml } from "@/compositions/useHtml";
 interface Props {
   scripts: Resource[];
   styles: Resource[];
@@ -54,26 +58,25 @@ export default defineComponent({
     ExternalResource,
     Ace
   },
-  props: {
-    scripts: {
-      type: Array as PropType<Resource[]>,
-      default: (): Resource[] => []
-    },
-    styles: {
-      type: Array as PropType<Resource[]>,
-      default: (): Resource[] => []
-    },
-    code: {
-      type: String as PropType<string>,
-      default: ""
-    }
-  },
-  setup(_, { emit }) {
+  setup() {
+    const {
+      styles,
+      scripts,
+      inlineScript,
+      addScript,
+      addStyle,
+      removeScript,
+      removeStyle
+    } = useHtml();
     return {
-      ...useTogglable(),
-      add: (type: string, resource: Resource) => emit(`add:${type}`, resource),
-      remove: (type: string, name: string) => emit(`remove:${type}`, name),
-      update: (code: string) => emit("update:js", code)
+      styles,
+      scripts,
+      code: inlineScript,
+      addScript,
+      addStyle,
+      removeScript,
+      removeStyle,
+      ...useTogglable()
     };
   }
 });

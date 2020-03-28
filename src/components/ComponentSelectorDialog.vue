@@ -6,7 +6,11 @@
       :close="off"
       :toggle="toggle"
       :is-active="isActive"
-    />
+    >
+      <v-btn icon @click="toggle">
+        <v-icon>view_quilt</v-icon>
+      </v-btn>
+    </slot>
     <draggable-window :is-active="isActive">
       <template #title>Components</template>
       <v-autocomplete
