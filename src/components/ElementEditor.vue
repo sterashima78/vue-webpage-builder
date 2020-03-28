@@ -45,6 +45,14 @@
             </template>
           </AttributeEditor>
         </v-row>
+        <v-row v-if="targetChildren.length !== 0">
+          <h2>Children</h2>
+          <SortableList
+            :items="targetChildren"
+            @update="updateChildren"
+            text="value"
+          />
+        </v-row>
       </v-container>
     </v-card-text>
   </v-card>
@@ -52,13 +60,17 @@
 <script lang="ts">
 import { defineComponent, PropType, computed } from "@vue/composition-api";
 import { Node, NodeTree } from "@/types";
-import { isNone } from "fp-ts/lib/Option";
+import { isNone, getOrElse } from "fp-ts/lib/Option";
+import SortableList from "./SortableList.vue";
 import AttributeEditor from "./AttributeEditor.vue";
 import { useState } from "@/compositions/useNodeState";
+import { pipe } from "fp-ts/lib/pipeable";
+import { Forest } from "fp-ts/lib/Tree";
 export default defineComponent({
   name: "ElementEditor",
   components: {
-    AttributeEditor
+    AttributeEditor,
+    SortableList
   },
   props: {
     editNode: {
@@ -79,7 +91,11 @@ export default defineComponent({
     },
     { emit }
   ) {
-    const { findById, editNode: editNodeById } = useState();
+    const {
+      findById,
+      editNode: editNodeById,
+      findChildrenByParentId
+    } = useState();
     const add = (key: "attributes" | "style") => (
       id: string,
       newAttr: { name: string; val: string }
@@ -116,6 +132,11 @@ export default defineComponent({
         return node;
       });
     };
+    const updateChildren = (items: Forest<Node>) =>
+      editNodeById(props.editNode.id, (node: NodeTree) => ({
+        value: node.value,
+        forest: items
+      }));
     const removeByKey = (vals: { [name: string]: any }, keys: string[]) => {
       if (keys.length === 1) {
         delete vals[keys[0]];
@@ -149,7 +170,16 @@ export default defineComponent({
       });
     };
 
+    const targetChildren = computed(() =>
+      pipe(
+        props.editNode.id,
+        findChildrenByParentId,
+        getOrElse((): Forest<Node> => [])
+      )
+    );
     return {
+      updateChildren,
+      targetChildren,
       removeAttr,
       updateAttr,
       addAttr,
