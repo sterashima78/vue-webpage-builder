@@ -3,7 +3,7 @@
     <template #activator="{ on }">
       <slot name="activator" :on="on">
         <v-btn icon v-on="on">
-          <v-icon>mdi-file-multiple-outline</v-icon>
+          <v-icon>mdi-text-box-multiple-outline</v-icon>
         </v-btn>
       </slot>
     </template>

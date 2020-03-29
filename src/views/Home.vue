@@ -14,10 +14,13 @@
         :currentRoute="currentRoute"
         :routing="routing"
       />
+      <ViewPortMenu @update="wrapperStyle = $event" />
       <FileMenu />
     </v-app-bar>
-    <div style="display:flex;width:100%;height: calc(100% - 50px)">
-      <VueCanvas @loaded="loaded" />
+    <div class="canvas-wrapper">
+      <div :style="wrapperStyle" style="background: white;">
+        <VueCanvas @loaded="loaded" />
+      </div>
     </div>
   </div>
 </template>
@@ -26,6 +29,7 @@
 import ElementEditor from "@/components/ElementEditor.vue";
 import PageMenu from "@/components/PageMenu.vue";
 import ComponentSelectorDialog from "@/components/ComponentSelectorDialog.vue";
+import ViewPortMenu from "@/components/ViewPortMenu.vue";
 import SettingDialog from "@/components/SettingDialog.vue";
 import FileMenu from "@/components/FileMenu.vue";
 import VueCanvas from "@/components/VueCanvas.vue";
@@ -43,7 +47,8 @@ export default defineComponent({
     SettingDialog,
     FileMenu,
     VueCanvas,
-    ComponentTreeDialog
+    ComponentTreeDialog,
+    ViewPortMenu
   },
   setup() {
     const { init } = useLocalVue();
@@ -55,7 +60,9 @@ export default defineComponent({
       }
     });
     const addLocalRoute: Ref<(path: string) => void> = ref(() => console.log());
+    const wrapperStyle = ref({});
     return {
+      wrapperStyle,
       currentRoute,
       addLocalRoute,
       routing,
@@ -72,3 +79,14 @@ export default defineComponent({
   }
 });
 </script>
+<style lang="scss" scoped>
+.canvas-wrapper {
+  background: #eee;
+  display: flex;
+  width: 100%;
+  height: calc(100% - 50px);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+</style>
