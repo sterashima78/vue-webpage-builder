@@ -4,7 +4,7 @@ import { ref, Ref, computed } from "@vue/composition-api";
 import { NodeTree, Node, RouteNodeTree } from "@/types";
 import { make, tree } from "fp-ts/lib/Tree";
 import { pipe } from "fp-ts/lib/pipeable";
-import { Option, some, none, isNone } from "fp-ts/lib/Option";
+import { Option, some, none, isNone, map } from "fp-ts/lib/Option";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
 const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
   "/": make<Node>(
@@ -100,6 +100,12 @@ const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
           isNone(before) ? findNodeById(id)(current) : before,
         none
       );
+const _findChildrenByParentId = (id: string) => (tree: NodeTree) =>
+  pipe(
+    tree,
+    findNodeById(id),
+    map(node => node.forest)
+  );
 const _editNode = (id: string, modifier: (node: NodeTree) => NodeTree) => (
   node: NodeTree
 ): NodeTree => {
@@ -188,6 +194,9 @@ export const useState = () => {
    */
   const findById = (id: string) => pipe(node.value, findNodeById(id));
 
+  const findChildrenByParentId = (id: string) =>
+    pipe(node.value, _findChildrenByParentId(id));
+
   /**
    * ルートを追加
    * @param path 新しいパス
@@ -210,6 +219,7 @@ export const useState = () => {
   };
 
   return {
+    findChildrenByParentId,
     currentRoute,
     addNewPath,
     nodeTree,

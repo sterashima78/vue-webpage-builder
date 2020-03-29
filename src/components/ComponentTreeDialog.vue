@@ -29,7 +29,7 @@
         </template>
       </v-treeview>
     </draggable-window>
-    <v-dialog v-model="editorIsActive" persistent>
+    <v-dialog v-model="editorIsActive" scrollable persistent>
       <ElementEditor
         :findById="findById"
         :editNodeById="editNodeById"
