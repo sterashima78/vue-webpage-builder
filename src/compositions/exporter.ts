@@ -6,12 +6,8 @@ import { useHtml } from "./useHtml";
 import { NodeTree } from "@/types";
 import pretty from "pretty";
 
-const { node } = useState();
+const { nodeTree } = useState();
 const { styles, scripts, inlineScript } = useHtml();
-interface Resource {
-  url: string;
-  name: string;
-}
 
 const attrToStr = (
   attr: { [name: string]: string | boolean | number } | undefined
@@ -35,7 +31,6 @@ const styleToStr = (style: { [name: string]: string } | undefined) => {
   );
 };
 const treeToString = (node: NodeTree): string => {
-  console.log(node.value.tag);
   return `
     <${node.value.tag
       .replace(/([a-z])([A-Z])/g, "$1-$2")
@@ -71,25 +66,47 @@ export const importProject = async () => {
   const { node: n, styles: st, scripts: sc, inlineScript: inline } = JSON.parse(
     json
   );
-  node.value = n;
+  nodeTree.value = n;
   styles.value = st;
   scripts.value = sc;
   inlineScript.value = inline;
 };
 export const exportToHtml = () => {
+  const path = JSON.stringify(
+    Object.keys(nodeTree.value).map(path => ({
+      path,
+      component: {
+        template: `#vue-component${path.replace("/", "-")}`
+      }
+    }))
+  );
   const template = ejs.render(HtmlTemplate, {
     styles: styles.value,
-    nodes: pretty(treeToString(node.value)),
+    nodes: pretty(
+      Object.keys(nodeTree.value)
+        .map(
+          path => `
+      <script type="text/x-template" id="vue-component${path.replace(
+        "/",
+        "-"
+      )}">
+        ${treeToString(nodeTree.value[path])}
+      </script>
+    `
+        )
+        .join("")
+    ),
     scripts: scripts.value,
-    inlineScript: inlineScript.value
+    inlineScript: inlineScript.value,
+    path
   });
-  download(template, "index.html", "text/html");
+  download(pretty(template), "index.html", "text/html");
 };
 
 export const exportToJson = () => {
   download(
     JSON.stringify({
-      node: node.value,
+      node: nodeTree.value,
       styles: styles.value,
       scripts: scripts.value,
       inlineScript: inlineScript.value

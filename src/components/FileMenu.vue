@@ -1,7 +1,11 @@
 <template>
-  <v-menu bottom left>
+  <v-menu offset-y bottom left>
     <template v-slot:activator="{ on }">
-      <slot name="activator" :on="on"></slot>
+      <slot name="activator" :on="on">
+        <v-btn dark icon v-on="on">
+          <v-icon>mdi-file-download-outline</v-icon>
+        </v-btn>
+      </slot>
     </template>
 
     <v-list>

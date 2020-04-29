@@ -1,6 +1,10 @@
 <template>
   <div>
-    <slot name="activator" :toggle="toggle"></slot>
+    <slot name="activator" :toggle="toggle">
+      <v-btn icon @click="toggle">
+        <v-icon>format_list_bulleted</v-icon>
+      </v-btn>
+    </slot>
     <draggable-window :is-active="isActive">
       <template #title>Componet Tree</template>
       <v-treeview
@@ -21,11 +25,12 @@
         </template>
         <template #append="{ item }">
           <v-icon @click="setEditTarget(item)">tune</v-icon>
+          <v-icon @click="copyNode(item.id)">mdi-content-copy</v-icon>
           <v-icon @click="removeNodeById(item.id)">delete</v-icon>
         </template>
       </v-treeview>
     </draggable-window>
-    <v-dialog v-model="editorIsActive" persistent>
+    <v-dialog v-model="editorIsActive" scrollable persistent>
       <ElementEditor
         :findById="findById"
         :editNodeById="editNodeById"
@@ -69,7 +74,8 @@ export default defineComponent({
       node,
       removeNodeById,
       findById,
-      editNode: editNodeById
+      editNode: editNodeById,
+      copyNode
     } = useState();
     const editNode = ref<Node>({
       id: "",
@@ -96,7 +102,8 @@ export default defineComponent({
       editNode,
       findById,
       editNodeById,
-      setEditTarget
+      setEditTarget,
+      copyNode
     };
   }
 });

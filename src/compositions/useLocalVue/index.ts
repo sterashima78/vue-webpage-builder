@@ -3,41 +3,57 @@ import { createRenderer } from "./render";
 import { createVue } from "./createInstance";
 import { useState } from "@/compositions/useNodeState/";
 import { register } from "@/directives";
+import VueRouter, { Route } from "vue-router";
 
 export type IframeWindow = Window & {
   Vue?: VueConstructor<Vue>;
   vm: Vue;
   VueOption: any;
+  VueRouter: typeof VueRouter;
+  router?: VueRouter;
 };
 export const useLocalVue = () => {
-  const { node, hoverNodeId, dropNodeId } = useState();
+  const { nodeTree, hoverNodeId, dropNodeId, currentRoute } = useState();
   const { renderNode, nodeData } = createRenderer(
-    node,
+    nodeTree,
     hoverNodeId,
     dropNodeId
   );
-  const init = (w: IframeWindow): Promise<string[]> => {
+  const init = (
+    w: IframeWindow
+  ): Promise<{
+    components: string[];
+    router: VueRouter;
+    addRoute: (path: string) => void;
+  }> => {
     return new Promise(resolve => {
       if (w.Vue === undefined) {
         setTimeout(async () => {
-          const components = await init(w);
-          resolve(components);
+          const ret = await init(w);
+          resolve(ret);
         }, 100);
       } else {
         register(w.Vue);
-        const { vm, components } = createVue(
+        const { vm, components, router, addRoute } = createVue(
+          "#main-wrapper",
           nodeData,
           renderNode,
           w.Vue,
+          w.VueRouter,
           w.VueOption
         );
         w.vm = vm;
-        resolve(components);
+        w.router = router;
+        resolve({ components, router, addRoute });
         w.dispatchEvent(new Event("createdVue"));
+        router.afterEach((to: Route) => {
+          currentRoute.value = to.path;
+        });
       }
     });
   };
   return {
-    init
+    init,
+    currentRoute
   };
 };
