@@ -29,6 +29,13 @@
           ></v-text-field>
         </v-row>
         <v-row>
+          <v-text-field
+            :value="editNode.slot || ''"
+            label="Slot"
+            @input="updateSlot(editNode.id, $event)"
+          ></v-text-field>
+        </v-row>
+        <v-row>
           <AttributeEditor
             :data="editNode.attributes"
             @add="addAttr(editNode.id, $event)"
@@ -182,7 +189,7 @@ export default defineComponent({
     const updateStyle = update("style");
     const removeStyle = remove("style");
 
-    const updateTextAttr = (prop: "text" | "name") => (
+    const updateTextAttr = (prop: "text" | "name" | "slot") => (
       id: string,
       text: string
     ) => {
@@ -194,6 +201,7 @@ export default defineComponent({
     };
     const updateText = updateTextAttr("text");
     const updateName = updateTextAttr("name");
+    const updateSlot = updateTextAttr("slot");
 
     const classifyBySlot = (
       nodes: Forest<Node>
@@ -226,6 +234,7 @@ export default defineComponent({
       addStyle,
       updateText,
       updateName,
+      updateSlot,
       target: computed(() => props.editNode),
       close: () => emit("close")
     };

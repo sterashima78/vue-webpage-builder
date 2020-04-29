@@ -110,12 +110,12 @@ const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
             },
             [
               tree.of<Node>({
-                id: "hoge",
+                id: "list",
                 tag: "span",
                 text: "Dropdown List"
               }),
               tree.of<Node>({
-                id: "hoge",
+                id: "icon",
                 tag: "i",
                 classes: ["el-icon-arrow-down", "el-icon--right"]
               })
