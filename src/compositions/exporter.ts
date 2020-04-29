@@ -71,37 +71,39 @@ export const importProject = async () => {
   scripts.value = sc;
   inlineScript.value = inline;
 };
-export const exportToHtml = () => {
-  const path = JSON.stringify(
-    Object.keys(nodeTree.value).map(path => ({
-      path,
-      component: {
-        template: `#vue-component${path.replace("/", "-")}`
-      }
-    }))
-  );
-  const template = ejs.render(HtmlTemplate, {
-    styles: styles.value,
-    nodes: pretty(
-      Object.keys(nodeTree.value)
-        .map(
-          path => `
-      <script type="text/x-template" id="vue-component${path.replace(
-        "/",
-        "-"
-      )}">
-        ${treeToString(nodeTree.value[path])}
-      </script>
+
+export const toHtmlOptions = () => ({
+  styles: styles.value,
+  nodes: Object.entries(nodeTree.value)
+    .map(([path, node]) => [
+      `vue-component${path.replace("/", "-")}`,
+      treeToString(node)
+    ])
+    .map(
+      ([
+        id,
+        html
+      ]) => `<script type="text/x-template" id="${id}">${html}</script>
     `
-        )
-        .join("")
-    ),
-    scripts: scripts.value,
-    inlineScript: inlineScript.value,
-    path
-  });
-  download(pretty(template), "index.html", "text/html");
-};
+    )
+    .join(""),
+  scripts: scripts.value,
+  inlineScript: inlineScript.value,
+  path: JSON.stringify(
+    Object.keys(nodeTree.value)
+      .map(path => [path, `#vue-component${path.replace("/", "-")}`])
+      .map(([path, id]) => ({
+        path,
+        component: { template: id }
+      }))
+  )
+});
+export const exportToHtml = () =>
+  download(
+    pretty(ejs.render(HtmlTemplate, toHtmlOptions())),
+    "index.html",
+    "text/html"
+  );
 
 export const exportToJson = () => {
   download(
