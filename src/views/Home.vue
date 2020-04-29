@@ -8,13 +8,14 @@
         :components="components"
         @select="dragTag = $event"
       />
-      <SettingDialog />
       <PageMenu
         :addRoute="addLocalRoute"
         :currentRoute="currentRoute"
         :routing="routing"
       />
       <ViewPortMenu @update="wrapperStyle = $event" />
+      <SettingDialog />
+      <PreviewDialog />
       <FileMenu />
     </v-app-bar>
     <div class="canvas-wrapper">
@@ -41,7 +42,8 @@ export default defineComponent({
     FileMenu: () => import("@/components/FileMenu.vue"),
     VueCanvas: () => import("@/components/VueCanvas.vue"),
     ComponentTreeDialog: () => import("@/components/ComponentTreeDialog.vue"),
-    ViewPortMenu: () => import("@/components/ViewPortMenu.vue")
+    ViewPortMenu: () => import("@/components/ViewPortMenu.vue"),
+    PreviewDialog: () => import("@/components/PreviewDialog.vue")
   },
   setup() {
     const { init } = useLocalVue();
