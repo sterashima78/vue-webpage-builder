@@ -9,6 +9,7 @@ export type toAttributes = (attr: object) => NodeAttributes;
 
 export interface Node {
   id: string;
+  name?: string;
   tag: string;
   text?: string;
   attributes?: {
@@ -25,6 +26,8 @@ export interface Node {
     [name: string]: string;
   };
 }
+
+export type GetNodeName = (node: Node) => string;
 
 export type NodeTree = Tree<Node>;
 
