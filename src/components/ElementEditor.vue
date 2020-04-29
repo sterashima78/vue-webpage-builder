@@ -53,12 +53,17 @@
           </AttributeEditor>
         </v-row>
         <v-row v-if="targetChildren.length !== 0">
-          <h2>Children</h2>
-          <SortableList
-            :items="targetChildren"
-            @update="updateChildren"
-            :to-text="i => i.value.name || i.value.tag"
-          />
+          <v-container>
+            <h2>Children (slots)</h2>
+            <v-row v-for="[name, children] in targetChildren" :key="name">
+              <h3 v-text="name" />
+              <SortableList
+                :items="children"
+                @update="updateChildren(name)"
+                :to-text="i => i.value.name || i.value.tag"
+              />
+            </v-row>
+          </v-container>
         </v-row>
       </v-container>
     </v-card-text>
@@ -139,10 +144,18 @@ export default defineComponent({
         return node;
       });
     };
-    const updateChildren = (items: Forest<Node>) =>
+    const updateChildren = (slot: string) => (items: Forest<Node>) =>
       editNodeById(props.editNode.id, (node: NodeTree) => ({
         value: node.value,
-        forest: items
+        forest: node.forest
+          .filter(
+            tree =>
+              !(
+                (slot === "default" && !tree.value.slot) ||
+                tree.value.slot === slot
+              )
+          )
+          .concat(items)
       }));
     const removeByKey = (vals: { [name: string]: any }, keys: string[]) => {
       if (keys.length === 1) {
@@ -182,11 +195,24 @@ export default defineComponent({
     const updateText = updateTextAttr("text");
     const updateName = updateTextAttr("name");
 
-    const targetChildren = computed(() =>
+    const classifyBySlot = (
+      nodes: Forest<Node>
+    ): { [slot: string]: Forest<Node> } =>
+      nodes.reduce((nodes, node) => {
+        if (!nodes[node.value.slot || "default"]) {
+          nodes[node.value.slot || "default"] = [node];
+        } else {
+          nodes[node.value.slot || "default"].push(node);
+        }
+        return nodes;
+      }, {} as { [slot: string]: Forest<Node> });
+    const targetChildren = computed((): [string, Forest<Node>][] =>
       pipe(
         props.editNode.id,
         findChildrenByParentId,
-        getOrElse((): Forest<Node> => [])
+        getOrElse((): Forest<Node> => []),
+        classifyBySlot,
+        Object.entries
       )
     );
     return {
