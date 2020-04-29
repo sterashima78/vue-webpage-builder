@@ -8,13 +8,14 @@
         :components="components"
         @select="dragTag = $event"
       />
-      <SettingDialog />
       <PageMenu
         :addRoute="addLocalRoute"
         :currentRoute="currentRoute"
         :routing="routing"
       />
       <ViewPortMenu @update="wrapperStyle = $event" />
+      <SettingDialog />
+      <PreviewDialog />
       <FileMenu />
     </v-app-bar>
     <div class="canvas-wrapper">
@@ -26,14 +27,6 @@
 </template>
 
 <script lang="ts">
-import ElementEditor from "@/components/ElementEditor.vue";
-import PageMenu from "@/components/PageMenu.vue";
-import ComponentSelectorDialog from "@/components/ComponentSelectorDialog.vue";
-import ViewPortMenu from "@/components/ViewPortMenu.vue";
-import SettingDialog from "@/components/SettingDialog.vue";
-import FileMenu from "@/components/FileMenu.vue";
-import VueCanvas from "@/components/VueCanvas.vue";
-import ComponentTreeDialog from "@/components/ComponentTreeDialog.vue";
 import { defineComponent, ref, Ref } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
@@ -41,14 +34,16 @@ import { useState } from "@/compositions/useNodeState/";
 export default defineComponent({
   name: "Home",
   components: {
-    PageMenu,
-    ElementEditor,
-    ComponentSelectorDialog,
-    SettingDialog,
-    FileMenu,
-    VueCanvas,
-    ComponentTreeDialog,
-    ViewPortMenu
+    PageMenu: () => import("@/components/PageMenu.vue"),
+    ElementEditor: () => import("@/components/ElementEditor.vue"),
+    ComponentSelectorDialog: () =>
+      import("@/components/ComponentSelectorDialog.vue"),
+    SettingDialog: () => import("@/components/SettingDialog.vue"),
+    FileMenu: () => import("@/components/FileMenu.vue"),
+    VueCanvas: () => import("@/components/VueCanvas.vue"),
+    ComponentTreeDialog: () => import("@/components/ComponentTreeDialog.vue"),
+    ViewPortMenu: () => import("@/components/ViewPortMenu.vue"),
+    PreviewDialog: () => import("@/components/PreviewDialog.vue")
   },
   setup() {
     const { init } = useLocalVue();

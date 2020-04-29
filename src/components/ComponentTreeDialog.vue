@@ -59,7 +59,7 @@ interface TreeView {
 const toTree = (node: NodeTree): TreeView => {
   return {
     id: node.value.id,
-    name: node.value.tag,
+    name: node.value.name || node.value.tag,
     children: node.forest.map(toTree)
   };
 };

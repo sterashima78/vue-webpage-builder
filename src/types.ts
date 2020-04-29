@@ -9,6 +9,8 @@ export type toAttributes = (attr: object) => NodeAttributes;
 
 export interface Node {
   id: string;
+  name?: string;
+  slot?: string;
   tag: string;
   text?: string;
   attributes?: {
@@ -26,12 +28,15 @@ export interface Node {
   };
 }
 
+export type GetNodeName = (node: Node) => string;
+
 export type NodeTree = Tree<Node>;
 
 export interface NodeData {
   tag: string;
   data: VNodeData;
   children: Array<NodeData | string>;
+  scopedSlotsData: { [slot: string]: NodeData[] };
 }
 
 export interface Resource {
