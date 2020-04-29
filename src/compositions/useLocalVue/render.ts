@@ -12,6 +12,18 @@ export const createRenderer = (
     const { tag, text, id, attributes, style, classes } = clone(tree.value);
     const texts = text ? [text] : [];
     const styles = style || {};
+    const scopedSlotsData = tree.forest.reduce((data, tree) => {
+      if (!tree.value.slot || tree.value.slot === "default") return data;
+      if (!data[tree.value.slot]) {
+        data[tree.value.slot] = [toNodeData(tree)];
+      } else {
+        data[tree.value.slot].push(toNodeData(tree));
+      }
+      return data;
+    }, {} as { [slot: string]: NodeData[] });
+    const children = tree.forest.filter(
+      child => !child.value.slot || child.value.slot === "default"
+    );
 
     if (hoverNodeId.value === id) styles.border = "solid red 5px";
     if (dropNodeId.value === id) styles.border = "solid blue 5px";
@@ -31,21 +43,32 @@ export const createRenderer = (
         style: styles,
         class: classes
       },
-      children: [...tree.forest.map(toNodeData), ...texts]
+      children: [...children.map(toNodeData), ...texts],
+      scopedSlotsData
     };
   };
   const renderNode = (
     h: CreateElement,
-    { tag, data, children }: NodeData
-  ): VNode => {
-    return h(
+    { tag, data, children, scopedSlotsData }: NodeData
+  ): VNode =>
+    h(
       tag,
       {
-        ...data
+        ...data,
+        scopedSlots: Object.entries(scopedSlotsData).reduce(
+          (
+            slots,
+            [key, data]
+          ): NonNullable<NodeData["data"]["scopedSlots"]> => ({
+            ...slots,
+            [key]: () => data.map(i => renderNode(h, i))
+          }),
+          {} as NonNullable<NodeData["data"]["scopedSlots"]>
+        )
       },
       children.map(i => (typeof i === "string" ? i : renderNode(h, i)))
     );
-  };
+
   const nodeData = computed(() =>
     Object.keys(node.value).reduce((data, key) => {
       data[key] = toNodeData(node.value[key]);
