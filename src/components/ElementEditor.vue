@@ -22,6 +22,13 @@
           ></v-text-field>
         </v-row>
         <v-row>
+          <v-text-field
+            :value="editNode.name || ''"
+            label="Name"
+            @input="updateName(editNode.id, $event)"
+          ></v-text-field>
+        </v-row>
+        <v-row>
           <AttributeEditor
             :data="editNode.attributes"
             @add="addAttr(editNode.id, $event)"
@@ -50,7 +57,7 @@
           <SortableList
             :items="targetChildren"
             @update="updateChildren"
-            text="value"
+            :to-text="i => i.value.name || i.value.tag"
           />
         </v-row>
       </v-container>
@@ -162,13 +169,18 @@ export default defineComponent({
     const updateStyle = update("style");
     const removeStyle = remove("style");
 
-    const updateText = (id: string, text: string) => {
+    const updateTextAttr = (prop: "text" | "name") => (
+      id: string,
+      text: string
+    ) => {
       if (isNone(findById(id))) return false;
       editNodeById(id, (node: NodeTree) => {
-        node.value.text = text;
+        node.value[prop] = text;
         return node;
       });
     };
+    const updateText = updateTextAttr("text");
+    const updateName = updateTextAttr("name");
 
     const targetChildren = computed(() =>
       pipe(
@@ -187,6 +199,7 @@ export default defineComponent({
       updateStyle,
       addStyle,
       updateText,
+      updateName,
       target: computed(() => props.editNode),
       close: () => emit("close")
     };

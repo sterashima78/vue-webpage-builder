@@ -12,7 +12,7 @@
         <v-icon>mdi-drag-vertical</v-icon>
       </v-list-item-icon>
       <v-list-item-content>
-        <v-list-item-title v-text="text === '' ? item : item[text]" />
+        <v-list-item-title v-text="toText(item)" />
       </v-list-item-content>
     </v-list-item>
   </v-list>
@@ -25,12 +25,12 @@ export default defineComponent({
       type: Array as PropType<any[]>,
       default: (): any[] => []
     },
-    text: {
-      type: String as PropType<string>,
-      default: ""
+    toText: {
+      type: Function as PropType<CallableFunction>,
+      default: (i: any) => i
     }
   },
-  setup(props: { items: any[] }, { emit }) {
+  setup(props: { items: any[]; text: string[] }, { emit }) {
     const dragTarget = ref(-1);
 
     return {
