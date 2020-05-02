@@ -1,7 +1,7 @@
 import "@/plugins/";
 import clone from "lodash.clonedeep";
 import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node, RouteNodeTree, GetNodeName } from "@/types";
+import { NodeTree, Node, RouteNodeTree } from "@/types";
 import { make, tree } from "fp-ts/lib/Tree";
 import { pipe } from "fp-ts/lib/pipeable";
 import {
@@ -13,7 +13,7 @@ import {
   fold,
   getOrElse
 } from "fp-ts/lib/Option";
-import { v4 as uuidv4 } from "uuid";
+import { cloneNode } from "@/domain/nodes";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
 const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
   "/": make<Node>(
@@ -208,17 +208,6 @@ const findParentNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
           isNone(before) ? pipe(current, findParentNodeById(id)) : before,
         none
       );
-
-const getNodeName: GetNodeName = ({ name, tag }) => (name ? name : tag);
-
-const cloneNode = (tree: NodeTree): NodeTree => ({
-  value: {
-    ...clone(tree.value),
-    id: uuidv4(),
-    name: `${getNodeName(tree.value)}_copy`
-  },
-  forest: tree.forest.map(cloneNode)
-});
 
 /**
  * 親ノードから子ノードらを検索する
