@@ -4,7 +4,6 @@ import { Option, some, isNone, none, map } from "fp-ts/es6/Option";
 import { v4 as uuidv4 } from "uuid";
 import { pipe } from "fp-ts/es6/pipeable";
 import { make } from "fp-ts/lib/Tree";
-import { fold } from "fp-ts/lib/Option";
 
 const getNodeName: GetNodeName = ({ name, tag }) => (name ? name : tag);
 

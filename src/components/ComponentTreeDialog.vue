@@ -19,12 +19,12 @@
             draggable="true"
             style="cursor: move"
             v-web-builder
-          >
-            {{ item.name }}
-          </div>
+            v-text="item.name"
+          />
         </template>
         <template #append="{ item }">
           <v-icon @click="setEditTarget(item)">tune</v-icon>
+          <AliasRegister :node="item" />
           <v-icon @click="copyNode(item.id)">mdi-content-copy</v-icon>
           <v-icon @click="removeNodeById(item.id)">delete</v-icon>
         </template>
@@ -47,6 +47,7 @@ import DraggableWindow from "./DraggableWindow.vue";
 import ElementEditor from "./ElementEditor.vue";
 import { useTogglable } from "@/compositions/useTogglable";
 import { useState } from "@/compositions/useNodeState";
+import { useAlias } from "@/compositions/useAlias";
 import { fold } from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/es6/pipeable";
 import { Node, NodeTree } from "@/types";
@@ -66,7 +67,8 @@ const toTree = (node: NodeTree): TreeView => {
 export default defineComponent({
   components: {
     ElementEditor,
-    DraggableWindow
+    DraggableWindow,
+    AliasRegister: () => import("./AliasRegister.vue")
   },
   setup() {
     const { on, off, isActive: editorIsActive } = useTogglable();
@@ -77,6 +79,7 @@ export default defineComponent({
       editNode: editNodeById,
       copyNode
     } = useState();
+    const { regist } = useAlias();
     const editNode = ref<Node>({
       id: "",
       tag: "div"

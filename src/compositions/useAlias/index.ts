@@ -2,6 +2,7 @@ import {
   findByName,
   create,
   regist,
+  isRegist,
   getAliasNames,
   NodeAliasMap
 } from "@/domain/alias";
@@ -17,6 +18,7 @@ export const useAlias = () => {
     regist: (name: string, node: NodeTree) =>
       pipe(alias.value, regist(name, node)),
     findByName: (name: string) => pipe(alias.value, findByName(name)),
-    create: (name: string) => pipe(alias.value, create(name))
+    create: (name: string) => pipe(alias.value, create(name)),
+    isRegist: (name: string) => pipe(alias.value, isRegist(name))
   };
 };

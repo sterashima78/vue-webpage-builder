@@ -25,8 +25,11 @@ export const createRenderer = (
       child => !child.value.slot || child.value.slot === "default"
     );
 
-    if (hoverNodeId.value === id) styles.border = "solid red 5px";
-    if (dropNodeId.value === id) styles.border = "solid blue 5px";
+    if (hoverNodeId.value === id || dropNodeId.value === id) {
+      styles["box-sizing"] = "border-box";
+    }
+    if (hoverNodeId.value === id) styles.border = "solid red 2px";
+    if (dropNodeId.value === id) styles.border = "solid blue 2px";
     return {
       tag,
       data: {
