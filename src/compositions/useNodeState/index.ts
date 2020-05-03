@@ -1,19 +1,20 @@
 import "@/plugins/";
-import clone from "lodash.clonedeep";
 import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node, RouteNodeTree, GetNodeName } from "@/types";
+import { NodeTree, Node, RouteNodeTree } from "@/types";
 import { make, tree } from "fp-ts/lib/Tree";
 import { pipe } from "fp-ts/lib/pipeable";
+import { map, fold, getOrElse } from "fp-ts/lib/Option";
 import {
-  Option,
-  some,
-  none,
-  isNone,
-  map,
-  fold,
-  getOrElse
-} from "fp-ts/lib/Option";
-import { v4 as uuidv4 } from "uuid";
+  cloneNode,
+  findById,
+  findParentById,
+  edit,
+  findChildrenByParentId,
+  remove,
+  add,
+  move
+} from "@/domain/nodes";
+import { useAlias } from "@/compositions/useAlias";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
 const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
   "/": make<Node>(
@@ -184,117 +185,6 @@ const node = computed(() => nodeTree.value[currentRoute.value]);
 type NodeTreeMapper = (node: NodeTree) => NodeTree;
 
 /**
- * IDに対応するノードを検索する
- * @param id 検索対象ノードID
- */
-const findNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
-  tree.value.id === id
-    ? some(clone(tree))
-    : tree.forest.reduce(
-        (before: Option<NodeTree>, current) =>
-          isNone(before) ? findNodeById(id)(current) : before,
-        none
-      );
-
-/**
- * 指定したIDの親要素を返す
- * @param id 子要素のID
- */
-const findParentNodeById = (id: string) => (tree: NodeTree): Option<NodeTree> =>
-  tree.forest.find(node => node.value.id === id)
-    ? some(clone(tree))
-    : tree.forest.reduce(
-        (before: Option<NodeTree>, current) =>
-          isNone(before) ? pipe(current, findParentNodeById(id)) : before,
-        none
-      );
-
-const getNodeName: GetNodeName = ({ name, tag }) => (name ? name : tag);
-
-const cloneNode = (tree: NodeTree): NodeTree => ({
-  value: {
-    ...clone(tree.value),
-    id: uuidv4(),
-    name: `${getNodeName(tree.value)}_copy`
-  },
-  forest: tree.forest.map(cloneNode)
-});
-
-/**
- * 親ノードから子ノードらを検索する
- * @param id 親ノードID
- */
-const _findChildrenByParentId = (id: string) => (tree: NodeTree) =>
-  pipe(
-    tree,
-    findNodeById(id),
-    map(node => node.forest)
-  );
-
-/**
- * ノード情報を変更する
- * @param id 変更対象ノード
- * @param modifier 変更処理
- */
-const _editNode = (id: string, modifier: (node: NodeTree) => NodeTree) => (
-  node: NodeTree
-): NodeTree => {
-  return node.value.id === id
-    ? modifier(clone(node))
-    : {
-        value: clone(node.value),
-        forest: node.forest.map(_editNode(id, modifier))
-      };
-};
-
-/**
- * 指定ノードを削除する
- * @param id 削除対象ノードID
- */
-const _removeNodeById = (id: string) => (treeState: NodeTree): NodeTree => ({
-  value: clone(treeState.value),
-  forest: treeState.forest
-    .filter(i => i.value.id !== id)
-    .map(_removeNodeById(id))
-});
-
-/**
- * 新しいノードをしてしたノードの子要素に追加する
- * @param id 追加先ノードID
- * @param target 追加するノード
- */
-const _addNodeTo = (id: string, target: NodeTree) => (
-  treeState: NodeTree
-): NodeTree =>
-  treeState.value.id === id
-    ? {
-        value: clone(treeState.value),
-        forest: [...clone(treeState.forest), clone(target)]
-      }
-    : {
-        value: clone(treeState.value),
-        forest: treeState.forest.map(_addNodeTo(id, target))
-      };
-
-/**
- * ノードを移動する
- * @param to 移動するノードID
- * @param target 移動先ノードID
- */
-const _moveNodeTo = (to: string, target: string) => (node: NodeTree) => {
-  const targetNode = findNodeById(target)(node);
-  if (isNone(targetNode)) {
-    return node;
-  }
-  const nodeRemoved = _removeNodeById(target)(node);
-  const toNode = findNodeById(to)(nodeRemoved);
-  if (isNone(toNode)) {
-    return node;
-  }
-  return _addNodeTo(to, targetNode.value)(nodeRemoved);
-};
-
-/**
  * 現在のルートのノードツリーを更新する
  * @param nodeValue 更新するノード
  */
@@ -331,16 +221,16 @@ const dragTag = ref("");
 const _copyNode = (id: string) => (tree: NodeTree): void =>
   pipe(
     tree,
-    findNodeById(id),
-    map(cloneNode),
+    findById(id),
+    map(cloneNode()),
     fold(
       () => console.log("target is none"),
       target =>
         effectNode(tree =>
           pipe(
             tree,
-            findParentNodeById(id),
-            map(parent => _addNodeTo(parent.value.id, target)(tree)),
+            findParentById(id),
+            map(parent => add(parent.value.id, target)(tree)),
             getOrElse(() => tree)
           )
         )
@@ -354,12 +244,12 @@ export const useState = () => {
    * @param target 追加するノード
    */
   const addNodeTo = (id: string, target: NodeTree) =>
-    effectNode(_addNodeTo(id, target));
+    effectNode(add(id, target));
   /**
    * ノードをツリーから削除する
    * @param id 削除するノード
    */
-  const removeNodeById = (id: string) => effectNode(_removeNodeById(id));
+  const removeNodeById = (id: string) => effectNode(remove(id));
 
   /**
    * ノードを別ノードの子ノードへ追加する
@@ -367,23 +257,23 @@ export const useState = () => {
    * @param target 移動するノードのID
    */
   const moveNodeTo = (to: string, target: string) =>
-    effectNode(_moveNodeTo(to, target));
+    effectNode(move(to, target));
   /**
    * ノードを変更する
    * @param id 変更対象ノードのID
    * @param modifier 変更処理
    */
   const editNode = (id: string, modifier: NodeTreeMapper) =>
-    effectNode(_editNode(id, modifier));
+    effectNode(pipe(modifier, edit(id)));
 
   /**
    * ノードツリーからIDに相当するノードを検索する
    * @param id 検索対象ID
    */
-  const findById = (id: string) => pipe(node.value, findNodeById(id));
+  const _findById = (id: string) => pipe(node.value, findById(id));
 
-  const findChildrenByParentId = (id: string) =>
-    pipe(node.value, _findChildrenByParentId(id));
+  const _findChildrenByParentId = (id: string) =>
+    pipe(node.value, findChildrenByParentId(id));
 
   /**
    * ルートを追加
@@ -408,8 +298,34 @@ export const useState = () => {
 
   const copyNode = (id: string) => pipe(node.value, _copyNode(id));
 
+  const { create } = useAlias();
+  const dropElement = () => {
+    if (dragTag.value !== "") {
+      addNodeTo(
+        dropNodeId.value,
+        pipe(
+          dragTag.value,
+          create,
+          getOrElse(() =>
+            tree.of<Node>({
+              tag: dragTag.value,
+              id: Math.random().toString(32),
+              text: "default"
+            })
+          )
+        )
+      );
+      dragTag.value = "";
+    }
+    if (dragNodeId.value !== "") {
+      moveNodeTo(dropNodeId.value, dragNodeId.value);
+      dragNodeId.value = "";
+    }
+    dropNodeId.value = "";
+  };
+
   return {
-    findChildrenByParentId,
+    findChildrenByParentId: _findChildrenByParentId,
     currentRoute,
     addNewPath,
     nodeTree,
@@ -418,12 +334,13 @@ export const useState = () => {
     addNodeTo,
     removeNodeById,
     moveNodeTo,
-    findById,
+    findById: _findById,
     editNode,
     dragNodeId,
     hoverNodeId,
     dropNodeId,
     dragTag,
-    copyNode
+    copyNode,
+    dropElement
   };
 };

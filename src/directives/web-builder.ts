@@ -1,10 +1,7 @@
 import { VueConstructor } from "vue";
-import { Ref, watch } from "@vue/composition-api";
-import { NodeTree, Node } from "@/types";
-import { tree } from "fp-ts/lib/Tree";
+import { Ref } from "@vue/composition-api";
 import { fromNullable, map, Option, fold } from "fp-ts/es6/Option";
 import { pipe } from "fp-ts/lib/pipeable";
-
 const stopEvent = (e: MouseEvent) => {
   e.stopPropagation();
   return e;
@@ -55,39 +52,16 @@ const dragLeave = clearEventTargetId;
 const dragStart = updateEventTargetId;
 const dragEnd = clearEventTargetId;
 
-const drop = (
-  dragTag: Ref<string>,
-  dragNodeId: Ref<string>,
-  dropNodeId: Ref<string>,
-  addNodeTo: (to: string, target: NodeTree) => void,
-  moveNodeTo: (to: string, target: string) => void
-) => ($event: MouseEvent) => {
+const drop = (dropElement: () => void) => ($event: MouseEvent) => {
   $event.stopPropagation();
-  if (dragTag.value !== "") {
-    addNodeTo(
-      dropNodeId.value,
-      tree.of<Node>({
-        tag: dragTag.value,
-        id: Math.random().toString(32),
-        text: "default"
-      })
-    );
-    dragTag.value = "";
-  }
-  if (dragNodeId.value !== "") {
-    moveNodeTo(dropNodeId.value, dragNodeId.value);
-    dragNodeId.value = "";
-  }
-  dropNodeId.value = "";
+  dropElement();
 };
 
 export const registerDirective = (
   hoverId: Ref<string>,
   dragId: Ref<string>,
-  dragTag: Ref<string>,
   dropId: Ref<string>,
-  addNodeTo: (to: string, target: NodeTree) => void,
-  moveNodeTo: (to: string, target: string) => void,
+  dropElement: () => void,
   vue: VueConstructor
 ) => {
   const mouseover = mouseOver(hoverId);
@@ -98,11 +72,7 @@ export const registerDirective = (
   const dragover = cancelEvent;
   const dragstart = dragStart(dragId);
   const dragend = dragEnd(dragId);
-  const _drop = drop(dragTag, dragId, dropId, addNodeTo, moveNodeTo);
-  watch(
-    () => dragId.value,
-    v => `dropId = ${v}`
-  );
+  const _drop = drop(dropElement);
   vue.directive("web-builder", {
     bind(el: HTMLElement) {
       el.addEventListener("mouseover", mouseover);
