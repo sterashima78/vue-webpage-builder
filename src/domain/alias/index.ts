@@ -27,7 +27,12 @@ export const isRegist = (name: string) => (alias: NodeAliasMap) =>
   pipe(alias, findByName(name), isSome);
 
 export const create = (name: string) => (alias: NodeAliasMap) =>
-  pipe(alias, findByName(name), map(getNode), map(cloneNode));
+  pipe(
+    alias,
+    findByName(name),
+    map(getNode),
+    map(cloneNode({ name, postfix: "" }))
+  );
 
 export const getAliasNames = (alias: NodeAliasMap): AliasName[] =>
   Object.entries(alias).map(i => i[1].name);

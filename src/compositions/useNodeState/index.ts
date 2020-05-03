@@ -222,7 +222,7 @@ const _copyNode = (id: string) => (tree: NodeTree): void =>
   pipe(
     tree,
     findById(id),
-    map(cloneNode),
+    map(cloneNode()),
     fold(
       () => console.log("target is none"),
       target =>

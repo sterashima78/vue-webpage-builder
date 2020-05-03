@@ -7,14 +7,20 @@ import { make } from "fp-ts/lib/Tree";
 
 const getNodeName: GetNodeName = ({ name, tag }) => (name ? name : tag);
 
-export const cloneNode = (tree: NodeTree): NodeTree => ({
-  value: {
-    ...clone(tree.value),
-    id: uuidv4(),
-    name: `${getNodeName(tree.value)}_copy`
-  },
-  forest: tree.forest.map(cloneNode)
-});
+type CloneOption = { name?: string; postfix?: string };
+export const cloneNode = ({ name, postfix }: CloneOption = {}) => (
+  tree: NodeTree
+): NodeTree =>
+  make<Node>(
+    {
+      ...clone(tree.value),
+      id: uuidv4(),
+      name: `${name === undefined ? getNodeName(tree.value) : name}${
+        postfix === undefined ? "_copy" : postfix
+      }`
+    },
+    tree.forest.map(cloneNode({ postfix }))
+  );
 
 /**
  * IDに対応するノードを検索する
