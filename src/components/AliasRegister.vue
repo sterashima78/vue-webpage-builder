@@ -19,26 +19,39 @@
 <script lang="ts">
 import { defineComponent, computed, ref, PropType } from "@vue/composition-api";
 import { useAlias } from "@/compositions/useAlias";
+import { useState } from "@/compositions/useNodeState";
 import { useTogglable } from "@/compositions/useTogglable";
 import { NodeTree } from "../types";
+import { pipe } from "fp-ts/es6/pipeable";
+import { fold } from "fp-ts/es6/Option";
 export default defineComponent({
   props: {
-    node: {
-      type: Object as PropType<NodeTree>
+    nodeId: {
+      type: String as PropType<string>,
+      default: ""
     }
   },
-  setup(props: { node: NodeTree }) {
+  setup(props: { nodeId: string }) {
     const name = ref("");
+    const { findById } = useState();
     const { regist, isRegist } = useAlias();
     const { isActive, off } = useTogglable();
     return {
       isActive,
       name,
       isRegistered: computed(() => isRegist(name.value)),
-      regist: () => {
-        regist(name.value, props.node);
-        off();
-      }
+      regist: () =>
+        pipe(
+          props.nodeId,
+          findById,
+          fold<NodeTree, void>(
+            () => off(),
+            node => {
+              regist(name.value, node);
+              off();
+            }
+          )
+        )
     };
   }
 });

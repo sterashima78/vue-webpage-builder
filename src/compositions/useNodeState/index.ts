@@ -14,6 +14,7 @@ import {
   add,
   move
 } from "@/domain/nodes";
+import { useAlias } from "@/compositions/useAlias";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
 const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({
   "/": make<Node>(
@@ -297,6 +298,32 @@ export const useState = () => {
 
   const copyNode = (id: string) => pipe(node.value, _copyNode(id));
 
+  const { create } = useAlias();
+  const dropElement = () => {
+    if (dragTag.value !== "") {
+      addNodeTo(
+        dropNodeId.value,
+        pipe(
+          dragTag.value,
+          create,
+          getOrElse(() =>
+            tree.of<Node>({
+              tag: dragTag.value,
+              id: Math.random().toString(32),
+              text: "default"
+            })
+          )
+        )
+      );
+      dragTag.value = "";
+    }
+    if (dragNodeId.value !== "") {
+      moveNodeTo(dropNodeId.value, dragNodeId.value);
+      dragNodeId.value = "";
+    }
+    dropNodeId.value = "";
+  };
+
   return {
     findChildrenByParentId: _findChildrenByParentId,
     currentRoute,
@@ -313,6 +340,7 @@ export const useState = () => {
     hoverNodeId,
     dropNodeId,
     dragTag,
-    copyNode
+    copyNode,
+    dropElement
   };
 };
