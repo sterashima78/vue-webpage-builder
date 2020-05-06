@@ -36,7 +36,7 @@ const treeToString = (node: NodeTree): string => {
       .replace(/([a-z])([A-Z])/g, "$1-$2")
       .toLowerCase()} ${attrToStr(node.value.attributes)} ${styleToStr(
     node.value.style
-  )}>
+  )} ${node.value.slot ? ["slot=", '"', node.value.slot, '"'].join("") : ""}>
       ${node.forest.map(n => treeToString(n)).join("")}
        ${node.value.text ? node.value.text : ""}
     </${node.value.tag.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}>`;

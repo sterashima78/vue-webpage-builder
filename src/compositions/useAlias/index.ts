@@ -8,30 +8,10 @@ import {
 } from "@/domain/alias";
 import { Ref, ref, computed } from "@vue/composition-api";
 import { pipe } from "fp-ts/es6/pipeable";
-import { NodeTree, Node } from "@/types";
-import { make, tree } from "fp-ts/lib/Tree";
+import { NodeTree } from "@/types";
+import { template } from "./initState";
 
-const list = ["default", "primary", "success", "info", "warning", "danger"];
-
-const alias: Ref<NodeAliasMap> = ref({
-  Buttons: {
-    node: make<Node>(
-      {
-        id: "c1",
-        tag: "el-row"
-      },
-      list.map(type =>
-        tree.of({
-          id: `c1-${type}`,
-          tag: "el-button",
-          text: type,
-          attributes: { type }
-        })
-      )
-    ),
-    name: "Buttons"
-  }
-});
+const alias: Ref<NodeAliasMap> = ref(template());
 
 export const useAlias = () => {
   return {
