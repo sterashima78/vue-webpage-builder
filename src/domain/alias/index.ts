@@ -36,3 +36,8 @@ export const create = (name: string) => (alias: NodeAliasMap) =>
 
 export const getAliasNames = (alias: NodeAliasMap): AliasName[] =>
   Object.entries(alias).map(i => i[1].name);
+
+export type AliasDao = {
+  save: (alias: NodeAliasMap) => NodeAliasMap;
+  get: () => NodeAliasMap;
+};

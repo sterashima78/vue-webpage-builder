@@ -86,6 +86,7 @@ import { useState } from "@/compositions/useNodeState";
 import { pipe } from "fp-ts/lib/pipeable";
 import { Forest } from "fp-ts/lib/Tree";
 import { nodeDao } from "@/infrastructure/nodes";
+import { aliasDao } from "@/infrastructure/alias";
 
 export default defineComponent({
   name: "ElementEditor",
@@ -118,7 +119,7 @@ export default defineComponent({
       findById,
       editNode: editNodeById,
       findChildrenByParentId
-    } = useState(nodeDao);
+    } = useState(nodeDao, aliasDao);
     const add = (key: "attributes" | "style") => (
       id: string,
       newAttr: { name: string; val: string }

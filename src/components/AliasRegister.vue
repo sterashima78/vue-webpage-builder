@@ -25,6 +25,7 @@ import { NodeTree } from "../types";
 import { pipe } from "fp-ts/es6/pipeable";
 import { fold } from "fp-ts/es6/Option";
 import { nodeDao } from "@/infrastructure/nodes";
+import { aliasDao } from "@/infrastructure/alias";
 export default defineComponent({
   props: {
     nodeId: {
@@ -34,8 +35,8 @@ export default defineComponent({
   },
   setup(props: { nodeId: string }) {
     const name = ref("");
-    const { findById } = useState(nodeDao);
-    const { regist, isRegist } = useAlias();
+    const { findById } = useState(nodeDao, aliasDao);
+    const { regist, isRegist } = useAlias(aliasDao);
     const { isActive, off } = useTogglable();
     return {
       isActive,

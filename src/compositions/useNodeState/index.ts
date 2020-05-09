@@ -18,6 +18,7 @@ import {
 } from "@/domain/nodes";
 import { useAlias } from "@/compositions/useAlias";
 import { init } from "./initState";
+import { AliasDao } from "@/domain/alias";
 const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({});
 /**
  * 全ルート
@@ -90,7 +91,7 @@ const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
     )
   );
 
-export const useState = (client: NodeDao) => {
+export const useState = (client: NodeDao, aliasDao: AliasDao) => {
   if (Object.keys(nodeTree.value).length === 0)
     nodeTree.value = client.get() || init();
   const effect = effectNode(client);
@@ -143,7 +144,7 @@ export const useState = (client: NodeDao) => {
 
   const copyNode = (id: string) => pipe(node.value, _copyNode(client)(id));
 
-  const { create: createAlias } = useAlias();
+  const { create: createAlias } = useAlias(aliasDao);
   const dropElement = () => {
     if (dragTag.value !== "") {
       addNodeTo(

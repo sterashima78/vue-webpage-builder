@@ -31,7 +31,7 @@ import { defineComponent, ref, Ref } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
 import { nodeDao } from "@/infrastructure/nodes";
-
+import { aliasDao } from "@/infrastructure/alias";
 export default defineComponent({
   name: "Home",
   components: {
@@ -48,7 +48,7 @@ export default defineComponent({
   },
   setup() {
     const { init } = useLocalVue();
-    const { dragTag, currentRoute } = useState(nodeDao);
+    const { dragTag, currentRoute } = useState(nodeDao, aliasDao);
     const components = ref<string[]>([]);
     const routing: any = ref({
       push() {

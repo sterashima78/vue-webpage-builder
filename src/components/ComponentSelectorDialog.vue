@@ -52,6 +52,8 @@ import { useTogglable } from "@/compositions/useTogglable";
 import { useAlias } from "@/compositions/useAlias";
 import DraggableWindow from "./DraggableWindow.vue";
 import tags from "@/tags";
+import { aliasDao } from "@/infrastructure/alias";
+
 export default defineComponent({
   components: {
     DraggableWindow
@@ -63,7 +65,7 @@ export default defineComponent({
     }
   },
   setup(props: { components: string[] }, { emit }) {
-    const { aliases } = useAlias();
+    const { aliases } = useAlias(aliasDao);
     const elements = computed(() =>
       tags
         .map(i => ({ tag: i, icon: "mdi-language-html5", type: "HTML" }))

@@ -1,7 +1,7 @@
 import { RouteNodeTree } from "@/types";
 import { create, createRoot } from "@/domain/nodes";
-import { template } from "@/compositions/useAlias/initState";
-const { SideBar, Buttons, HeaderNav } = template();
+import { init as initAlias } from "@/compositions/useAlias/initState";
+const { SideBar, Buttons, HeaderNav } = initAlias();
 export const init = (): RouteNodeTree => ({
   "/": createRoot([
     create(
