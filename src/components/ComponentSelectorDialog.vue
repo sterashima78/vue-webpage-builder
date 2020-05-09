@@ -13,25 +13,32 @@
     </slot>
     <draggable-window :is-active="isActive">
       <template #title>Components</template>
+      <v-row justify="space-around">
+        <v-checkbox v-model="selectedType" label="HTML" value="HTML" />
+        <v-checkbox v-model="selectedType" label="Vue" value="Vue" />
+        <v-checkbox v-model="selectedType" label="Alias" value="Alias" />
+      </v-row>
       <v-autocomplete
         v-model="keyword"
-        :items="components"
+        :items="autocomplete"
         :search-input.sync="search"
         label="Keyword"
         placeholder="Start typing to Search"
         prepend-icon="mdi-database-search"
       ></v-autocomplete>
-      <div style="height:calc(100% - 50px);overflow-y:scroll;">
+      <div style="height:calc(100% - 100px);overflow-y:scroll;">
         <v-list-item
           v-for="component in filteredComponents"
-          v-text="component"
-          :key="component"
+          :key="component.tag"
           draggable="true"
           @dragstart="dragStart(component)"
           style="cursor: move;"
         >
+          <v-list-item-icon>
+            <v-icon v-text="component.icon" />
+          </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title v-text="component" />
+            <v-list-item-title v-text="component.tag" />
           </v-list-item-content>
         </v-list-item>
       </div>
@@ -58,26 +65,50 @@ export default defineComponent({
   setup(props: { components: string[] }, { emit }) {
     const { aliases } = useAlias();
     const elements = computed(() =>
-      tags.concat(props.components).concat(aliases.value)
+      tags
+        .map(i => ({ tag: i, icon: "mdi-language-html5", type: "HTML" }))
+        .concat(
+          props.components.map(i => ({
+            tag: i,
+            icon: "mdi-vuejs",
+            type: "Vue"
+          }))
+        )
+        .concat(
+          aliases.value.map(i => ({
+            tag: i,
+            icon: "mdi-bookmark",
+            type: "Alias"
+          }))
+        )
     );
     const keyword = ref("");
     const search = ref("");
-    const dragStart = (component: string) => emit("select", component);
+    const selectedType = ref(["Vue", "HTML", "Alias"]);
+    const dragStart = (component: { tag: string }) =>
+      emit("select", component.tag);
+    const filteredByTypeComponents = computed(() =>
+      elements.value.filter(e => selectedType.value.includes(e.type))
+    );
     const filteredComponents = computed(() =>
       search.value === null || search.value === ""
-        ? elements.value
-        : elements.value.filter(i => i.indexOf(search.value) >= 0)
+        ? filteredByTypeComponents.value
+        : filteredByTypeComponents.value.filter(i =>
+            i.tag.match(new RegExp(search.value, "i"))
+          )
     );
     watch(
       () => keyword.value,
       v => (search.value = v)
     );
     return {
+      selectedType,
       ...useTogglable(),
       filteredComponents,
       keyword,
       search,
-      dragStart
+      dragStart,
+      autocomplete: computed(() => elements.value.map(({ tag }) => tag))
     };
   }
 });

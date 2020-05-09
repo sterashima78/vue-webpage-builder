@@ -1,0 +1,29 @@
+{
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "editor.wordWrap": "on",
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
+  "files.insertFinalNewline": true,
+  "editor.renderControlCharacters": true,
+  "breadcrumbs.enabled": true,
+  "files.associations": {
+    ".*lintrc": "json"
+  },
+  "emmet.variables": {
+    "lang": "ja"
+  },
+  "emmet.showAbbreviationSuggestions": true,
+  "emmet.showExpandedAbbreviation": "always",
+  "emmet.includeLanguages": {
+    "vue-html": "html",
+    "vue": "html"
+  },
+  "vetur.experimental.templateInterpolationService": true,
+  "eslint.validate": [
+    {
+      "language": "vue",
+      "autoFix": true
+    }
+  ]
+}

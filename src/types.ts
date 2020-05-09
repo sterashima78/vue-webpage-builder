@@ -36,7 +36,6 @@ export interface NodeData {
   tag: string;
   data: VNodeData;
   children: Array<NodeData | string>;
-  scopedSlotsData: { [slot: string]: NodeData[] };
 }
 
 export interface Resource {
