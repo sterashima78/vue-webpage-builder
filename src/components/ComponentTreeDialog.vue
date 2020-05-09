@@ -50,6 +50,7 @@ import { useState } from "@/compositions/useNodeState";
 import { fold } from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/es6/pipeable";
 import { Node, NodeTree } from "@/types";
+import { nodeDao } from "@/infrastructure/nodes";
 
 interface TreeView {
   id: string;
@@ -77,7 +78,7 @@ export default defineComponent({
       findById,
       editNode: editNodeById,
       copyNode
-    } = useState();
+    } = useState(nodeDao);
     const editNode = ref<Node>({
       id: "",
       tag: "div"

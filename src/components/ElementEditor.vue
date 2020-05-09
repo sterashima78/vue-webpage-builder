@@ -85,6 +85,8 @@ import AttributeEditor from "./AttributeEditor.vue";
 import { useState } from "@/compositions/useNodeState";
 import { pipe } from "fp-ts/lib/pipeable";
 import { Forest } from "fp-ts/lib/Tree";
+import { nodeDao } from "@/infrastructure/nodes";
+
 export default defineComponent({
   name: "ElementEditor",
   components: {
@@ -99,7 +101,9 @@ export default defineComponent({
         tag: "div",
         text: "",
         style: {},
-        attributes: {}
+        attributes: {},
+        slot: "",
+        name: ""
       }),
       required: true
     }
@@ -114,7 +118,7 @@ export default defineComponent({
       findById,
       editNode: editNodeById,
       findChildrenByParentId
-    } = useState();
+    } = useState(nodeDao);
     const add = (key: "attributes" | "style") => (
       id: string,
       newAttr: { name: string; val: string }

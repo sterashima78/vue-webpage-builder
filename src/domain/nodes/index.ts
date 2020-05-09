@@ -1,4 +1,4 @@
-import { NodeTree, GetNodeName, Node } from "@/types";
+import { NodeTree, GetNodeName, Node, RouteNodeTree } from "@/types";
 import clone from "lodash.clonedeep";
 import { Option, some, isNone, none, map } from "fp-ts/es6/Option";
 import { v4 as uuidv4 } from "uuid";
@@ -142,4 +142,9 @@ export const move = (to: string, target: string) => (node: NodeTree) => {
     return node;
   }
   return pipe(nodeRemoved, add(to, targetNode.value));
+};
+
+export type NodeDao = {
+  save: (node: RouteNodeTree) => RouteNodeTree;
+  get: () => RouteNodeTree;
 };

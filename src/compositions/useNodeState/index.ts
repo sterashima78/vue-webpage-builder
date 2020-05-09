@@ -13,11 +13,12 @@ import {
   remove,
   add,
   move,
-  create
+  create,
+  NodeDao
 } from "@/domain/nodes";
 import { useAlias } from "@/compositions/useAlias";
 import { init } from "./initState";
-const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>(init());
+const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({});
 /**
  * 全ルート
  */
@@ -38,15 +39,17 @@ type NodeTreeMapper = (node: NodeTree) => NodeTree;
  * 現在のルートのノードツリーを更新する
  * @param nodeValue 更新するノード
  */
-const updateNode = (nodeValue: NodeTree) =>
-  (nodeTree.value[currentRoute.value] = nodeValue);
+const updateNode = (client: NodeDao) => (nodeValue: NodeTree) => {
+  nodeTree.value[currentRoute.value] = nodeValue;
+  client.save(nodeTree.value);
+};
 
 /**
  * 現在のルートのノードツリーを更新する
  * @param effect ノードを変更する関数
  */
-const effectNode = (effect: NodeTreeMapper) =>
-  pipe(node.value, effect, updateNode);
+const effectNode = (client: NodeDao) => (effect: NodeTreeMapper) =>
+  pipe(node.value, effect, updateNode(client));
 
 /**
  * ドラッグしているノードID
@@ -68,7 +71,7 @@ const dropNodeId = ref("");
  */
 const dragTag = ref("");
 
-const _copyNode = (id: string) => (tree: NodeTree): void =>
+const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
   pipe(
     tree,
     findById(id),
@@ -76,7 +79,7 @@ const _copyNode = (id: string) => (tree: NodeTree): void =>
     fold(
       () => console.log("target is none"),
       target =>
-        effectNode(tree =>
+        effectNode(client)(tree =>
           pipe(
             tree,
             findParentById(id),
@@ -87,34 +90,35 @@ const _copyNode = (id: string) => (tree: NodeTree): void =>
     )
   );
 
-export const useState = () => {
+export const useState = (client: NodeDao) => {
+  if (Object.keys(nodeTree.value).length === 0)
+    nodeTree.value = client.get() || init();
+  const effect = effectNode(client);
   /**
    * ノードをツリーに追加する
    * @param id 追加先ノードのID
    * @param target 追加するノード
    */
-  const addNodeTo = (id: string, target: NodeTree) =>
-    effectNode(add(id, target));
+  const addNodeTo = (id: string, target: NodeTree) => effect(add(id, target));
   /**
    * ノードをツリーから削除する
    * @param id 削除するノード
    */
-  const removeNodeById = (id: string) => effectNode(remove(id));
+  const removeNodeById = (id: string) => effect(remove(id));
 
   /**
    * ノードを別ノードの子ノードへ追加する
    * @param to 移動先ノードのID
    * @param target 移動するノードのID
    */
-  const moveNodeTo = (to: string, target: string) =>
-    effectNode(move(to, target));
+  const moveNodeTo = (to: string, target: string) => effect(move(to, target));
   /**
    * ノードを変更する
    * @param id 変更対象ノードのID
    * @param modifier 変更処理
    */
   const editNode = (id: string, modifier: NodeTreeMapper) =>
-    effectNode(pipe(modifier, edit(id)));
+    effect(pipe(modifier, edit(id)));
 
   /**
    * ノードツリーからIDに相当するノードを検索する
@@ -137,7 +141,7 @@ export const useState = () => {
     };
   };
 
-  const copyNode = (id: string) => pipe(node.value, _copyNode(id));
+  const copyNode = (id: string) => pipe(node.value, _copyNode(client)(id));
 
   const { create: createAlias } = useAlias();
   const dropElement = () => {

@@ -4,6 +4,7 @@ import { createVue } from "./createInstance";
 import { useState } from "@/compositions/useNodeState/";
 import { register } from "@/directives";
 import VueRouter, { Route } from "vue-router";
+import { nodeDao } from "@/infrastructure/nodes";
 
 export type IframeWindow = Window & {
   Vue?: VueConstructor<Vue>;
@@ -13,7 +14,7 @@ export type IframeWindow = Window & {
   router?: VueRouter;
 };
 export const useLocalVue = () => {
-  const { nodeTree, hoverNodeId, dropNodeId, currentRoute } = useState();
+  const { nodeTree, hoverNodeId, dropNodeId, currentRoute } = useState(nodeDao);
   const { renderNode, nodeData } = createRenderer(
     nodeTree,
     hoverNodeId,

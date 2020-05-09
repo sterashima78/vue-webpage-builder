@@ -46,6 +46,8 @@
 <script lang="ts">
 import { defineComponent, ref, PropType } from "@vue/composition-api";
 import { useState } from "@/compositions/useNodeState";
+import { nodeDao } from "@/infrastructure/nodes";
+
 export default defineComponent({
   props: {
     addRoute: {
@@ -61,7 +63,7 @@ export default defineComponent({
     }
   },
   setup(props: { addRoute: (path: string) => void }) {
-    const { addNewPath, allRoute } = useState();
+    const { addNewPath, allRoute } = useState(nodeDao);
     const newPath = ref("");
     const createRoute = () => {
       addNewPath(newPath.value);
