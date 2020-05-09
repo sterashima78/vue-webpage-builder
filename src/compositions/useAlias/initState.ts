@@ -1,18 +1,14 @@
-import { Node } from "@/types";
-import { make, tree } from "fp-ts/lib/Tree";
-
+import { create } from "@/domain/nodes";
 const list = ["default", "primary", "success", "info", "warning", "danger"];
 
 export const template = () => ({
   Buttons: {
-    node: make<Node>(
+    node: create(
       {
-        id: "c1",
         tag: "el-row"
       },
       list.map(type =>
-        tree.of({
-          id: `c1-${type}`,
+        create({
           tag: "el-button",
           text: type,
           attributes: { type }
@@ -23,9 +19,8 @@ export const template = () => ({
   },
   SideBar: {
     name: "SideBar",
-    node: make<Node>(
+    node: create(
       {
-        id: "sidebar",
         tag: "el-aside",
         attributes: {
           width: "200px"
@@ -35,47 +30,40 @@ export const template = () => ({
         }
       },
       [
-        make<Node>(
+        create(
           {
-            id: "side-menu",
             tag: "el-menu"
           },
           [
             ...[1, 2, 3].map(index =>
-              make<Node>(
+              create(
                 {
-                  id: "submenu1",
                   tag: "el-submenu",
                   attributes: {
                     index: `${index}`
                   }
                 },
                 [
-                  tree.of({
-                    id: "submenu1-title",
+                  create({
                     tag: "span",
                     text: `Menu${index}`,
                     slot: "title"
                   }),
-                  make<Node>(
+                  create(
                     {
-                      id: "submenu-group1",
                       tag: "el-menu-item-group"
                     },
                     [
-                      tree.of({
-                        id: "submenu-group1-title",
+                      create({
                         tag: "span",
                         text: "Group1",
                         slot: "title"
                       }),
-                      tree.of({
-                        id: "submenu-group1-item1",
+                      create({
                         tag: "el-menu-item",
                         text: "Option 1"
                       }),
-                      tree.of({
-                        id: "submenu-group1-item2",
+                      create({
                         tag: "el-menu-item",
                         text: "Option 2"
                       })

@@ -2,12 +2,39 @@ import { NodeTree, GetNodeName, Node } from "@/types";
 import clone from "lodash.clonedeep";
 import { Option, some, isNone, none, map } from "fp-ts/es6/Option";
 import { v4 as uuidv4 } from "uuid";
+import merge from "lodash.merge";
 import { pipe } from "fp-ts/es6/pipeable";
 import { make } from "fp-ts/lib/Tree";
 
 const getNodeName: GetNodeName = ({ name, tag }) => (name ? name : tag);
 
 type CloneOption = { name?: string; postfix?: string };
+
+export const create = (
+  nodeOption: Partial<Node>,
+  children: NodeTree[] = []
+): NodeTree =>
+  make<Node>(
+    merge(
+      {
+        id: uuidv4(),
+        tag: "div"
+      },
+      nodeOption
+    ),
+    children
+  );
+export const createRoot = (children: NodeTree[] = []) =>
+  create(
+    {
+      id: "root",
+      style: {
+        height: "100%"
+      }
+    },
+    children
+  );
+
 export const cloneNode = ({ name, postfix }: CloneOption = {}) => (
   tree: NodeTree
 ): NodeTree =>

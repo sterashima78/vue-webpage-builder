@@ -1,10 +1,10 @@
 import "@/plugins/";
 import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, Node, RouteNodeTree } from "@/types";
-import { make, tree } from "fp-ts/lib/Tree";
+import { NodeTree, RouteNodeTree } from "@/types";
 import { pipe } from "fp-ts/lib/pipeable";
 import { map, fold, getOrElse } from "fp-ts/lib/Option";
 import {
+  createRoot,
   cloneNode,
   findById,
   findParentById,
@@ -12,7 +12,8 @@ import {
   findChildrenByParentId,
   remove,
   add,
-  move
+  move,
+  create
 } from "@/domain/nodes";
 import { useAlias } from "@/compositions/useAlias";
 import { init } from "./initState";
@@ -131,34 +132,24 @@ export const useState = () => {
   const addNewPath = (path: string) => {
     if (path in nodeTree.value) return;
     nodeTree.value = {
-      [path]: make<Node>(
-        {
-          id: "root",
-          tag: "div",
-          style: {
-            height: "100%"
-          }
-        },
-        []
-      ),
+      [path]: createRoot(),
       ...nodeTree.value
     };
   };
 
   const copyNode = (id: string) => pipe(node.value, _copyNode(id));
 
-  const { create } = useAlias();
+  const { create: createAlias } = useAlias();
   const dropElement = () => {
     if (dragTag.value !== "") {
       addNodeTo(
         dropNodeId.value,
         pipe(
           dragTag.value,
-          create,
+          createAlias,
           getOrElse(() =>
-            tree.of<Node>({
+            create({
               tag: dragTag.value,
-              id: Math.random().toString(32),
               text: "default"
             })
           )
