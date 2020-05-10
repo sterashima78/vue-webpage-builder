@@ -2,11 +2,9 @@ import { Ref, watchEffect } from "@vue/composition-api";
 import { NodeData, RouteNodeTreeData } from "@/types";
 import { pipe } from "fp-ts/es6/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
-import clone from "lodash.clonedeep";
 import { VueConstructor, VNode, CreateElement } from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
-new VueRouter();
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
@@ -24,7 +22,7 @@ export const createVue = (
   );
   const worker = new Worker();
   const store: { node: RouteNodeTreeData } = Vue.observable({
-    node: clone(nodeData.value)
+    node: nodeData.value
   });
   worker.onmessage = (event: any) => {
     store.node = event.data;
