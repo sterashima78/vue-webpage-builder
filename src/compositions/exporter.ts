@@ -5,8 +5,10 @@ import { useState } from "./useNodeState";
 import { useHtml } from "./useHtml";
 import { NodeTree } from "@/types";
 import pretty from "pretty";
+import { nodeDao } from "@/infrastructure/nodes";
+import { aliasDao } from "@/infrastructure/alias";
 
-const { nodeTree } = useState();
+const { nodeTree } = useState(nodeDao, aliasDao);
 const { styles, scripts, inlineScript } = useHtml();
 
 const attrToStr = (
@@ -36,7 +38,7 @@ const treeToString = (node: NodeTree): string => {
       .replace(/([a-z])([A-Z])/g, "$1-$2")
       .toLowerCase()} ${attrToStr(node.value.attributes)} ${styleToStr(
     node.value.style
-  )}>
+  )} ${node.value.slot ? ["slot=", '"', node.value.slot, '"'].join("") : ""}>
       ${node.forest.map(n => treeToString(n)).join("")}
        ${node.value.text ? node.value.text : ""}
     </${node.value.tag.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}>`;

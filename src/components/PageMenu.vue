@@ -44,8 +44,11 @@
   </v-menu>
 </template>
 <script lang="ts">
-import { defineComponent, ref, PropType } from "@vue/composition-api";
+import { defineComponent, ref, PropType, inject } from "@vue/composition-api";
 import { useState } from "@/compositions/useNodeState";
+import { NodeDaoInjectionKey } from "@/domain/nodes";
+import { AliasDaoInjectionKey } from "@/domain/alias";
+
 export default defineComponent({
   props: {
     addRoute: {
@@ -61,7 +64,12 @@ export default defineComponent({
     }
   },
   setup(props: { addRoute: (path: string) => void }) {
-    const { addNewPath, allRoute } = useState();
+    const nodeDao = inject(NodeDaoInjectionKey);
+    const aliasDao = inject(AliasDaoInjectionKey);
+    if (!nodeDao || !aliasDao) {
+      throw new Error("Dao is not injected");
+    }
+    const { addNewPath, allRoute } = useState(nodeDao, aliasDao);
     const newPath = ref("");
     const createRoute = () => {
       addNewPath(newPath.value);
