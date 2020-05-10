@@ -1,11 +1,11 @@
 import Vue, { VueConstructor } from "vue";
 import { createRenderer } from "./render";
 import { createVue } from "./createInstance";
-import { aliasDao } from "@/infrastructure/alias";
 import { useState } from "@/compositions/useNodeState/";
 import { register } from "@/directives";
 import VueRouter, { Route } from "vue-router";
-import { nodeDao } from "@/infrastructure/nodes";
+import { NodeDao } from "@/domain/nodes";
+import { AliasDao } from "@/domain/alias";
 
 export type IframeWindow = Window & {
   Vue?: VueConstructor<Vue>;
@@ -14,7 +14,7 @@ export type IframeWindow = Window & {
   VueRouter: typeof VueRouter;
   router?: VueRouter;
 };
-export const useLocalVue = () => {
+export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
   const { nodeTree, hoverNodeId, dropNodeId, currentRoute } = useState(
     nodeDao,
     aliasDao
@@ -38,7 +38,7 @@ export const useLocalVue = () => {
           resolve(ret);
         }, 100);
       } else {
-        register(w.Vue);
+        register(w.Vue, nodeDao, aliasDao);
         const { vm, components, router, addRoute } = createVue(
           "#main-wrapper",
           nodeData,

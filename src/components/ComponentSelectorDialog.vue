@@ -46,13 +46,19 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch, computed } from "@vue/composition-api";
+import {
+  defineComponent,
+  ref,
+  watch,
+  computed,
+  inject
+} from "@vue/composition-api";
 import { PropType } from "@vue/composition-api/dist/component/componentProps";
 import { useTogglable } from "@/compositions/useTogglable";
 import { useAlias } from "@/compositions/useAlias";
 import DraggableWindow from "./DraggableWindow.vue";
 import tags from "@/tags";
-import { aliasDao } from "@/infrastructure/alias";
+import { AliasDaoInjectionKey } from "@/domain/alias";
 
 export default defineComponent({
   components: {
@@ -65,6 +71,10 @@ export default defineComponent({
     }
   },
   setup(props: { components: string[] }, { emit }) {
+    const aliasDao = inject(AliasDaoInjectionKey);
+    if (!aliasDao) {
+      throw new Error("dao is not injected");
+    }
     const { aliases } = useAlias(aliasDao);
     const elements = computed(() =>
       tags

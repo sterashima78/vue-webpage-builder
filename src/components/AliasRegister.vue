@@ -17,15 +17,21 @@
   </v-menu>
 </template>
 <script lang="ts">
-import { defineComponent, computed, ref, PropType } from "@vue/composition-api";
+import {
+  defineComponent,
+  computed,
+  ref,
+  PropType,
+  inject
+} from "@vue/composition-api";
 import { useAlias } from "@/compositions/useAlias";
 import { useState } from "@/compositions/useNodeState";
 import { useTogglable } from "@/compositions/useTogglable";
 import { NodeTree } from "../types";
 import { pipe } from "fp-ts/es6/pipeable";
 import { fold } from "fp-ts/es6/Option";
-import { nodeDao } from "@/infrastructure/nodes";
-import { aliasDao } from "@/infrastructure/alias";
+import { NodeDaoInjectionKey } from "@/domain/nodes";
+import { AliasDaoInjectionKey } from "@/domain/alias";
 export default defineComponent({
   props: {
     nodeId: {
@@ -34,6 +40,11 @@ export default defineComponent({
     }
   },
   setup(props: { nodeId: string }) {
+    const nodeDao = inject(NodeDaoInjectionKey);
+    const aliasDao = inject(AliasDaoInjectionKey);
+    if (!nodeDao || !aliasDao) {
+      throw new Error("Dao is not injected");
+    }
     const name = ref("");
     const { findById } = useState(nodeDao, aliasDao);
     const { regist, isRegist } = useAlias(aliasDao);

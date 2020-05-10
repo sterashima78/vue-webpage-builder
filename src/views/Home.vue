@@ -27,11 +27,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref } from "@vue/composition-api";
+import { defineComponent, ref, Ref, inject } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
-import { nodeDao } from "@/infrastructure/nodes";
-import { aliasDao } from "@/infrastructure/alias";
+import { NodeDaoInjectionKey } from "@/domain/nodes";
+import { AliasDaoInjectionKey } from "@/domain/alias";
 export default defineComponent({
   name: "Home",
   components: {
@@ -47,7 +47,12 @@ export default defineComponent({
     PreviewDialog: () => import("@/components/PreviewDialog.vue")
   },
   setup() {
-    const { init } = useLocalVue();
+    const nodeDao = inject(NodeDaoInjectionKey);
+    const aliasDao = inject(AliasDaoInjectionKey);
+    if (!nodeDao || !aliasDao) {
+      throw new Error("Dao is not injected");
+    }
+    const { init } = useLocalVue(nodeDao, aliasDao);
     const { dragTag, currentRoute } = useState(nodeDao, aliasDao);
     const components = ref<string[]>([]);
     const routing: any = ref({
