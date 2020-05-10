@@ -1,10 +1,11 @@
-import { NodeTree, GetNodeName, Node } from "@/types";
+import { NodeTree, GetNodeName, Node, RouteNodeTree } from "@/types";
 import clone from "lodash.clonedeep";
 import { Option, some, isNone, none, map } from "fp-ts/es6/Option";
 import { v4 as uuidv4 } from "uuid";
 import merge from "lodash.merge";
 import { pipe } from "fp-ts/es6/pipeable";
 import { make } from "fp-ts/lib/Tree";
+import { InjectionKey } from "@vue/composition-api";
 
 const getNodeName: GetNodeName = ({ name, tag }) => (name ? name : tag);
 
@@ -143,3 +144,12 @@ export const move = (to: string, target: string) => (node: NodeTree) => {
   }
   return pipe(nodeRemoved, add(to, targetNode.value));
 };
+
+export type NodeDao = {
+  save: (node: RouteNodeTree) => RouteNodeTree;
+  get: () => RouteNodeTree;
+};
+
+export const NodeDaoInjectionKey: InjectionKey<NodeDao> = Symbol(
+  "NodeDaoInjectionKey"
+);

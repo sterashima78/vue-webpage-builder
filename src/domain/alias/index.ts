@@ -2,6 +2,7 @@ import { NodeTree } from "@/types";
 import { fromNullable, map, isSome } from "fp-ts/es6/Option";
 import { cloneNode } from "@/domain/nodes";
 import { pipe } from "fp-ts/es6/pipeable";
+import { InjectionKey } from "@vue/composition-api";
 
 export type NodeAlias = {
   node: NodeTree;
@@ -36,3 +37,12 @@ export const create = (name: string) => (alias: NodeAliasMap) =>
 
 export const getAliasNames = (alias: NodeAliasMap): AliasName[] =>
   Object.entries(alias).map(i => i[1].name);
+
+export type AliasDao = {
+  save: (alias: NodeAliasMap) => NodeAliasMap;
+  get: () => NodeAliasMap;
+};
+
+export const AliasDaoInjectionKey: InjectionKey<AliasDao> = Symbol(
+  "AliasDaoInjectionKey"
+);

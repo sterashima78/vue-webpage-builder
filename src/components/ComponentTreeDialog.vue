@@ -42,7 +42,7 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, computed, ref } from "@vue/composition-api";
+import { defineComponent, computed, ref, inject } from "@vue/composition-api";
 import DraggableWindow from "./DraggableWindow.vue";
 import ElementEditor from "./ElementEditor.vue";
 import { useTogglable } from "@/compositions/useTogglable";
@@ -50,6 +50,8 @@ import { useState } from "@/compositions/useNodeState";
 import { fold } from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/es6/pipeable";
 import { Node, NodeTree } from "@/types";
+import { NodeDaoInjectionKey } from "@/domain/nodes";
+import { AliasDaoInjectionKey } from "@/domain/alias";
 
 interface TreeView {
   id: string;
@@ -70,6 +72,11 @@ export default defineComponent({
     AliasRegister: () => import("./AliasRegister.vue")
   },
   setup() {
+    const nodeDao = inject(NodeDaoInjectionKey);
+    const aliasDao = inject(AliasDaoInjectionKey);
+    if (!nodeDao || !aliasDao) {
+      throw new Error("Dao is not injected");
+    }
     const { on, off, isActive: editorIsActive } = useTogglable();
     const {
       node,
@@ -77,7 +84,7 @@ export default defineComponent({
       findById,
       editNode: editNodeById,
       copyNode
-    } = useState();
+    } = useState(nodeDao, aliasDao);
     const editNode = ref<Node>({
       id: "",
       tag: "div"

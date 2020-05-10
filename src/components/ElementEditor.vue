@@ -77,7 +77,12 @@
   </v-card>
 </template>
 <script lang="ts">
-import { defineComponent, PropType, computed } from "@vue/composition-api";
+import {
+  defineComponent,
+  PropType,
+  computed,
+  inject
+} from "@vue/composition-api";
 import { Node, NodeTree } from "@/types";
 import { isNone, getOrElse } from "fp-ts/lib/Option";
 import SortableList from "./SortableList.vue";
@@ -85,6 +90,9 @@ import AttributeEditor from "./AttributeEditor.vue";
 import { useState } from "@/compositions/useNodeState";
 import { pipe } from "fp-ts/lib/pipeable";
 import { Forest } from "fp-ts/lib/Tree";
+import { NodeDaoInjectionKey } from "@/domain/nodes";
+import { AliasDaoInjectionKey } from "@/domain/alias";
+
 export default defineComponent({
   name: "ElementEditor",
   components: {
@@ -99,7 +107,9 @@ export default defineComponent({
         tag: "div",
         text: "",
         style: {},
-        attributes: {}
+        attributes: {},
+        slot: "",
+        name: ""
       }),
       required: true
     }
@@ -110,11 +120,16 @@ export default defineComponent({
     },
     { emit }
   ) {
+    const nodeDao = inject(NodeDaoInjectionKey);
+    const aliasDao = inject(AliasDaoInjectionKey);
+    if (!nodeDao || !aliasDao) {
+      throw new Error("Dao is not injected");
+    }
     const {
       findById,
       editNode: editNodeById,
       findChildrenByParentId
-    } = useState();
+    } = useState(nodeDao, aliasDao);
     const add = (key: "attributes" | "style") => (
       id: string,
       newAttr: { name: string; val: string }

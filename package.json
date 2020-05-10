@@ -19,6 +19,7 @@
     "lodash.merge": "^4.6.2",
     "pretty": "^2.0.0",
     "register-service-worker": "^1.6.2",
+    "store2": "^2.11.1",
     "uuid": "^7.0.3",
     "vue": "^2.6.11",
     "vue-draggable-resizable": "^2.1.0",

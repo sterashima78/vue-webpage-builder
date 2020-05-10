@@ -5,8 +5,10 @@ import { useState } from "./useNodeState";
 import { useHtml } from "./useHtml";
 import { NodeTree } from "@/types";
 import pretty from "pretty";
+import { nodeDao } from "@/infrastructure/nodes";
+import { aliasDao } from "@/infrastructure/alias";
 
-const { nodeTree } = useState();
+const { nodeTree } = useState(nodeDao, aliasDao);
 const { styles, scripts, inlineScript } = useHtml();
 
 const attrToStr = (

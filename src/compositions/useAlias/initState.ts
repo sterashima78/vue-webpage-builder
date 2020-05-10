@@ -61,7 +61,7 @@ const DropDownMenu = () =>
       )
     ]
   );
-export const template = () => ({
+export const init = () => ({
   DropDownMenu: {
     name: "DropDownMenu",
     node: DropDownMenu()
