@@ -26,21 +26,29 @@
         placeholder="Start typing to Search"
         prepend-icon="mdi-database-search"
       ></v-autocomplete>
-      <div style="height:calc(100% - 100px);overflow-y:scroll;">
-        <v-list-item
-          v-for="component in filteredComponents"
-          :key="component.tag"
-          draggable="true"
-          @dragstart="dragStart(component)"
-          style="cursor: move;"
-        >
-          <v-list-item-icon>
-            <v-icon v-text="component.icon" />
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title v-text="component.tag" />
-          </v-list-item-content>
-        </v-list-item>
+      <div
+        ref="wrapper"
+        style="height:calc(100% - 100px);overflow-y:scroll;"
+        @scroll="handleScroll($event.currentTarget.scrollTop)"
+      >
+        <div :style="innerStyle">
+          <div :style="listContainerStyle">
+            <v-list-item
+              v-for="component in displayedComponents"
+              :key="component.tag"
+              draggable="true"
+              @dragstart="dragStart(component)"
+              style="cursor: move;"
+            >
+              <v-list-item-icon>
+                <v-icon v-text="component.icon" />
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title v-text="component.tag" />
+              </v-list-item-content>
+            </v-list-item>
+          </div>
+        </div>
       </div>
     </draggable-window>
   </div>
@@ -51,14 +59,36 @@ import {
   ref,
   watch,
   computed,
-  inject
+  inject,
+  PropType,
+  onMounted
 } from "@vue/composition-api";
-import { PropType } from "@vue/composition-api/dist/component/componentProps";
 import { useTogglable } from "@/compositions/useTogglable";
 import { useAlias } from "@/compositions/useAlias";
 import DraggableWindow from "./DraggableWindow.vue";
 import tags from "@/tags";
 import { AliasDaoInjectionKey } from "@/domain/alias";
+
+const itemHeight = 56;
+interface ResizeObserverCallback {
+  (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
+}
+
+interface ResizeObserverEntry {
+  readonly target: Element;
+  readonly contentRect: DOMRectReadOnly;
+}
+
+interface ResizeObserver {
+  observe(target: Element): void;
+  unobserve(target: Element): void;
+  disconnect(): void;
+}
+
+declare const ResizeObserver: {
+  prototype: ResizeObserver;
+  new (callback: ResizeObserverCallback): ResizeObserver;
+};
 
 export default defineComponent({
   components: {
@@ -71,6 +101,22 @@ export default defineComponent({
     }
   },
   setup(props: { components: string[] }, { emit }) {
+    const wrapper = ref<HTMLElement | null>(null);
+    const wrapperHeight = ref(500);
+    const scrollPosition = ref(0);
+    const itemNum = computed(
+      () => Math.floor(wrapperHeight.value / itemHeight) + 2
+    );
+    const itemIndex = computed(() =>
+      Math.floor(scrollPosition.value / itemHeight)
+    );
+    onMounted(() => {
+      if (!wrapper.value) return;
+      new ResizeObserver(([{ target }]) => {
+        wrapperHeight.value = target.clientHeight;
+      }).observe(wrapper.value);
+      wrapperHeight.value = wrapper.value.clientHeight;
+    });
     const aliasDao = inject(AliasDaoInjectionKey);
     if (!aliasDao) {
       throw new Error("dao is not injected");
@@ -109,6 +155,12 @@ export default defineComponent({
             i.tag.match(new RegExp(search.value, "i"))
           )
     );
+    const displayedComponents = computed(() =>
+      filteredComponents.value.slice(
+        itemIndex.value,
+        itemIndex.value + itemNum.value
+      )
+    );
     watch(
       () => keyword.value,
       v => (search.value = v)
@@ -116,11 +168,24 @@ export default defineComponent({
     return {
       selectedType,
       ...useTogglable(),
-      filteredComponents,
+      displayedComponents,
       keyword,
       search,
       dragStart,
-      autocomplete: computed(() => elements.value.map(({ tag }) => tag))
+      autocomplete: computed(() => elements.value.map(({ tag }) => tag)),
+      wrapper,
+      handleScroll: (scroll: number) => {
+        scrollPosition.value = scroll;
+      },
+      innerStyle: computed(() => ({
+        height: `${filteredComponents.value.length * itemHeight}px`
+      })),
+      listContainerStyle: computed(() => ({
+        margin: "0px",
+        padding: "0px",
+        position: "relative",
+        top: `${itemIndex.value * itemHeight}px`
+      }))
     };
   }
 });
