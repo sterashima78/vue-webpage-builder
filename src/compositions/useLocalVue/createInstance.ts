@@ -1,11 +1,10 @@
-import { Ref, watch } from "@vue/composition-api";
+import { Ref, watchEffect } from "@vue/composition-api";
 import { NodeData, RouteNodeTreeData } from "@/types";
 import { pipe } from "fp-ts/es6/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
-import clone from "lodash.clonedeep";
 import { VueConstructor, VNode, CreateElement } from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
-new VueRouter();
+import Worker from "worker-loader!./cloneObject.worker";
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
@@ -21,8 +20,15 @@ export const createVue = (
     map(i => Object.keys(i)),
     getOrElse(() => [] as string[])
   );
-  const store = Vue.observable({ node: clone(nodeData.value) });
-  watch(nodeData, v => (store.node = clone(v)));
+  const worker = new Worker();
+  const store: { node: RouteNodeTreeData } = Vue.observable({
+    node: nodeData.value
+  });
+  worker.onmessage = (event: any) => {
+    store.node = event.data;
+  };
+  worker.postMessage(nodeData.value);
+  watchEffect(() => worker.postMessage(nodeData.value));
   const CustomVue = VueOption ? Vue.extend(VueOption) : Vue;
   const routes: RouteConfig[] = Object.keys(store.node).map(path => ({
     path,

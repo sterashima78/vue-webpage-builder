@@ -1,45 +1,13 @@
-import { Ref, computed } from "@vue/composition-api";
-import { NodeTree, NodeData, RouteNodeTree, RouteNodeTreeData } from "@/types";
-import clone from "lodash.clonedeep";
+import { Ref, computed, ref, watch } from "@vue/composition-api";
+import { NodeData, RouteNodeTree, RouteNodeTreeData } from "@/types";
 import { CreateElement, VNode } from "vue";
-
+import Worker from "worker-loader!./createNodeData.worker";
+import throttle from "lodash.throttle";
 export const createRenderer = (
   node: Ref<RouteNodeTree>,
   hoverNodeId: Ref<string>,
   dropNodeId: Ref<string>
 ) => {
-  const toNodeData = (tree: NodeTree): NodeData => {
-    const { tag, text, id, attributes, style, classes, slot } = clone(
-      tree.value
-    );
-    const texts = text ? [text] : [];
-    const styles = style || {};
-    const children = tree.forest;
-    if (hoverNodeId.value === id || dropNodeId.value === id) {
-      styles["box-sizing"] = "border-box";
-    }
-    if (hoverNodeId.value === id) styles.border = "solid red 2px";
-    if (dropNodeId.value === id) styles.border = "solid blue 2px";
-    return {
-      tag,
-      data: {
-        attrs: {
-          id,
-          draggable: true
-        },
-        directives: [
-          {
-            name: "web-builder"
-          }
-        ],
-        props: attributes,
-        style: styles,
-        class: classes,
-        slot
-      },
-      children: [...children.map(toNodeData), ...texts]
-    };
-  };
   const renderNode = (
     h: CreateElement,
     { tag, data, children }: NodeData
@@ -51,13 +19,24 @@ export const createRenderer = (
       },
       children.map(i => (typeof i === "string" ? i : renderNode(h, i)))
     );
-
-  const nodeData = computed(() =>
-    Object.keys(node.value).reduce((data, key) => {
-      data[key] = toNodeData(node.value[key]);
-      return data;
-    }, {} as RouteNodeTreeData)
+  const _nodeData = ref<RouteNodeTreeData>({});
+  const nodeData = computed(() => _nodeData.value);
+  const worker = new Worker();
+  worker.onmessage = (event: any) => {
+    _nodeData.value = event.data;
+  };
+  const sendMsg = throttle(
+    () =>
+      worker.postMessage({
+        hoverNodeId: hoverNodeId.value,
+        dropNodeId: dropNodeId.value,
+        node: node.value
+      }),
+    16
   );
+  watch(() => node.value, sendMsg);
+  watch(() => hoverNodeId.value, sendMsg);
+  watch(() => dropNodeId.value, sendMsg);
   return {
     renderNode,
     nodeData
