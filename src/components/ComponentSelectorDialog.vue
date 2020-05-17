@@ -7,9 +7,14 @@
       :toggle="toggle"
       :is-active="isActive"
     >
-      <v-btn icon @click="toggle">
-        <v-icon>view_quilt</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on: tooltip }">
+          <v-btn dark icon v-on="{ ...tooltip, click: toggle }">
+            <v-icon>view_quilt</v-icon>
+          </v-btn>
+        </template>
+        <span>New Components</span>
+      </v-tooltip>
     </slot>
     <draggable-window :is-active="isActive">
       <template #title>Components</template>

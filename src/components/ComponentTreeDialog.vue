@@ -1,9 +1,14 @@
 <template>
   <div>
     <slot name="activator" :toggle="toggle">
-      <v-btn icon @click="toggle">
-        <v-icon>format_list_bulleted</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on: tooltip }">
+          <v-btn dark icon v-on="{ ...tooltip, click: toggle }">
+            <v-icon>format_list_bulleted</v-icon>
+          </v-btn>
+        </template>
+        <span>Component Tree</span>
+      </v-tooltip>
     </slot>
     <draggable-window :is-active="isActive">
       <template #title>Componet Tree</template>

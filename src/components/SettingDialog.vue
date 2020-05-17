@@ -1,9 +1,14 @@
 <template>
   <div>
     <slot name="activator" :open="on">
-      <v-btn icon @click="on">
-        <v-icon>settings</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on: tooltip }">
+          <v-btn dark icon v-on="{ ...tooltip, click: on }">
+            <v-icon>settings</v-icon>
+          </v-btn>
+        </template>
+        <span>Setting</span>
+      </v-tooltip>
     </slot>
     <v-dialog
       v-model="isActive"
