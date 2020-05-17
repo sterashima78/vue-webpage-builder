@@ -2,9 +2,14 @@
   <v-menu offset-y>
     <template #activator="{ on }">
       <slot name="activator" :on="on">
-        <v-btn icon v-on="on">
-          <v-icon>mdi-text-box-multiple-outline</v-icon>
-        </v-btn>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on: tooltip }">
+            <v-btn dark icon v-on="{ ...tooltip, ...on }">
+              <v-icon>mdi-text-box-multiple-outline</v-icon>
+            </v-btn>
+          </template>
+          <span>Page</span>
+        </v-tooltip>
       </slot>
     </template>
     <v-list>

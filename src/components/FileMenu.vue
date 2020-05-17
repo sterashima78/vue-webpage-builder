@@ -2,9 +2,14 @@
   <v-menu offset-y bottom left>
     <template v-slot:activator="{ on }">
       <slot name="activator" :on="on">
-        <v-btn dark icon v-on="on">
-          <v-icon>mdi-file-download-outline</v-icon>
-        </v-btn>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on: tooltip }">
+            <v-btn dark icon v-on="{ ...tooltip, ...on }">
+              <v-icon>mdi-file-download-outline</v-icon>
+            </v-btn>
+          </template>
+          <span>Export / Import</span>
+        </v-tooltip>
       </slot>
     </template>
 
