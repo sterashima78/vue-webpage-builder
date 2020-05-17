@@ -68,27 +68,8 @@ import { useAlias } from "@/compositions/useAlias";
 import DraggableWindow from "./DraggableWindow.vue";
 import tags from "@/tags";
 import { AliasDaoInjectionKey } from "@/domain/alias";
-
+import { useVirtualScroll } from "@/compositions/useVirtualScroll";
 const itemHeight = 56;
-interface ResizeObserverCallback {
-  (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
-}
-
-interface ResizeObserverEntry {
-  readonly target: Element;
-  readonly contentRect: DOMRectReadOnly;
-}
-
-interface ResizeObserver {
-  observe(target: Element): void;
-  unobserve(target: Element): void;
-  disconnect(): void;
-}
-
-declare const ResizeObserver: {
-  prototype: ResizeObserver;
-  new (callback: ResizeObserverCallback): ResizeObserver;
-};
 
 export default defineComponent({
   components: {
@@ -102,21 +83,6 @@ export default defineComponent({
   },
   setup(props: { components: string[] }, { emit }) {
     const wrapper = ref<HTMLElement | null>(null);
-    const wrapperHeight = ref(500);
-    const scrollPosition = ref(0);
-    const itemNum = computed(
-      () => Math.floor(wrapperHeight.value / itemHeight) + 2
-    );
-    const itemIndex = computed(() =>
-      Math.floor(scrollPosition.value / itemHeight)
-    );
-    onMounted(() => {
-      if (!wrapper.value) return;
-      new ResizeObserver(([{ target }]) => {
-        wrapperHeight.value = target.clientHeight;
-      }).observe(wrapper.value);
-      wrapperHeight.value = wrapper.value.clientHeight;
-    });
     const aliasDao = inject(AliasDaoInjectionKey);
     if (!aliasDao) {
       throw new Error("dao is not injected");
@@ -155,12 +121,6 @@ export default defineComponent({
             i.tag.match(new RegExp(search.value, "i"))
           )
     );
-    const displayedComponents = computed(() =>
-      filteredComponents.value.slice(
-        itemIndex.value,
-        itemIndex.value + itemNum.value
-      )
-    );
     watch(
       () => keyword.value,
       v => (search.value = v)
@@ -168,24 +128,12 @@ export default defineComponent({
     return {
       selectedType,
       ...useTogglable(),
-      displayedComponents,
       keyword,
       search,
       dragStart,
       autocomplete: computed(() => elements.value.map(({ tag }) => tag)),
       wrapper,
-      handleScroll: (scroll: number) => {
-        scrollPosition.value = scroll;
-      },
-      innerStyle: computed(() => ({
-        height: `${filteredComponents.value.length * itemHeight}px`
-      })),
-      listContainerStyle: computed(() => ({
-        margin: "0px",
-        padding: "0px",
-        position: "relative",
-        top: `${itemIndex.value * itemHeight}px`
-      }))
+      ...useVirtualScroll(onMounted, filteredComponents, wrapper, itemHeight)
     };
   }
 });
