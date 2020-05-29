@@ -33,5 +33,13 @@ module.exports = {
   ],
   markdown: {
     breaks: true
-  }
+  },
+  plugins: [
+    [
+      '@vuepress/google-analytics',
+      {
+        'ga': 'G-92W50F4F28'
+      }
+    ]
+  ]
 }
