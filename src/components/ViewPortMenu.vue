@@ -2,9 +2,14 @@
   <v-menu offset-y :close-on-content-click="false">
     <template #activator="{ on }">
       <slot name="activator" :on="on">
-        <v-btn icon v-on="on">
-          <v-icon>mdi-devices</v-icon>
-        </v-btn>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on: tooltip }">
+            <v-btn dark icon v-on="{ ...on, ...tooltip }">
+              <v-icon>mdi-devices</v-icon>
+            </v-btn>
+          </template>
+          <span>Viewport</span>
+        </v-tooltip>
       </slot>
     </template>
     <v-list>

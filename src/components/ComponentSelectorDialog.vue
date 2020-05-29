@@ -7,9 +7,14 @@
       :toggle="toggle"
       :is-active="isActive"
     >
-      <v-btn icon @click="toggle">
-        <v-icon>view_quilt</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on: tooltip }">
+          <v-btn dark icon v-on="{ ...tooltip, click: toggle }">
+            <v-icon>view_quilt</v-icon>
+          </v-btn>
+        </template>
+        <span>New Components</span>
+      </v-tooltip>
     </slot>
     <draggable-window :is-active="isActive">
       <template #title>Components</template>
@@ -26,21 +31,29 @@
         placeholder="Start typing to Search"
         prepend-icon="mdi-database-search"
       ></v-autocomplete>
-      <div style="height:calc(100% - 100px);overflow-y:scroll;">
-        <v-list-item
-          v-for="component in filteredComponents"
-          :key="component.tag"
-          draggable="true"
-          @dragstart="dragStart(component)"
-          style="cursor: move;"
-        >
-          <v-list-item-icon>
-            <v-icon v-text="component.icon" />
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title v-text="component.tag" />
-          </v-list-item-content>
-        </v-list-item>
+      <div
+        ref="wrapper"
+        style="height:calc(100% - 100px);overflow-y:scroll;"
+        @scroll="handleScroll($event.currentTarget.scrollTop)"
+      >
+        <div :style="innerStyle">
+          <div :style="listContainerStyle">
+            <v-list-item
+              v-for="component in displayedComponents"
+              :key="component.tag"
+              draggable="true"
+              @dragstart="dragStart(component)"
+              style="cursor: move;"
+            >
+              <v-list-item-icon>
+                <v-icon v-text="component.icon" />
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title v-text="component.tag" />
+              </v-list-item-content>
+            </v-list-item>
+          </div>
+        </div>
       </div>
     </draggable-window>
   </div>
@@ -51,14 +64,17 @@ import {
   ref,
   watch,
   computed,
-  inject
+  inject,
+  PropType,
+  onMounted
 } from "@vue/composition-api";
-import { PropType } from "@vue/composition-api/dist/component/componentProps";
 import { useTogglable } from "@/compositions/useTogglable";
 import { useAlias } from "@/compositions/useAlias";
 import DraggableWindow from "./DraggableWindow.vue";
 import tags from "@/tags";
 import { AliasDaoInjectionKey } from "@/domain/alias";
+import { useVirtualScroll } from "@/compositions/useVirtualScroll";
+const itemHeight = 56;
 
 export default defineComponent({
   components: {
@@ -71,6 +87,7 @@ export default defineComponent({
     }
   },
   setup(props: { components: string[] }, { emit }) {
+    const wrapper = ref<HTMLElement | null>(null);
     const aliasDao = inject(AliasDaoInjectionKey);
     if (!aliasDao) {
       throw new Error("dao is not injected");
@@ -116,11 +133,12 @@ export default defineComponent({
     return {
       selectedType,
       ...useTogglable(),
-      filteredComponents,
       keyword,
       search,
       dragStart,
-      autocomplete: computed(() => elements.value.map(({ tag }) => tag))
+      autocomplete: computed(() => elements.value.map(({ tag }) => tag)),
+      wrapper,
+      ...useVirtualScroll(onMounted, filteredComponents, wrapper, itemHeight)
     };
   }
 });

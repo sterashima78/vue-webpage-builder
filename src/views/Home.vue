@@ -1,6 +1,11 @@
 <template>
   <div style="height: 100%">
     <v-app-bar color="deep-purple accent-4" dense dark>
+      <img
+        width="25px"
+        style="margin-right: 20px"
+        src="@/../docs/.vuepress/public/logo.png"
+      />
       <v-toolbar-title>Vue Webpage Builder</v-toolbar-title>
       <v-spacer></v-spacer>
       <ComponentTreeDialog />
