@@ -9,11 +9,14 @@ import { NodeDaoInjectionKey } from "@/domain/nodes";
 import { AliasDaoInjectionKey } from "@/domain/alias";
 import { nodeDao } from "@/infrastructure/nodes";
 import { aliasDao } from "@/infrastructure/alias";
-import VueAnalytics from "vue-analytics";
-Vue.use(VueAnalytics, {
-  id: "G-1SHXMWCJW1",
+import VueGtag from "vue-gtag";
+Vue.use(
+  VueGtag,
+  {
+    config: { id: "G-1SHXMWCJW1" }
+  },
   router
-});
+);
 register(Vue, nodeDao, aliasDao);
 Vue.config.productionTip = false;
 

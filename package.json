@@ -1,6 +1,6 @@
 {
   "name": "vue-webpage-builder",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -25,6 +25,7 @@
     "store2": "^2.11.1",
     "uuid": "^7.0.3",
     "vue": "^2.6.11",
+    "vue-gtag": "^1.6.2",
     "vue-iframe-sandbox": "^0.1.4",
     "vue-router": "^3.1.5",
     "vuetify": "^2.2.11"
@@ -63,7 +64,6 @@
     "sass": "^1.25.0",
     "sass-loader": "^8.0.2",
     "typescript": "~3.7.5",
-    "vue-analytics": "^5.22.1",
     "vue-cli-plugin-vuetify": "~2.0.5",
     "vue-template-compiler": "^2.6.11",
     "vuepress": "^1.5.0",
