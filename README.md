@@ -1,117 +1,25 @@
 # vue-webpage-builder
 
+<p align="center">
+  <a href="https://sterashima78.github.io/vue-webpage-builder/" target="_blank">
+    <img width="180" src="https://raw.githubusercontent.com/sterashima78/vue-webpage-builder/master/docs/.vuepress/public/logo.png" alt="logo">
+  </a>
+</p>
+
+
 ## Motivation
 
 StoryBook などの、デザインコンポーネントを構築するシステムの利用が広がりを見せる一方で、
 それを組み合わせてウェブページを作る仕組みが整備されていないと感じたため作ろうと思った
 
-## Usage
+## Try
 
-### 画面構成
+https://sterashima78.github.io/vue-webpage-builder
 
-<img src="https://user-images.githubusercontent.com/45279563/77163594-bf750000-6af1-11ea-841b-8554a9207017.png" width="600px">
+## Document
 
-1. ツリービューを開く
-2. エレメントビューを開く
-3. 設定パネルを開く
-4. エクスポート・インポートメニューを開く
-5. キャンバス
+https://sterashima78.github.io/vue-webpage-builder/docs
 
-#### 1. ツリービュー
-
-ヘッダーのアイコンをクリックすることでツリービューが開閉できる。
-
-<img src="https://user-images.githubusercontent.com/45279563/77163791-3611fd80-6af2-11ea-8f4e-f4bb8ee82f87.png" width="600px">
-
-ツリービューにはキャンバスに表示されているエレメントがツリー状に表示されている。
-エレメントの位置変更や削除ができる
-
-#### 2. エレメントビュー
-
-ヘッダーのアイコンをクリックすることでエレメントビューが開閉できる。
-
-<img src="https://user-images.githubusercontent.com/45279563/77164058-cea87d80-6af2-11ea-85cb-1b592b3c89c8.png" width="600px">
-
-エレメントビューには、HTML エレメントと、Vue にグローバルに登録されているカスタムコンポーネントの一覧が表示されている。
-表示されているエレメントをキャンバスに追加できる。
-
-#### 3. 設定パネル
-
-ヘッダーのアイコンをクリックすることで設定パネルが開く。
-
-<img src="https://user-images.githubusercontent.com/45279563/77164249-33fc6e80-6af3-11ea-9ce2-630ea6054e1c.png" width="600px">
-
-設定パネルでは以下ができる。
-
-- キャンバスに読み込む外部 JavaScript を設定
-  - 画像では element-ui ライブラリをロードしている
-- キャンバスに読み込む外部 CSS を設定
-  - 画像では element-ui ライブラリをロードしている
-- キャンバスの script タグ内で実行するインライン JavaScript を設定
-  - キャンバスの Vue インスタンスが作成された後に実行したい処理は `createdVue` イベントのコールバック内で実行する
-
-#### 4. エクスポート・インポートメニュー
-
-ヘッダーのアイコンをクリックすることでエクスポート・インポートメニューが開く。
-
-<img src="https://user-images.githubusercontent.com/45279563/77164528-d583c000-6af3-11ea-9b00-8255960bd789.png" width="600px">
-
-エクスポート・インポートメニューでは以下ができる。
-
-1. キャンバスに表示されている状態を再現する HTML ファイルをダウンロードする
-2. 現在のプロジェクトの状態を JSON ファイルに保存する
-3. 2 で保存した JSON ファイルをアップロードしてプロジェクトの状態をリストアする
-
-#### 5. キャンバス
-
-キャンバスにはエレメントが配置される。
-
-ホバーされたエレメントは 赤いボーダーで囲まれる。
-
-ドラッグすることで、ほかのエレメントの子要素にできる。
-
-親要素となるエレメントは青いボーダーで囲まれる。
-
-### 基本的な操作
-
-#### キャンバス上のエレメントの移動
-
-<img src="https://user-images.githubusercontent.com/45279563/77165219-365fc800-6af5-11ea-9b72-a478a6be6656.gif" width="600px">
-
-#### キャンバス上エレメントとツリービュー上エレメントの移動
-
-ツリービュー上エレメントとキャンバス上のエレメントは同一のものとして扱える。
-
-つまり、ツリービュー上エレメントをキャンバス上のエレメントへドロップできるし、その逆もできる。
-
-エレメントはツリービューからのみ削除ができる。
-
-<img src="https://user-images.githubusercontent.com/45279563/77165321-627b4900-6af5-11ea-8557-75f5c5081fa7.gif" width="600px">
-
-#### キャンバスへのエレメント追加と属性変更
-
-新しいエレメントはコンポーネントビューから追加できる。
-
-ツリービューの対象エレメント横の設定ボタンをクリックすることで、設定ダイアログが表示される。
-これを変更することで属性やテキストを設定できる。
-
-<img src="https://user-images.githubusercontent.com/45279563/77165601-fbaa5f80-6af5-11ea-895f-b3000505f904.gif" width="600px">
-
-#### ページ全体の設定変更
-
-キャンバスに読み込まれる JS・CSS と キャンバス内の Vue インスタンス生成前後で実行した処理を JavaScript で記述できる。
-
-設定が変更された時点で、キャンバスはリロードされる。
-
-<img src="https://user-images.githubusercontent.com/45279563/77166018-cfdba980-6af6-11ea-8bef-11750291062a.gif" width="600px">
-
-#### 出来上がった Web ページの保存・プロジェクトの途中保存
-
-キャンバスに表示された Web ページが動作する HTML を出力できる。
-
-また、途中状態のプロジェクトを JSON に保存することができる。保存した JSON を読み込むことで、途中状態から作業を再開できる。
-
-<img src="https://user-images.githubusercontent.com/45279563/77166213-2f39b980-6af7-11ea-8b08-260f4837c92f.gif" width="600px">
 
 ## TODO
 
