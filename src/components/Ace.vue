@@ -3,8 +3,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, onMounted, ref } from "@vue/composition-api";
-import { PropType } from "@vue/composition-api/dist/component/componentProps";
+import {
+  defineComponent,
+  watch,
+  onMounted,
+  ref,
+  PropType
+} from "@vue/composition-api";
 import * as ace from "brace";
 import "brace/mode/javascript";
 import "brace/theme/monokai";
@@ -24,7 +29,7 @@ export default defineComponent({
     }
   },
   setup(props: { code: string; lang: string; theme: string }, { emit }) {
-    const editor = ref<HTMLElement>(undefined);
+    const editor = ref<HTMLElement>();
     const init = () => {
       if (editor.value === undefined) {
         setTimeout(init, 100);
@@ -37,6 +42,9 @@ export default defineComponent({
           if (val !== aceEditor.getValue()) {
             aceEditor.setValue(val, 1);
           }
+        },
+        {
+          immediate: true
         }
       );
       aceEditor.setValue(props.code, 1);

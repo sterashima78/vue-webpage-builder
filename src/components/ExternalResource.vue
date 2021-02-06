@@ -20,8 +20,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "@vue/composition-api";
-import { PropType } from "@vue/composition-api/dist/component/componentProps";
+import { defineComponent, ref, PropType } from "@vue/composition-api";
 interface Resource {
   url: string;
   name: string;

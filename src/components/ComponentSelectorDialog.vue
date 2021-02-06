@@ -128,7 +128,12 @@ export default defineComponent({
     );
     watch(
       () => keyword.value,
-      v => (search.value = v)
+      v => {
+        search.value = v;
+      },
+      {
+        immediate: true
+      }
     );
     return {
       selectedType,

@@ -84,6 +84,9 @@ export default defineComponent({
             });
             window.dispatchEvent(new Event("createdVue"))
           `.concat(html.inlineScript.value);
+      },
+      {
+        immediate: true
       }
     );
     return {

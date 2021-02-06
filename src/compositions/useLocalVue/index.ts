@@ -30,9 +30,15 @@ export const convertData = (
       }),
     16
   );
-  watch(() => node.value, sendMsg);
-  watch(() => hoverNodeId.value, sendMsg);
-  watch(() => dropNodeId.value, sendMsg);
+  watch(node, sendMsg, {
+    immediate: true
+  });
+  watch(hoverNodeId, sendMsg, {
+    immediate: true
+  });
+  watch(dropNodeId, sendMsg, {
+    immediate: true
+  });
   return {
     nodeData
   };

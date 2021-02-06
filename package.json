@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@sterashima/vue-component-render": "^0.0.1-alpha.5",
-    "@vue/composition-api": "^0.5.0",
+    "@vue/composition-api": "^1.0.0-rc.1",
     "core-js": "^3.6.4",
     "downloadjs": "^1.4.7",
     "ejs": "^3.0.1",

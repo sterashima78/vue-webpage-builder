@@ -1,4 +1,4 @@
-import { Ref, watchEffect } from "@vue/composition-api";
+import { Ref, watch } from "@vue/composition-api";
 import { RouteNodeTreeData } from "@/types";
 import { pipe } from "fp-ts/lib/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/lib/Option";
@@ -55,7 +55,9 @@ export const createVue = (
     store.node = event.data;
   };
   worker.postMessage(nodeData.value);
-  watchEffect(() => worker.postMessage(nodeData.value));
+  watch(nodeData, () => worker.postMessage(nodeData.value), {
+    immediate: true
+  });
   const CustomVue = VueOption ? Vue.extend(VueOption) : Vue;
   const routes: RouteConfig[] = Object.keys(store.node).map(path => ({
     path,
