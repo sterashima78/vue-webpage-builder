@@ -5,6 +5,9 @@ import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
 import { VueConstructor, VNode, CreateElement } from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
+
+type Renderer = (h: CreateElement, node: NodeData) => VNode;
+
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
@@ -13,6 +16,8 @@ export const createVue = (
   Router: typeof VueRouter,
   VueOption: any | undefined
 ) => {
+  const renderer: Renderer = (h, node) => renderNode(h, node);
+
   const components = pipe(
     fromNullable(Vue as any),
     map(i => i.options),
@@ -34,7 +39,7 @@ export const createVue = (
     path,
     component: Vue.extend({
       render(h) {
-        return renderNode(h, store.node[path]);
+        return renderer(h, store.node[path]);
       }
     })
   }));
@@ -57,7 +62,7 @@ export const createVue = (
           path,
           component: Vue.extend({
             render(h) {
-              return renderNode(h, store.node[path]);
+              return renderer(h, store.node[path]);
             }
           })
         }
