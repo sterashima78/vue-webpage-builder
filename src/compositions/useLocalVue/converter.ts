@@ -22,7 +22,6 @@ export const toNodeTree: NodeDataToNodeTree = node => {
       }
     }
   }
-  console.log(node, value);
   return {
     value,
     children: node.children.map(i =>
