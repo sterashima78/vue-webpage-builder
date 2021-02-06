@@ -33,6 +33,21 @@ const converter = nodeDataConverterFactory(nodeData => {
 });
 const rendererFactory = nodeRenderFactory(converter);
 
+const pathToRoute = (
+  Vue: VueConstructor<Vue>,
+  rendererFactory: ReturnType<typeof nodeRenderFactory>,
+  converter: typeof toNodeTree,
+  store: { node: RouteNodeTreeData }
+) => (path: string) => ({
+  path,
+  component: Vue.extend({
+    render(h) {
+      const renderer = rendererFactory(h);
+      return renderer(converter(store.node[path]));
+    }
+  })
+});
+
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
@@ -59,15 +74,8 @@ export const createVue = (
     immediate: true
   });
   const CustomVue = VueOption ? Vue.extend(VueOption) : Vue;
-  const routes: RouteConfig[] = Object.keys(store.node).map(path => ({
-    path,
-    component: Vue.extend({
-      render(h) {
-        const renderer = rendererFactory(h);
-        return renderer(toNodeTree(store.node[path]));
-      }
-    })
-  }));
+  const toRouteByPath = pathToRoute(Vue, rendererFactory, toNodeTree, store);
+  const routes: RouteConfig[] = Object.keys(store.node).map(toRouteByPath);
   const router = new Router({ routes });
   return {
     vm: new CustomVue({
@@ -81,18 +89,6 @@ export const createVue = (
     }),
     components,
     router,
-    addRoute(path: string) {
-      router.addRoutes([
-        {
-          path,
-          component: Vue.extend({
-            render(h) {
-              const renderer = rendererFactory(h);
-              return renderer(toNodeTree(store.node[path]));
-            }
-          })
-        }
-      ]);
-    }
+    addRoute: (path: string) => router.addRoutes([toRouteByPath(path)])
   };
 };
