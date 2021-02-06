@@ -1,22 +1,47 @@
 import { Ref, watchEffect } from "@vue/composition-api";
 import { NodeData, RouteNodeTreeData } from "@/types";
-import { pipe } from "fp-ts/es6/pipeable";
-import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
+import { pipe } from "fp-ts/lib/pipeable";
+import { fromNullable, map, getOrElse } from "fp-ts/lib/Option";
 import { VueConstructor, VNode, CreateElement } from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
-
+import {
+  nodeDataConverterFactory,
+  nodeRenderFactory
+} from "@sterashima/vue-component-render";
+import { toNodeTree } from "./converter";
 type Renderer = (h: CreateElement, node: NodeData) => VNode;
+
+const converter = nodeDataConverterFactory(nodeData => {
+  const directives = nodeData.data?.directives || [];
+  const domProps = nodeData.data?.domProps || [];
+  return {
+    tag: nodeData.tag,
+    data: {
+      ...nodeData.data,
+      directives: [
+        ...directives,
+        {
+          name: "web-builder"
+        }
+      ],
+      domProps: {
+        ...domProps,
+        draggable: true
+      }
+    }
+  };
+});
+const rendererFactory = nodeRenderFactory(converter);
 
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
-  renderNode: (h: CreateElement, node: NodeData) => VNode,
   Vue: VueConstructor<Vue>,
   Router: typeof VueRouter,
   VueOption: any | undefined
 ) => {
-  const renderer: Renderer = (h, node) => renderNode(h, node);
+  const renderer: Renderer = (h, node) => rendererFactory(h)(toNodeTree(node));
 
   const components = pipe(
     fromNullable(Vue as any),

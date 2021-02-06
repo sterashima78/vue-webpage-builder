@@ -19,11 +19,7 @@ export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
     nodeDao,
     aliasDao
   );
-  const { renderNode, nodeData } = createRenderer(
-    nodeTree,
-    hoverNodeId,
-    dropNodeId
-  );
+  const { nodeData } = createRenderer(nodeTree, hoverNodeId, dropNodeId);
   const init = (
     w: IframeWindow
   ): Promise<{
@@ -42,7 +38,6 @@ export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
         const { vm, components, router, addRoute } = createVue(
           "#main-wrapper",
           nodeData,
-          renderNode,
           w.Vue,
           w.VueRouter,
           w.VueOption
