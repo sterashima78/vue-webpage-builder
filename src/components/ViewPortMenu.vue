@@ -90,7 +90,9 @@ export default defineComponent({
             border: "solid black 3px"
           }
     );
-    watch(wrapperStyle, (v: any) => emit("update", v));
+    watch(wrapperStyle, (v: any) => emit("update", v), {
+      immediate: true
+    });
     return {
       scaleList,
       currentDevice,

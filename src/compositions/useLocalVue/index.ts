@@ -1,11 +1,48 @@
 import Vue, { VueConstructor } from "vue";
-import { createRenderer } from "./render";
 import { createVue } from "./createInstance";
 import { useState } from "@/compositions/useNodeState/";
 import { register } from "@/directives";
 import VueRouter, { Route } from "vue-router";
 import { NodeDao } from "@/domain/nodes";
 import { AliasDao } from "@/domain/alias";
+
+import { Ref, computed, ref, watch } from "@vue/composition-api";
+import { RouteNodeTree, RouteNodeTreeData } from "@/types";
+import Worker from "worker-loader!./createNodeData.worker";
+import throttle from "lodash.throttle";
+export const convertData = (
+  node: Ref<RouteNodeTree>,
+  hoverNodeId: Ref<string>,
+  dropNodeId: Ref<string>
+) => {
+  const _nodeData = ref<RouteNodeTreeData>({});
+  const nodeData = computed(() => _nodeData.value);
+  const worker = new Worker();
+  worker.onmessage = (event: any) => {
+    _nodeData.value = event.data;
+  };
+  const sendMsg = throttle(
+    () =>
+      worker.postMessage({
+        hoverNodeId: hoverNodeId.value,
+        dropNodeId: dropNodeId.value,
+        node: node.value
+      }),
+    16
+  );
+  watch(node, sendMsg, {
+    immediate: true
+  });
+  watch(hoverNodeId, sendMsg, {
+    immediate: true
+  });
+  watch(dropNodeId, sendMsg, {
+    immediate: true
+  });
+  return {
+    nodeData
+  };
+};
 
 export type IframeWindow = Window & {
   Vue?: VueConstructor<Vue>;
@@ -14,17 +51,14 @@ export type IframeWindow = Window & {
   VueRouter: typeof VueRouter;
   router?: VueRouter;
 };
-export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
-  const { nodeTree, hoverNodeId, dropNodeId, currentRoute } = useState(
-    nodeDao,
-    aliasDao
-  );
-  const { renderNode, nodeData } = createRenderer(
-    nodeTree,
-    hoverNodeId,
-    dropNodeId
-  );
-  const init = (
+
+const init = (
+  nodeDao: NodeDao,
+  aliasDao: AliasDao,
+  currentRoute: Ref<string>,
+  nodeData: Ref<RouteNodeTreeData>
+) => {
+  const _init = (
     w: IframeWindow
   ): Promise<{
     components: string[];
@@ -34,7 +68,7 @@ export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
     return new Promise(resolve => {
       if (w.Vue === undefined) {
         setTimeout(async () => {
-          const ret = await init(w);
+          const ret = await _init(w);
           resolve(ret);
         }, 100);
       } else {
@@ -42,7 +76,6 @@ export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
         const { vm, components, router, addRoute } = createVue(
           "#main-wrapper",
           nodeData,
-          renderNode,
           w.Vue,
           w.VueRouter,
           w.VueOption
@@ -57,8 +90,17 @@ export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
       }
     });
   };
+  return _init;
+};
+export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
+  const { nodeTree, hoverNodeId, dropNodeId, currentRoute } = useState(
+    nodeDao,
+    aliasDao
+  );
+  const { nodeData } = convertData(nodeTree, hoverNodeId, dropNodeId);
+
   return {
-    init,
+    init: init(nodeDao, aliasDao, currentRoute, nodeData),
     currentRoute
   };
 };

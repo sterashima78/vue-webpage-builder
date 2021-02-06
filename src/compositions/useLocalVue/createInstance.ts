@@ -1,14 +1,41 @@
-import { Ref, watchEffect } from "@vue/composition-api";
-import { NodeData, RouteNodeTreeData } from "@/types";
-import { pipe } from "fp-ts/es6/pipeable";
-import { fromNullable, map, getOrElse } from "fp-ts/es6/Option";
-import { VueConstructor, VNode, CreateElement } from "vue";
+import { Ref, watch } from "@vue/composition-api";
+import { RouteNodeTreeData } from "@/types";
+import { pipe } from "fp-ts/lib/pipeable";
+import { fromNullable, map, getOrElse } from "fp-ts/lib/Option";
+import { VueConstructor } from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
+import {
+  nodeDataConverterFactory,
+  nodeRenderFactory
+} from "@sterashima/vue-component-render";
+import { toNodeTree } from "./converter";
+
+const converter = nodeDataConverterFactory(nodeData => {
+  const directives = nodeData.data?.directives || [];
+  const domProps = nodeData.data?.domProps || [];
+  return {
+    tag: nodeData.tag,
+    data: {
+      ...nodeData.data,
+      directives: [
+        ...directives,
+        {
+          name: "web-builder"
+        }
+      ],
+      domProps: {
+        ...domProps,
+        draggable: true
+      }
+    }
+  };
+});
+const rendererFactory = nodeRenderFactory(converter);
+
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
-  renderNode: (h: CreateElement, node: NodeData) => VNode,
   Vue: VueConstructor<Vue>,
   Router: typeof VueRouter,
   VueOption: any | undefined
@@ -28,13 +55,16 @@ export const createVue = (
     store.node = event.data;
   };
   worker.postMessage(nodeData.value);
-  watchEffect(() => worker.postMessage(nodeData.value));
+  watch(nodeData, () => worker.postMessage(nodeData.value), {
+    immediate: true
+  });
   const CustomVue = VueOption ? Vue.extend(VueOption) : Vue;
   const routes: RouteConfig[] = Object.keys(store.node).map(path => ({
     path,
     component: Vue.extend({
       render(h) {
-        return renderNode(h, store.node[path]);
+        const renderer = rendererFactory(h);
+        return renderer(toNodeTree(store.node[path]));
       }
     })
   }));
@@ -57,7 +87,8 @@ export const createVue = (
           path,
           component: Vue.extend({
             render(h) {
-              return renderNode(h, store.node[path]);
+              const renderer = rendererFactory(h);
+              return renderer(toNodeTree(store.node[path]));
             }
           })
         }
