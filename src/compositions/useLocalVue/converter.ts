@@ -7,7 +7,11 @@ export const toNodeTree: NodeDataToNodeTree = node => {
     id: node.data.attrs?.id || "",
     tag: node.tag
   };
-  const { id, ...attrs } = { id: "", ...node.data.attrs, ...node.data.props };
+  const { id: _, ...attrs } = {
+    id: "",
+    ...node.data.attrs,
+    ...node.data.props
+  };
   if (typeof node.data.style === "object" && !Array.isArray(node.data.style))
     value.style = node.data.style as { string: string };
   if (Array.isArray(node.data.class)) value.classes = node.data.class;

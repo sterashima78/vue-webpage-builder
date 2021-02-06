@@ -33,14 +33,7 @@
   </div>
 </template>
 <script lang="ts">
-import {
-  defineComponent,
-  PropType,
-  ref,
-  computed,
-  watchEffect,
-  watch
-} from "@vue/composition-api";
+import { defineComponent, PropType, ref, computed } from "@vue/composition-api";
 type ResizeDirection = "tl" | "tr" | "cl" | "cr" | "bl" | "br" | null;
 export default defineComponent({
   props: {
