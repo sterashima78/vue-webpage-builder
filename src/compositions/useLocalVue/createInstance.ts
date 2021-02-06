@@ -1,8 +1,8 @@
 import { Ref, watchEffect } from "@vue/composition-api";
-import { NodeData, RouteNodeTreeData } from "@/types";
+import { RouteNodeTreeData } from "@/types";
 import { pipe } from "fp-ts/lib/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/lib/Option";
-import { VueConstructor, VNode, CreateElement } from "vue";
+import { VueConstructor } from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
 import {
@@ -10,7 +10,6 @@ import {
   nodeRenderFactory
 } from "@sterashima/vue-component-render";
 import { toNodeTree } from "./converter";
-type Renderer = (h: CreateElement, node: NodeData) => VNode;
 
 const converter = nodeDataConverterFactory(nodeData => {
   const directives = nodeData.data?.directives || [];
@@ -41,8 +40,6 @@ export const createVue = (
   Router: typeof VueRouter,
   VueOption: any | undefined
 ) => {
-  const renderer: Renderer = (h, node) => rendererFactory(h)(toNodeTree(node));
-
   const components = pipe(
     fromNullable(Vue as any),
     map(i => i.options),
@@ -64,7 +61,8 @@ export const createVue = (
     path,
     component: Vue.extend({
       render(h) {
-        return renderer(h, store.node[path]);
+        const renderer = rendererFactory(h);
+        return renderer(toNodeTree(store.node[path]));
       }
     })
   }));
@@ -87,7 +85,8 @@ export const createVue = (
           path,
           component: Vue.extend({
             render(h) {
-              return renderer(h, store.node[path]);
+              const renderer = rendererFactory(h);
+              return renderer(toNodeTree(store.node[path]));
             }
           })
         }
