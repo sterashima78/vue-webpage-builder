@@ -10,17 +10,37 @@
   />
 </template>
 <script lang="ts">
-import { defineComponent } from "@vue/composition-api";
+import { defineComponent, PropType } from "@vue/composition-api";
 import { VIframeSandbox } from "vue-iframe-sandbox";
-import { useHtml } from "@/compositions/useHtml";
 export default defineComponent({
+  props: {
+    body: {
+      type: String as PropType<string>,
+      default: ""
+    },
+    inlineScript: {
+      type: String as PropType<string>,
+      default: ""
+    },
+    stylesStr: {
+      type: String as PropType<string>,
+      default: ""
+    },
+    scriptsSrc: {
+      type: Array as PropType<string[]>,
+      default: () => []
+    },
+    cssLinks: {
+      type: Array as PropType<string[]>,
+      default: () => []
+    }
+  },
   components: {
     VIframeSandbox
   },
   setup(_, { emit }) {
     return {
-      emit,
-      ...useHtml()
+      emit
     };
   }
 });

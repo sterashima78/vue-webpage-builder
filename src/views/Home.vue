@@ -24,7 +24,14 @@
     </v-app-bar>
     <div class="canvas-wrapper">
       <div :style="wrapperStyle" style="background: white;">
-        <VueCanvas @loaded="loaded" />
+        <VueCanvas
+          :body="body"
+          :script="inlineScript"
+          :scriptsSrc="scriptsSrc"
+          :styles="stylesStr"
+          :cssLinks="cssLinks"
+          @loaded="loaded"
+        />
       </div>
     </div>
   </div>
@@ -36,6 +43,7 @@ import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
 import { NodeDaoInjectionKey } from "@/domain/nodes";
 import { AliasDaoInjectionKey } from "@/domain/alias";
+import { useHtml } from "@/compositions/useHtml";
 export default defineComponent({
   name: "Home",
   components: {
@@ -82,7 +90,8 @@ export default defineComponent({
         components.value = c;
       },
       components,
-      dragTag
+      dragTag,
+      ...useHtml()
     };
   }
 });
