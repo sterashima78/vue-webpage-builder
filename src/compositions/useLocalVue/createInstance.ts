@@ -69,7 +69,6 @@ export const createVue = (
   worker.onmessage = (event: any) => {
     store.node = event.data;
   };
-  worker.postMessage(nodeData.value);
   watch(nodeData, () => worker.postMessage(nodeData.value), {
     immediate: true
   });
