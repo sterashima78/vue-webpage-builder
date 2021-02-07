@@ -6,12 +6,13 @@ import { VueConstructor } from "vue";
 import VueRouter, { RouteConfig, Route } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
 import {
+  NodeData,
   nodeDataConverterFactory,
   nodeRenderFactory
 } from "@sterashima/vue-component-render";
 import { toNodeTree } from "./converter";
 
-const converter = nodeDataConverterFactory(nodeData => {
+const preprocess = () => (nodeData: NodeData) => {
   const directives = nodeData.data?.directives || [];
   const domProps = nodeData.data?.domProps || [];
   return {
@@ -30,7 +31,9 @@ const converter = nodeDataConverterFactory(nodeData => {
       }
     }
   };
-});
+};
+
+const converter = nodeDataConverterFactory(preprocess());
 const rendererFactory = nodeRenderFactory(converter);
 
 const pathToRoute = (
