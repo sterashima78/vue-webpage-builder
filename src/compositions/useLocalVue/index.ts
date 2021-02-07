@@ -41,48 +41,29 @@ export const convertData = (
   return nodeData;
 };
 
-export type IframeWindow = Window & {
-  Vue?: VueConstructor<Vue>;
-  vm: Vue;
-  VueOption: any;
-  VueRouter: typeof VueRouter;
-  router?: VueRouter;
-};
-
 const init = (
   nodeDao: NodeDao,
   aliasDao: AliasDao,
   currentRoute: Ref<string>,
   nodeData: Ref<RouteNodeTreeData>
-) => {
-  const _init = (
-    w: IframeWindow
-  ): Promise<{
-    components: string[];
-  }> => {
-    return new Promise(resolve => {
-      if (w.Vue === undefined) {
-        setTimeout(async () => {
-          const ret = await _init(w);
-          resolve(ret);
-        }, 100);
-      } else {
-        register(w.Vue, nodeDao, aliasDao);
-        const { vm, components } = createVue(
-          "#main-wrapper",
-          nodeData,
-          w.Vue,
-          w.VueRouter,
-          w.VueOption,
-          currentRoute
-        );
-        w.vm = vm;
-        resolve({ components });
-        w.dispatchEvent(new Event("createdVue"));
-      }
-    });
-  };
-  return _init;
+) => (
+  Vue: VueConstructor<Vue>,
+  Router: typeof VueRouter,
+  VueOption: any,
+  setVM: (vm: Vue) => void,
+  dispatch: () => void
+): void => {
+  register(Vue, nodeDao, aliasDao);
+  const { vm } = createVue(
+    "#main-wrapper",
+    nodeData,
+    Vue,
+    Router,
+    VueOption,
+    currentRoute
+  );
+  setVM(vm);
+  dispatch();
 };
 export const useLocalVue = (
   nodeDao: NodeDao,

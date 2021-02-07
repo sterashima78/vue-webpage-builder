@@ -31,6 +31,7 @@
           :styles="stylesStr"
           :cssLinks="cssLinks"
           @loaded="loaded"
+          @update:components="components = $event"
         />
       </div>
     </div>
@@ -39,7 +40,9 @@
 
 <script lang="ts">
 import { defineComponent, ref, inject } from "@vue/composition-api";
-import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
+import { useLocalVue } from "@/compositions/useLocalVue/";
+import VueRouter from "vue-router";
+import Vue, { VueConstructor } from "vue";
 import { useState } from "@/compositions/useNodeState/";
 import { NodeDaoInjectionKey } from "@/domain/nodes";
 import { AliasDaoInjectionKey } from "@/domain/alias";
@@ -84,10 +87,21 @@ export default defineComponent({
     return {
       wrapperStyle,
       currentRoute,
-      loaded: async (w: IframeWindow) => {
-        const { components: c } = await init(w);
+      loaded: ({
+        Vue,
+        Router,
+        VueOption,
+        setVM,
+        dispatch
+      }: {
+        Vue: VueConstructor<Vue>;
+        Router: typeof VueRouter;
+        VueOption: any;
+        setVM: (vm: Vue) => void;
+        dispatch: () => void;
+      }) => {
+        init(Vue, Router, VueOption, setVM, dispatch);
         console.log("reload");
-        components.value = c;
       },
       components,
       dragTag,

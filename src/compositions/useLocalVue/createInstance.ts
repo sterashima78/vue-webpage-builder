@@ -1,7 +1,5 @@
 import { Ref, watch } from "@vue/composition-api";
 import { RouteNodeTreeData } from "@/types";
-import { pipe } from "fp-ts/lib/pipeable";
-import { fromNullable, map, getOrElse } from "fp-ts/lib/Option";
 import { VueConstructor } from "vue";
 import VueRouter, { RouteConfig, Route } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
@@ -50,15 +48,6 @@ const pathToRoute = (
     }
   })
 });
-
-const getComponentsFromVue = (Vue: VueConstructor<Vue>) =>
-  pipe(
-    fromNullable(Vue as any),
-    map(i => i.options),
-    map(i => i.components),
-    map(i => Object.keys(i)),
-    getOrElse(() => [] as string[])
-  );
 
 const getNewPath = (before: string[], after: string[]) => {
   if (before.length === after.length) return "";
@@ -124,7 +113,6 @@ export const createVue = (
           <router-view></router-view>
         </div>
       `
-    }),
-    components: getComponentsFromVue(Vue)
+    })
   };
 };
