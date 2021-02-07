@@ -48,6 +48,38 @@ const pathToRoute = (
   })
 });
 
+const getComponentsFromVue = (Vue: VueConstructor<Vue>) =>
+  pipe(
+    fromNullable(Vue as any),
+    map(i => i.options),
+    map(i => i.components),
+    map(i => Object.keys(i)),
+    getOrElse(() => [] as string[])
+  );
+
+const getNewPath = (before: string[], after: string[]) => {
+  if (before.length === after.length) return "";
+  if (before.length > after.length) return "";
+  const diff = after.filter(i => !before.includes(i));
+  return diff.length === 0 ? "" : diff[0];
+};
+
+const updateRoute = (
+  worker: Worker,
+  router: VueRouter,
+  toRouteByPath: ReturnType<typeof pathToRoute>
+) => (
+  now: RouteNodeTreeData | undefined,
+  before: RouteNodeTreeData | undefined
+) => {
+  if (now === undefined) return;
+  worker.postMessage(now);
+  if (before === undefined) return;
+  const addedPath = getNewPath(Object.keys(before), Object.keys(now));
+  if (addedPath === "") return;
+  router.addRoutes([toRouteByPath(addedPath)]);
+};
+
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
@@ -55,27 +87,23 @@ export const createVue = (
   Router: typeof VueRouter,
   VueOption: any | undefined
 ) => {
-  const components = pipe(
-    fromNullable(Vue as any),
-    map(i => i.options),
-    map(i => i.components),
-    map(i => Object.keys(i)),
-    getOrElse(() => [] as string[])
-  );
-  const worker = new Worker();
+  const components = getComponentsFromVue(Vue);
   const store: { node: RouteNodeTreeData } = Vue.observable({
     node: nodeData.value
-  });
-  worker.onmessage = (event: any) => {
-    store.node = event.data;
-  };
-  watch(nodeData, () => worker.postMessage(nodeData.value), {
-    immediate: true
   });
   const CustomVue = VueOption ? Vue.extend(VueOption) : Vue;
   const toRouteByPath = pathToRoute(Vue, rendererFactory, toNodeTree, store);
   const routes: RouteConfig[] = Object.keys(store.node).map(toRouteByPath);
   const router = new Router({ routes });
+
+  const worker = new Worker();
+  worker.onmessage = (event: any) => {
+    store.node = event.data;
+  };
+  watch(nodeData, updateRoute(worker, router, toRouteByPath), {
+    immediate: true
+  });
+
   return {
     vm: new CustomVue({
       el: selector,
@@ -87,7 +115,6 @@ export const createVue = (
       `
     }),
     components,
-    router,
-    addRoute: (path: string) => router.addRoutes([toRouteByPath(path)])
+    router
   };
 };

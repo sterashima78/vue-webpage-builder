@@ -1,6 +1,5 @@
 import Vue, { VueConstructor } from "vue";
 import { createVue } from "./createInstance";
-import { useState } from "@/compositions/useNodeState/";
 import { register } from "@/directives";
 import VueRouter, { Route } from "vue-router";
 import { NodeDao } from "@/domain/nodes";
@@ -39,9 +38,7 @@ export const convertData = (
   watch(dropNodeId, sendMsg, {
     immediate: true
   });
-  return {
-    nodeData
-  };
+  return nodeData;
 };
 
 export type IframeWindow = Window & {
@@ -63,7 +60,6 @@ const init = (
   ): Promise<{
     components: string[];
     router: VueRouter;
-    addRoute: (path: string) => void;
   }> => {
     return new Promise(resolve => {
       if (w.Vue === undefined) {
@@ -73,7 +69,7 @@ const init = (
         }, 100);
       } else {
         register(w.Vue, nodeDao, aliasDao);
-        const { vm, components, router, addRoute } = createVue(
+        const { vm, components, router } = createVue(
           "#main-wrapper",
           nodeData,
           w.Vue,
@@ -82,7 +78,7 @@ const init = (
         );
         w.vm = vm;
         w.router = router;
-        resolve({ components, router, addRoute });
+        resolve({ components, router });
         w.dispatchEvent(new Event("createdVue"));
         router.afterEach((to: Route) => {
           currentRoute.value = to.path;
@@ -92,15 +88,18 @@ const init = (
   };
   return _init;
 };
-export const useLocalVue = (nodeDao: NodeDao, aliasDao: AliasDao) => {
-  const { nodeTree, hoverNodeId, dropNodeId, currentRoute } = useState(
+export const useLocalVue = (
+  nodeDao: NodeDao,
+  aliasDao: AliasDao,
+  nodeTree: Ref<RouteNodeTree>,
+  hoverNodeId: Ref<string>,
+  dropNodeId: Ref<string>,
+  currentRoute: Ref<string>
+) => ({
+  init: init(
     nodeDao,
-    aliasDao
-  );
-  const { nodeData } = convertData(nodeTree, hoverNodeId, dropNodeId);
-
-  return {
-    init: init(nodeDao, aliasDao, currentRoute, nodeData),
-    currentRoute
-  };
-};
+    aliasDao,
+    currentRoute,
+    convertData(nodeTree, hoverNodeId, dropNodeId)
+  )
+});

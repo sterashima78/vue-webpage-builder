@@ -56,10 +56,6 @@ import { AliasDaoInjectionKey } from "@/domain/alias";
 
 export default defineComponent({
   props: {
-    addRoute: {
-      type: Function,
-      default: () => console.log("not init")
-    },
     currentRoute: {
       type: String
     },
@@ -68,7 +64,7 @@ export default defineComponent({
       default: () => ({ push: (opt: any) => console.log(opt) })
     }
   },
-  setup(props: { addRoute: (path: string) => void }) {
+  setup() {
     const nodeDao = inject(NodeDaoInjectionKey);
     const aliasDao = inject(AliasDaoInjectionKey);
     if (!nodeDao || !aliasDao) {
@@ -78,7 +74,6 @@ export default defineComponent({
     const newPath = ref("");
     const createRoute = () => {
       addNewPath(newPath.value);
-      props.addRoute(newPath.value);
       newPath.value = "";
     };
     return {
