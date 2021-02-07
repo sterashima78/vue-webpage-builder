@@ -13,7 +13,10 @@
         :components="components"
         @select="dragTag = $event"
       />
-      <PageMenu :currentRoute="currentRoute" :routing="routing" />
+      <PageMenu
+        :currentRoute="currentRoute"
+        @update:route="currentRoute = $event"
+      />
       <ViewPortMenu @update="wrapperStyle = $event" />
       <SettingDialog />
       <PreviewDialog />
@@ -28,7 +31,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, inject } from "@vue/composition-api";
+import { defineComponent, ref, inject } from "@vue/composition-api";
 import { useLocalVue, IframeWindow } from "@/compositions/useLocalVue/";
 import { useState } from "@/compositions/useNodeState/";
 import { NodeDaoInjectionKey } from "@/domain/nodes";
@@ -69,21 +72,14 @@ export default defineComponent({
       currentRoute
     );
     const components = ref<string[]>([]);
-    const routing: any = ref({
-      push() {
-        console.log("not init");
-      }
-    });
     const wrapperStyle = ref({});
     return {
       wrapperStyle,
       currentRoute,
-      routing,
       loaded: async (w: IframeWindow) => {
-        const { components: c, router } = await init(w);
+        const { components: c } = await init(w);
         console.log("reload");
         components.value = c;
-        routing.value = router;
       },
       components,
       dragTag

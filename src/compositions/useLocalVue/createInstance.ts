@@ -3,7 +3,7 @@ import { RouteNodeTreeData } from "@/types";
 import { pipe } from "fp-ts/lib/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/lib/Option";
 import { VueConstructor } from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
+import VueRouter, { RouteConfig, Route } from "vue-router";
 import Worker from "worker-loader!./cloneObject.worker";
 import {
   nodeDataConverterFactory,
@@ -80,30 +80,38 @@ const updateRoute = (
   router.addRoutes([toRouteByPath(addedPath)]);
 };
 
+const routing = (router: VueRouter) => (path: string | undefined) => {
+  if (path === undefined || path === router.currentRoute.path) return;
+  router.push({ path });
+};
+
 export const createVue = (
   selector: string,
   nodeData: Ref<RouteNodeTreeData>,
   Vue: VueConstructor<Vue>,
   Router: typeof VueRouter,
-  VueOption: any | undefined
+  VueOption: any | undefined,
+  currentRoute: Ref<string>
 ) => {
-  const components = getComponentsFromVue(Vue);
-  const store: { node: RouteNodeTreeData } = Vue.observable({
+  const store = Vue.observable<{ node: RouteNodeTreeData }>({
     node: nodeData.value
   });
-  const CustomVue = VueOption ? Vue.extend(VueOption) : Vue;
   const toRouteByPath = pathToRoute(Vue, rendererFactory, toNodeTree, store);
+
   const routes: RouteConfig[] = Object.keys(store.node).map(toRouteByPath);
   const router = new Router({ routes });
+  watch(currentRoute, routing(router));
+  router.afterEach((to: Route) => {
+    currentRoute.value = to.path;
+  });
 
   const worker = new Worker();
-  worker.onmessage = (event: any) => {
-    store.node = event.data;
-  };
+  worker.onmessage = (event: any) => (store.node = event.data);
   watch(nodeData, updateRoute(worker, router, toRouteByPath), {
     immediate: true
   });
 
+  const CustomVue = VueOption ? Vue.extend(VueOption) : Vue;
   return {
     vm: new CustomVue({
       el: selector,
@@ -114,7 +122,6 @@ export const createVue = (
         </div>
       `
     }),
-    components,
-    router
+    components: getComponentsFromVue(Vue)
   };
 };

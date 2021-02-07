@@ -1,7 +1,7 @@
 import Vue, { VueConstructor } from "vue";
 import { createVue } from "./createInstance";
 import { register } from "@/directives";
-import VueRouter, { Route } from "vue-router";
+import VueRouter from "vue-router";
 import { NodeDao } from "@/domain/nodes";
 import { AliasDao } from "@/domain/alias";
 
@@ -59,7 +59,6 @@ const init = (
     w: IframeWindow
   ): Promise<{
     components: string[];
-    router: VueRouter;
   }> => {
     return new Promise(resolve => {
       if (w.Vue === undefined) {
@@ -69,20 +68,17 @@ const init = (
         }, 100);
       } else {
         register(w.Vue, nodeDao, aliasDao);
-        const { vm, components, router } = createVue(
+        const { vm, components } = createVue(
           "#main-wrapper",
           nodeData,
           w.Vue,
           w.VueRouter,
-          w.VueOption
+          w.VueOption,
+          currentRoute
         );
         w.vm = vm;
-        w.router = router;
-        resolve({ components, router });
+        resolve({ components });
         w.dispatchEvent(new Event("createdVue"));
-        router.afterEach((to: Route) => {
-          currentRoute.value = to.path;
-        });
       }
     });
   };
