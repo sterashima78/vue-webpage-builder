@@ -1,5 +1,5 @@
 import { NodeTree, NodeData, RouteNodeTreeData, RouteNodeTree } from "@/types";
-import clone from "lodash.clonedeep";
+import { klona as clone } from "klona/json";
 const toNodeData = (hoverNodeId: string, dropNodeId: string) => (
   tree: NodeTree
 ): NodeData => {
@@ -19,11 +19,6 @@ const toNodeData = (hoverNodeId: string, dropNodeId: string) => (
         id,
         draggable: true
       },
-      directives: [
-        {
-          name: "web-builder"
-        }
-      ],
       props: attributes,
       style: styles,
       class: classes,

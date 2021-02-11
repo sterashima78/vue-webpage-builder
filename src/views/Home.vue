@@ -59,7 +59,7 @@ export default defineComponent({
       import("@/components/ComponentSelectorDialog.vue"),
     SettingDialog: () => import("@/components/SettingDialog.vue"),
     FileMenu: () => import("@/components/FileMenu.vue"),
-    VueCanvas: () => import("@/components/VueCanvas.vue"),
+    VueCanvas: () => import("@/components/VueCanvas/VueCanvas.vue"),
     ComponentTreeDialog: () => import("@/components/ComponentTreeDialog.vue"),
     ViewPortMenu: () => import("@/components/ViewPortMenu.vue"),
     PreviewDialog: () => import("@/components/PreviewDialog.vue")
