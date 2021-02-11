@@ -55,14 +55,19 @@ export default defineComponent({
     cssLinks: {
       type: Array as PropType<string[]>,
       default: () => []
+    },
+    installer: {
+      type: Function as PropType<(Vue: VueConstructor<Vue>) => void>,
+      default: () => undefined
     }
   },
   components: {
     VIframeSandbox
   },
-  setup(_, { emit }) {
+  setup(props, { emit }) {
     const loaded = (w: IframeWindow) => {
       if (w.Vue === undefined) return setTimeout(() => loaded(w), 100);
+      props.installer(w.Vue);
       emit("update:components", getComponentsFromVue(w.Vue));
       emit("loaded", {
         Vue: w.Vue,

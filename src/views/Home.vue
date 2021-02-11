@@ -30,6 +30,7 @@
           :scriptsSrc="scriptsSrc"
           :styles="stylesStr"
           :cssLinks="cssLinks"
+          :installer="installer"
           @loaded="loaded"
           @update:components="components = $event"
         />
@@ -47,6 +48,8 @@ import { useState } from "@/compositions/useNodeState/";
 import { NodeDaoInjectionKey } from "@/domain/nodes";
 import { AliasDaoInjectionKey } from "@/domain/alias";
 import { useHtml } from "@/compositions/useHtml";
+import { register } from "@/directives";
+
 export default defineComponent({
   name: "Home",
   components: {
@@ -75,8 +78,6 @@ export default defineComponent({
       dropNodeId
     } = useState(nodeDao, aliasDao);
     const { init } = useLocalVue(
-      nodeDao,
-      aliasDao,
       nodeTree,
       hoverNodeId,
       dropNodeId,
@@ -105,7 +106,8 @@ export default defineComponent({
       },
       components,
       dragTag,
-      ...useHtml()
+      ...useHtml(),
+      installer: register(nodeDao, aliasDao)
     };
   }
 });
