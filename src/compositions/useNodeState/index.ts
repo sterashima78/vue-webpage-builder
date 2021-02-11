@@ -1,6 +1,6 @@
 import "@/plugins/";
-import { ref, Ref, computed } from "@vue/composition-api";
-import { NodeTree, RouteNodeTree } from "@/types";
+import { ref, Ref, computed, watch } from "@vue/composition-api";
+import { NodeTree, RouteNodeTree, RouteNodeTreeData } from "@/types";
 import { pipe } from "fp-ts/lib/pipeable";
 import { map, fold, getOrElse } from "fp-ts/lib/Option";
 import {
@@ -19,6 +19,10 @@ import {
 import { useAlias } from "@/compositions/useAlias";
 import { init } from "./initState";
 import { AliasDao } from "@/domain/alias";
+import Worker from "worker-loader!./createNodeData.worker";
+import { RouteNodes } from "@/components/VueCanvas/compositions";
+import { toNodeTree } from "./converter";
+import throttle from "lodash.throttle";
 const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({});
 /**
  * 全ルート
@@ -90,6 +94,43 @@ const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
         )
     )
   );
+
+const convertData = (
+  node: Ref<RouteNodeTree>,
+  hoverNodeId: Ref<string>,
+  dropNodeId: Ref<string>
+) => {
+  const _nodeData = ref<RouteNodeTreeData>({});
+  const nodeData = computed(() =>
+    Object.keys(_nodeData.value).reduce((obj, path) => {
+      obj[path] = toNodeTree(_nodeData.value[path]);
+      return obj;
+    }, {} as RouteNodes)
+  );
+  const worker = new Worker();
+  worker.onmessage = (event: any) => {
+    _nodeData.value = event.data;
+  };
+  const sendMsg = throttle(
+    () =>
+      worker.postMessage({
+        hoverNodeId: hoverNodeId.value,
+        dropNodeId: dropNodeId.value,
+        node: node.value
+      }),
+    16
+  );
+  watch(node, sendMsg, {
+    immediate: true
+  });
+  watch(hoverNodeId, sendMsg, {
+    immediate: true
+  });
+  watch(dropNodeId, sendMsg, {
+    immediate: true
+  });
+  return nodeData;
+};
 
 export const useState = (client: NodeDao, aliasDao: AliasDao) => {
   if (Object.keys(nodeTree.value).length === 0)
@@ -186,6 +227,7 @@ export const useState = (client: NodeDao, aliasDao: AliasDao) => {
     dropNodeId,
     dragTag,
     copyNode,
-    dropElement
+    dropElement,
+    nodes: convertData(nodeTree, hoverNodeId, dropNodeId)
   };
 };

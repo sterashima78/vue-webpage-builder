@@ -12,6 +12,7 @@
 <script lang="ts">
 import Vue, { VueConstructor } from "vue";
 import VueRouter from "vue-router";
+import { initialize, RouteNodes } from "./compositions";
 
 export type IframeWindow = Window & {
   Vue?: VueConstructor<Vue>;
@@ -20,7 +21,7 @@ export type IframeWindow = Window & {
   VueRouter: typeof VueRouter;
   router?: VueRouter;
 };
-import { defineComponent, PropType } from "@vue/composition-api";
+import { defineComponent, PropType, toRef } from "@vue/composition-api";
 import { VIframeSandbox } from "vue-iframe-sandbox";
 import { pipe } from "fp-ts/lib/pipeable";
 import { fromNullable, map, getOrElse } from "fp-ts/lib/Option";
@@ -59,23 +60,44 @@ export default defineComponent({
     installer: {
       type: Function as PropType<(Vue: VueConstructor<Vue>) => void>,
       default: () => undefined
+    },
+    nodes: {
+      type: Object as PropType<RouteNodes>,
+      default: () => ({})
+    },
+    path: {
+      type: String as PropType<string>,
+      default: ""
     }
   },
   components: {
     VIframeSandbox
   },
   setup(props, { emit }) {
+    const nodes = toRef(props, "nodes");
+    const path = toRef(props, "path");
     const loaded = (w: IframeWindow) => {
       if (w.Vue === undefined) return setTimeout(() => loaded(w), 100);
       props.installer(w.Vue);
       emit("update:components", getComponentsFromVue(w.Vue));
-      emit("loaded", {
-        Vue: w.Vue,
-        Router: w.VueRouter,
-        VueOptopn: w.VueOption,
-        setVM: (vm: Vue) => (w.vm = vm),
-        dispatch: () => w.dispatchEvent(new Event("createdVue"))
-      });
+      const vm = initialize("#main-wrapper")(
+        w.Vue,
+        w.VueOption,
+        w.VueRouter,
+        nodes,
+        path
+      );
+      w.vm = vm;
+      w.dispatchEvent(new Event("createdVue"));
+      console.log("reload");
+
+      // emit("loaded", {
+      //   Vue: w.Vue,
+      //   Router: w.VueRouter,
+      //   VueOptopn: w.VueOption,
+      //   setVM: (vm: Vue) => (w.vm = vm),
+      //   dispatch: () => w.dispatchEvent(new Event("createdVue")),
+      // });
     };
     return {
       loaded

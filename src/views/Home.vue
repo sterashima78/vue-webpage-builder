@@ -31,7 +31,8 @@
           :styles="stylesStr"
           :cssLinks="cssLinks"
           :installer="installer"
-          @loaded="loaded"
+          :nodes="nodes"
+          :path="currentRoute"
           @update:components="components = $event"
         />
       </div>
@@ -41,9 +42,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, inject } from "@vue/composition-api";
-import { useLocalVue } from "@/compositions/useLocalVue/";
-import VueRouter from "vue-router";
-import Vue, { VueConstructor } from "vue";
 import { useState } from "@/compositions/useNodeState/";
 import { NodeDaoInjectionKey } from "@/domain/nodes";
 import { AliasDaoInjectionKey } from "@/domain/alias";
@@ -70,44 +68,17 @@ export default defineComponent({
     if (!nodeDao || !aliasDao) {
       throw new Error("Dao is not injected");
     }
-    const {
-      dragTag,
-      currentRoute,
-      nodeTree,
-      hoverNodeId,
-      dropNodeId
-    } = useState(nodeDao, aliasDao);
-    const { init } = useLocalVue(
-      nodeTree,
-      hoverNodeId,
-      dropNodeId,
-      currentRoute
-    );
+    const { dragTag, currentRoute, nodes } = useState(nodeDao, aliasDao);
     const components = ref<string[]>([]);
     const wrapperStyle = ref({});
     return {
       wrapperStyle,
       currentRoute,
-      loaded: ({
-        Vue,
-        Router,
-        VueOption,
-        setVM,
-        dispatch
-      }: {
-        Vue: VueConstructor<Vue>;
-        Router: typeof VueRouter;
-        VueOption: any;
-        setVM: (vm: Vue) => void;
-        dispatch: () => void;
-      }) => {
-        init(Vue, Router, VueOption, setVM, dispatch);
-        console.log("reload");
-      },
       components,
       dragTag,
       ...useHtml(),
-      installer: register(nodeDao, aliasDao)
+      installer: register(nodeDao, aliasDao),
+      nodes
     };
   }
 });

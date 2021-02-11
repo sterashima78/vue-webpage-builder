@@ -18,6 +18,7 @@
     "downloadjs": "^1.4.7",
     "ejs": "^3.0.1",
     "fp-ts": "^2.5.1",
+    "klona": "^2.0.4",
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.2",
     "lodash.throttle": "^4.1.1",
