@@ -23,16 +23,22 @@ import Worker from "worker-loader!./createNodeData.worker";
 import { RouteNodes } from "@sterashima/vue-component-sandbox";
 import { toNodeTree } from "./converter";
 import throttle from "lodash.throttle";
-const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({});
-/**
- * 全ルート
- */
-const allRoute = computed(() => Object.keys(nodeTree.value));
 
+/**
+ * ノードの状態
+ */
+const nodeTree = ref<RouteNodeTree>({});
 /**
  * 現在のルート
  */
 const currentRoute = ref<string>("/");
+
+/**
+ * 全ルート
+ */
+export const toAllRoute = (nodes: Ref<RouteNodeTree>) => () =>
+  Object.keys(nodes.value);
+const allRoute = computed(toAllRoute(nodeTree));
 
 /**
  * 現在のルートのノードツリー
