@@ -1,5 +1,5 @@
 import { NodeTree, GetNodeName, Node, RouteNodeTree } from "@/types";
-import clone from "lodash.clonedeep";
+import { klona as clone } from "klona/json";
 import { Option, some, isNone, none, map } from "fp-ts/es6/Option";
 import { v4 as uuidv4 } from "uuid";
 import merge from "lodash.merge";
