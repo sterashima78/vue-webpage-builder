@@ -17,7 +17,7 @@ Vue.use(
   },
   router
 );
-register(Vue, nodeDao, aliasDao);
+register(nodeDao, aliasDao)(Vue);
 Vue.config.productionTip = false;
 
 new Vue({

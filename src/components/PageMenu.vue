@@ -18,7 +18,7 @@
         :key="route"
         :style="{ background: currentRoute === route ? '#eee' : '' }"
         :disabled="currentRoute === route"
-        @click="routing.push({ path: route })"
+        @click="emit('update:route', route)"
       >
         <v-list-item-content>
           <v-list-item-title v-text="route" />
@@ -56,19 +56,12 @@ import { AliasDaoInjectionKey } from "@/domain/alias";
 
 export default defineComponent({
   props: {
-    addRoute: {
-      type: Function,
-      default: () => console.log("not init")
-    },
     currentRoute: {
-      type: String
-    },
-    routing: {
-      type: Object as PropType<{ push: (option: { path: string }) => void }>,
-      default: () => ({ push: (opt: any) => console.log(opt) })
+      type: String as PropType<string>,
+      default: ""
     }
   },
-  setup(props: { addRoute: (path: string) => void }) {
+  setup(_, { emit }) {
     const nodeDao = inject(NodeDaoInjectionKey);
     const aliasDao = inject(AliasDaoInjectionKey);
     if (!nodeDao || !aliasDao) {
@@ -78,14 +71,14 @@ export default defineComponent({
     const newPath = ref("");
     const createRoute = () => {
       addNewPath(newPath.value);
-      props.addRoute(newPath.value);
       newPath.value = "";
     };
     return {
       newPath,
       addNewPath,
       allRoute,
-      createRoute
+      createRoute,
+      emit
     };
   }
 });
