@@ -12,8 +12,7 @@
     "build:all": "npm-run-all -s build build:docs"
   },
   "dependencies": {
-    "@sterashima/vue-component-render": "^0.0.1-alpha.5",
-    "@sterashima/vue-component-sandbox": "^0.0.1-alpha.5",
+    "@sterashima/vue-component-sandbox": "^0.0.1-alpha.6",
     "@vue/composition-api": "^1.0.0-rc.1",
     "core-js": "^3.6.4",
     "downloadjs": "^1.4.7",
@@ -29,7 +28,6 @@
     "uuid": "^7.0.3",
     "vue": "^2.6.12",
     "vue-gtag": "^1.6.2",
-    "vue-iframe-sandbox": "^0.1.4",
     "vue-router": "^3.1.5",
     "vuetify": "^2.2.11"
   },

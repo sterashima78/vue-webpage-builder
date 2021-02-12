@@ -1,5 +1,5 @@
 import { NodeData } from "@/types";
-import { EleNode, NodeTree } from "@sterashima/vue-component-render";
+import { EleNode, NodeTree } from "@sterashima/vue-component-sandbox";
 
 export type NodeDataToNodeTree = (node: NodeData) => NodeTree;
 export const toNodeTree: NodeDataToNodeTree = node => {
