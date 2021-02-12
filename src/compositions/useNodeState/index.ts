@@ -43,7 +43,11 @@ const allRoute = computed(toAllRoute(nodeTree));
 /**
  * 現在のルートのノードツリー
  */
-const node = computed(() => nodeTree.value[currentRoute.value]);
+export const toCurrentNode = (
+  nodes: Ref<RouteNodeTree>,
+  path: Ref<string>
+) => () => nodes.value[path.value];
+const node = computed(toCurrentNode(nodeTree, currentRoute));
 type NodeTreeMapper = (node: NodeTree) => NodeTree;
 
 /**
