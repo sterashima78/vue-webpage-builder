@@ -24,7 +24,7 @@
     </v-app-bar>
     <div class="canvas-wrapper">
       <div :style="wrapperStyle" style="background: white;">
-        <VueCanvas
+        <!-- <VueCanvas
           :body="body"
           :script="inlineScript"
           :scriptsSrc="scriptsSrc"
@@ -34,6 +34,17 @@
           :nodes="nodes"
           :path="currentRoute"
           @update:components="components = $event"
+        /> -->
+        <VComponentSandbox
+          :script="inlineScript"
+          :scripts="scriptsSrc"
+          :css="stylesStr"
+          :styles="cssLinks"
+          :installer="installer"
+          :nodes="nodes"
+          :path.sync="currentRoute"
+          :preprocess="preprocess"
+          @loaded="components = $event.components"
         />
       </div>
     </div>
@@ -47,6 +58,7 @@ import { NodeDaoInjectionKey } from "@/domain/nodes";
 import { AliasDaoInjectionKey } from "@/domain/alias";
 import { useHtml } from "@/compositions/useHtml";
 import { register } from "@/directives";
+import { VComponentSandbox, NodeData } from "@sterashima/vue-component-sandbox";
 
 export default defineComponent({
   name: "Home",
@@ -57,10 +69,10 @@ export default defineComponent({
       import("@/components/ComponentSelectorDialog.vue"),
     SettingDialog: () => import("@/components/SettingDialog.vue"),
     FileMenu: () => import("@/components/FileMenu.vue"),
-    VueCanvas: () => import("@/components/VueCanvas/VueCanvas.vue"),
     ComponentTreeDialog: () => import("@/components/ComponentTreeDialog.vue"),
     ViewPortMenu: () => import("@/components/ViewPortMenu.vue"),
-    PreviewDialog: () => import("@/components/PreviewDialog.vue")
+    PreviewDialog: () => import("@/components/PreviewDialog.vue"),
+    VComponentSandbox
   },
   setup() {
     const nodeDao = inject(NodeDaoInjectionKey);
@@ -78,7 +90,27 @@ export default defineComponent({
       dragTag,
       ...useHtml(),
       installer: register(nodeDao, aliasDao),
-      nodes
+      nodes,
+      preprocess(nodeData: NodeData) {
+        const directives = nodeData.data?.directives || [];
+        const domProps = nodeData.data?.domProps || [];
+        return {
+          tag: nodeData.tag,
+          data: {
+            ...nodeData.data,
+            directives: [
+              ...directives,
+              {
+                name: "web-builder"
+              }
+            ],
+            domProps: {
+              ...domProps,
+              draggable: true
+            }
+          }
+        };
+      }
     };
   }
 });

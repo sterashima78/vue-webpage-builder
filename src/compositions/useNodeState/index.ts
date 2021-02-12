@@ -20,7 +20,7 @@ import { useAlias } from "@/compositions/useAlias";
 import { init } from "./initState";
 import { AliasDao } from "@/domain/alias";
 import Worker from "worker-loader!./createNodeData.worker";
-import { RouteNodes } from "@/components/VueCanvas/compositions";
+import { RouteNodes } from "@sterashima/vue-component-sandbox";
 import { toNodeTree } from "./converter";
 import throttle from "lodash.throttle";
 const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({});
