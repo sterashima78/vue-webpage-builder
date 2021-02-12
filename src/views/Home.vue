@@ -24,17 +24,6 @@
     </v-app-bar>
     <div class="canvas-wrapper">
       <div :style="wrapperStyle" style="background: white;">
-        <!-- <VueCanvas
-          :body="body"
-          :script="inlineScript"
-          :scriptsSrc="scriptsSrc"
-          :styles="stylesStr"
-          :cssLinks="cssLinks"
-          :installer="installer"
-          :nodes="nodes"
-          :path="currentRoute"
-          @update:components="components = $event"
-        /> -->
         <VComponentSandbox
           :script="inlineScript"
           :scripts="scriptsSrc"
