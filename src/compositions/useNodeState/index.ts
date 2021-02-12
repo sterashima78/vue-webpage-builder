@@ -1,5 +1,5 @@
 import "@/plugins/";
-import { ref, Ref, computed, watch } from "@vue/composition-api";
+import { ref, Ref, computed, watch, ComputedRef } from "@vue/composition-api";
 import { NodeTree, RouteNodeTree, RouteNodeTreeData } from "@/types";
 import { pipe } from "fp-ts/lib/pipeable";
 import { map, fold, getOrElse } from "fp-ts/lib/Option";
@@ -54,17 +54,24 @@ type NodeTreeMapper = (node: NodeTree) => NodeTree;
  * 現在のルートのノードツリーを更新する
  * @param nodeValue 更新するノード
  */
-const updateNode = (client: NodeDao) => (nodeValue: NodeTree) => {
-  nodeTree.value[currentRoute.value] = nodeValue;
-  client.save(nodeTree.value);
+export type Update = (nodeValue: NodeTree) => void;
+export const updateNode = (
+  client: NodeDao,
+  nodes: Ref<RouteNodeTree>,
+  path: Ref<string>
+) => (nodeValue: NodeTree) => {
+  nodes.value[path.value] = nodeValue;
+  client.save(nodes.value);
 };
 
 /**
  * 現在のルートのノードツリーを更新する
  * @param effect ノードを変更する関数
  */
-const effectNode = (client: NodeDao) => (effect: NodeTreeMapper) =>
-  pipe(node.value, effect, updateNode(client));
+export const effectNode = (nodes: ComputedRef<NodeTree>, update: Update) => (
+  effect: NodeTreeMapper
+) => pipe(nodes.value, effect, update);
+type Effect = ReturnType<typeof effectNode>;
 
 /**
  * ドラッグしているノードID
@@ -86,7 +93,7 @@ const dropNodeId = ref("");
  */
 const dragTag = ref("");
 
-const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
+const _copyNode = (effect: Effect) => (id: string) => (tree: NodeTree): void =>
   pipe(
     tree,
     findById(id),
@@ -94,7 +101,7 @@ const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
     fold(
       () => console.log("target is none"),
       target =>
-        effectNode(client)(tree =>
+        effect(tree =>
           pipe(
             tree,
             findParentById(id),
@@ -145,7 +152,8 @@ const convertData = (
 export const useState = (client: NodeDao, aliasDao: AliasDao) => {
   if (Object.keys(nodeTree.value).length === 0)
     nodeTree.value = client.get() || init();
-  const effect = effectNode(client);
+  const update = updateNode(client, nodeTree, currentRoute);
+  const effect = effectNode(node, update);
   /**
    * ノードをツリーに追加する
    * @param id 追加先ノードのID
@@ -193,7 +201,7 @@ export const useState = (client: NodeDao, aliasDao: AliasDao) => {
     };
   };
 
-  const copyNode = (id: string) => pipe(node.value, _copyNode(client)(id));
+  const copyNode = (id: string) => pipe(node.value, _copyNode(effect)(id));
 
   const { create: createAlias } = useAlias(aliasDao);
   const dropElement = () => {
