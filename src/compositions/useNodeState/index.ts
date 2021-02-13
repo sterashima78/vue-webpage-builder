@@ -1,6 +1,6 @@
 import "@/plugins/";
-import { ref, Ref, computed, watch } from "@vue/composition-api";
-import { NodeTree, RouteNodeTree, RouteNodeTreeData } from "@/types";
+import { ref, Ref, computed, ComputedRef } from "@vue/composition-api";
+import { NodeTree, RouteNodeTree } from "@/types";
 import { pipe } from "fp-ts/lib/pipeable";
 import { map, fold, getOrElse } from "fp-ts/lib/Option";
 import {
@@ -19,42 +19,62 @@ import {
 import { useAlias } from "@/compositions/useAlias";
 import { init } from "./initState";
 import { AliasDao } from "@/domain/alias";
-import Worker from "worker-loader!./createNodeData.worker";
-import { RouteNodes } from "@sterashima/vue-component-sandbox";
-import { toNodeTree } from "./converter";
-import throttle from "lodash.throttle";
-const nodeTree: Ref<RouteNodeTree> = ref<RouteNodeTree>({});
-/**
- * 全ルート
- */
-const allRoute = computed(() => Object.keys(nodeTree.value));
+import {
+  RouteNodes,
+  NodeTree as AppNodeTree,
+  EleNode
+} from "@sterashima/vue-component-sandbox";
 
+import { klona } from "klona/json";
+
+/**
+ * ノードの状態
+ */
+const nodeTree = ref<RouteNodeTree>({});
 /**
  * 現在のルート
  */
 const currentRoute = ref<string>("/");
 
 /**
+ * 全ルート
+ */
+export const toAllRoute = (nodes: Ref<RouteNodeTree>) => () =>
+  Object.keys(nodes.value);
+const allRoute = computed(toAllRoute(nodeTree));
+
+/**
  * 現在のルートのノードツリー
  */
-const node = computed(() => nodeTree.value[currentRoute.value]);
+export const toCurrentNode = (
+  nodes: Ref<RouteNodeTree>,
+  path: Ref<string>
+) => () => nodes.value[path.value];
+const node = computed(toCurrentNode(nodeTree, currentRoute));
 type NodeTreeMapper = (node: NodeTree) => NodeTree;
 
 /**
  * 現在のルートのノードツリーを更新する
  * @param nodeValue 更新するノード
  */
-const updateNode = (client: NodeDao) => (nodeValue: NodeTree) => {
-  nodeTree.value[currentRoute.value] = nodeValue;
-  client.save(nodeTree.value);
+export type Update = (nodeValue: NodeTree) => void;
+export const updateNode = (
+  client: NodeDao,
+  nodes: Ref<RouteNodeTree>,
+  path: Ref<string>
+) => (nodeValue: NodeTree) => {
+  nodes.value[path.value] = nodeValue;
+  client.save(nodes.value);
 };
 
 /**
  * 現在のルートのノードツリーを更新する
  * @param effect ノードを変更する関数
  */
-const effectNode = (client: NodeDao) => (effect: NodeTreeMapper) =>
-  pipe(node.value, effect, updateNode(client));
+export const effectNode = (nodes: ComputedRef<NodeTree>, update: Update) => (
+  effect: NodeTreeMapper
+) => pipe(nodes.value, effect, update);
+type Effect = ReturnType<typeof effectNode>;
 
 /**
  * ドラッグしているノードID
@@ -76,7 +96,7 @@ const dropNodeId = ref("");
  */
 const dragTag = ref("");
 
-const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
+const _copyNode = (effect: Effect) => (id: string) => (tree: NodeTree): void =>
   pipe(
     tree,
     findById(id),
@@ -84,7 +104,7 @@ const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
     fold(
       () => console.log("target is none"),
       target =>
-        effectNode(client)(tree =>
+        effect(tree =>
           pipe(
             tree,
             findParentById(id),
@@ -95,47 +115,76 @@ const _copyNode = (client: NodeDao) => (id: string) => (tree: NodeTree): void =>
     )
   );
 
-const convertData = (
-  node: Ref<RouteNodeTree>,
+type ToNodeTree = (
   hoverNodeId: Ref<string>,
   dropNodeId: Ref<string>
-) => {
-  const _nodeData = ref<RouteNodeTreeData>({});
-  const nodeData = computed(() =>
-    Object.keys(_nodeData.value).reduce((obj, path) => {
-      obj[path] = toNodeTree(_nodeData.value[path]);
-      return obj;
-    }, {} as RouteNodes)
-  );
-  const worker = new Worker();
-  worker.onmessage = (event: any) => {
-    _nodeData.value = event.data;
+) => (node: NodeTree) => AppNodeTree;
+
+export const toNodeTree: ToNodeTree = (hoverId, dropId) => {
+  const convert = (node: NodeTree): AppNodeTree => {
+    const {
+      tag,
+      text,
+      id,
+      attributes,
+      style,
+      classes,
+      slot,
+      on,
+      domProps
+    } = klona(node.value);
+    const texts = text ? [text] : [];
+    const styles = style || {};
+    const children = node.forest;
+    if (hoverId.value === id || dropId.value === id) {
+      styles["box-sizing"] = "border-box";
+    }
+    if (hoverNodeId.value === id) styles.border = "solid red 2px";
+    if (dropNodeId.value === id) styles.border = "solid blue 2px";
+    const value: EleNode = {
+      id,
+      tag,
+      classes,
+      attributes,
+      slot,
+      on,
+      domProps,
+      style: styles
+    };
+    return {
+      value,
+      children: [...children.map(convert), ...texts]
+    };
   };
-  const sendMsg = throttle(
-    () =>
-      worker.postMessage({
-        hoverNodeId: hoverNodeId.value,
-        dropNodeId: dropNodeId.value,
-        node: node.value
-      }),
-    16
-  );
-  watch(node, sendMsg, {
-    immediate: true
-  });
-  watch(hoverNodeId, sendMsg, {
-    immediate: true
-  });
-  watch(dropNodeId, sendMsg, {
-    immediate: true
-  });
-  return nodeData;
+  return convert;
+};
+
+type ToRouteNodes = (
+  nodes: Ref<RouteNodeTree>,
+  hoverNodeId: Ref<string>,
+  dropNodeId: Ref<string>,
+  converter: ToNodeTree
+) => () => RouteNodes;
+
+export const toRouteNodes: ToRouteNodes = (
+  nodes,
+  hoverId,
+  dropId,
+  converter
+) => {
+  const convert = converter(hoverId, dropId);
+  return () =>
+    pipe(
+      Object.entries(nodes.value).map(([path, node]) => [path, convert(node)]),
+      Object.fromEntries
+    );
 };
 
 export const useState = (client: NodeDao, aliasDao: AliasDao) => {
   if (Object.keys(nodeTree.value).length === 0)
     nodeTree.value = client.get() || init();
-  const effect = effectNode(client);
+  const update = updateNode(client, nodeTree, currentRoute);
+  const effect = effectNode(node, update);
   /**
    * ノードをツリーに追加する
    * @param id 追加先ノードのID
@@ -183,7 +232,7 @@ export const useState = (client: NodeDao, aliasDao: AliasDao) => {
     };
   };
 
-  const copyNode = (id: string) => pipe(node.value, _copyNode(client)(id));
+  const copyNode = (id: string) => pipe(node.value, _copyNode(effect)(id));
 
   const { create: createAlias } = useAlias(aliasDao);
   const dropElement = () => {
@@ -228,6 +277,6 @@ export const useState = (client: NodeDao, aliasDao: AliasDao) => {
     dragTag,
     copyNode,
     dropElement,
-    nodes: convertData(nodeTree, hoverNodeId, dropNodeId)
+    nodes: computed(toRouteNodes(nodeTree, hoverNodeId, dropNodeId, toNodeTree))
   };
 };
