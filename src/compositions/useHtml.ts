@@ -4,17 +4,16 @@ import { Ref, ref, computed } from "@vue/composition-api";
 const scripts: Ref<Resource[]> = ref([
   {
     name: "element-ui",
-    url: "https://unpkg.com/element-ui/lib/index.js"
+    url: "https://unpkg.com/element-ui@2.15.0/lib/index.js"
   }
 ]);
 const styles: Ref<Resource[]> = ref([
   {
     name: "element-ui",
-    url: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    url: "https://unpkg.com/element-ui@2.15.0/lib/theme-chalk/index.css"
   }
 ]);
 
-const body = `<div id='main-wrapper' />`;
 const inlineScript = ref(
   '/** before created vue */\n \
       console.log(window.vm);\n \
@@ -33,32 +32,41 @@ const store = {
   styles
 };
 
+export const add = (state: typeof store, resource: "styles" | "scripts") => (
+  item: Resource
+) => {
+  state[resource].value.push(item);
+};
+
+export const remove = (state: typeof store, resource: "styles" | "scripts") => (
+  key: string
+) => {
+  state[resource].value = state[resource].value.filter(
+    ({ name }) => name !== key
+  );
+};
+
+export const toUrlList = (list: Ref<Resource[]>, urls: string[]) => () => [
+  ...urls,
+  ...list.value.map(i => i.url)
+];
+
 export const useHtml = () => {
-  const scriptsSrc = computed(() => [
-    "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js",
-    "https://unpkg.com/vue-router/dist/vue-router.js",
-    ...scripts.value.map(i => i.url)
-  ]);
-  const cssLinks = computed(() => styles.value.map(i => i.url));
-  const add = (resource: "styles" | "scripts") => (item: Resource) => {
-    store[resource].value.push(item);
-  };
-  const remove = (resource: "styles" | "scripts") => (key: string) => {
-    store[resource].value = store[resource].value.filter(
-      ({ name }) => name !== key
-    );
-  };
   return {
     scripts,
     styles,
-    scriptsSrc,
-    cssLinks,
-    body,
+    scriptsSrc: computed(
+      toUrlList(scripts, [
+        "https://unpkg.com/vue@2.6.12/dist/vue.js",
+        "https://unpkg.com/vue-router@3.5.1/dist/vue-router.js"
+      ])
+    ),
+    cssLinks: computed(toUrlList(styles, [])),
     inlineScript,
     stylesStr,
-    addScript: add("scripts"),
-    addStyle: add("styles"),
-    removeScript: remove("scripts"),
-    removeStyle: remove("styles")
+    addScript: add(store, "scripts"),
+    addStyle: add(store, "styles"),
+    removeScript: remove(store, "scripts"),
+    removeStyle: remove(store, "styles")
   };
 };
